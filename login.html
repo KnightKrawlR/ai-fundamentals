@@ -133,44 +133,18 @@
         </div>
     </footer>
 
-    <!-- Firebase SDK -->
+    <!-- Firebase Integration -->
     <script type="module">
-        // Import the functions you need from the SDKs
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
-        import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
+        import { authService } from './js/auth-service.js';
         
-        // Your web app's Firebase configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyDjMIsQKMgdA6qNg7gnXDumhNOOWOD-Y00",
-            authDomain: "ai-fundamentals-ad37d.firebaseapp.com",
-            projectId: "ai-fundamentals-ad37d",
-            storageBucket: "ai-fundamentals-ad37d.firebasestorage.app",
-            messagingSenderId: "66811544711",
-            appId: "1:66811544711:web:c0772e9f8c6a498737977d",
-            measurementId: "G-2D5V39EQ3T"
-        };
-        
-        // Initialize Firebase
-        const app = initializeApp(firebaseConfig) ;
-        const auth = getAuth(app);
-        const googleProvider = new GoogleAuthProvider();
-        
-        // Set up Google Sign-In button
         document.addEventListener('DOMContentLoaded', function() {
+            // Set up Google Sign-In button
             const googleButton = document.getElementById('google-signin-button');
             if (googleButton) {
                 googleButton.addEventListener('click', async function() {
                     try {
-                        const result = await signInWithPopup(auth, googleProvider);
-                        const user = result.user;
+                        const user = await authService.signInWithGoogle();
                         console.log("Google sign-in successful:", user);
-                        
-                        // Store user info in localStorage for demo purposes
-                        localStorage.setItem('user', JSON.stringify({
-                            email: user.email,
-                            displayName: user.displayName,
-                            plan: 'premium'
-                        }));
                         
                         // Redirect to account page
                         window.location.href = 'account.html';
@@ -205,15 +179,8 @@
                     const password = document.getElementById('login-password').value;
                     
                     try {
-                        const userCredential = await signInWithEmailAndPassword(auth, email, password);
-                        const user = userCredential.user;
-                        
-                        // Store user info in localStorage for demo purposes
-                        localStorage.setItem('user', JSON.stringify({
-                            email: user.email,
-                            displayName: user.displayName || email.split('@')[0],
-                            plan: 'premium'
-                        }));
+                        const user = await authService.signInWithEmail(email, password);
+                        console.log("Email sign-in successful:", user);
                         
                         // Redirect to account page
                         window.location.href = 'account.html';
