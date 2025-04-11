@@ -11,279 +11,193 @@
     <link rel="stylesheet" href="css/header-redesign.css">
     <link rel="stylesheet" href="css/white-text.css">
     <link rel="stylesheet" href="css/fixed-header.css">
+    <link rel="stylesheet" href="css/anchor-fix.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <script src="js/add-fixed-header.js"></script>
-    <style>
-        .coming-soon-container {
-            max-width: 800px;
-            margin: 4rem auto;
-            padding: 2rem;
-            background-color: white;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            text-align: center;
-        }
-        
-        .coming-soon-container h1 {
-            color: var(--primary-color);
-            margin-bottom: 1.5rem;
-            font-size: 2.5rem;
-        }
-        
-        .coming-soon-container p {
-            font-size: 1.2rem;
-            line-height: 1.6;
-            margin-bottom: 1.5rem;
-            color: #333;
-        }
-        
-        .countdown {
-            display: flex;
-            justify-content: center;
-            margin: 2rem 0;
-        }
-        
-        .countdown-item {
-            margin: 0 1rem;
-            text-align: center;
-        }
-        
-        .countdown-number {
-            font-size: 2.5rem;
-            font-weight: bold;
-            color: var(--primary-color);
-            background: #f5f5f5;
-            border-radius: 8px;
-            padding: 1rem;
-            min-width: 80px;
-            display: inline-block;
-        }
-        
-        .countdown-label {
-            font-size: 0.9rem;
-            margin-top: 0.5rem;
-            color: #666;
-        }
-        
-        .notify-form {
-            margin: 2rem 0;
-        }
-        
-        .notify-form input {
-            padding: 0.75rem 1rem;
-            width: 60%;
-            max-width: 400px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 1rem;
-        }
-        
-        .notify-form button {
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            padding: 0.75rem 1.5rem;
-            border-radius: 4px;
-            font-size: 1rem;
-            cursor: pointer;
-            margin-left: 0.5rem;
-        }
-        
-        .notify-form button:hover {
-            background-color: #3b2568;
-        }
-        
-        .course-features {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            margin: 2rem 0;
-        }
-        
-        .feature {
-            flex: 0 0 calc(33.333% - 2rem);
-            margin: 1rem;
-            padding: 1.5rem;
-            background: #f9f9f9;
-            border-radius: 8px;
-            text-align: center;
-        }
-        
-        .feature i {
-            font-size: 2.5rem;
-            color: var(--primary-color);
-            margin-bottom: 1rem;
-        }
-        
-        .feature h3 {
-            font-size: 1.2rem;
-            margin-bottom: 0.5rem;
-            color: #333;
-        }
-        
-        .feature p {
-            font-size: 0.9rem;
-            color: #666;
-        }
-        
-        .discount-badge {
-            display: inline-block;
-            background-color: #ff6b6b;
-            color: white;
-            padding: 0.5rem 1rem;
-            border-radius: 20px;
-            font-weight: bold;
-            margin-top: 1rem;
-        }
-        
-        @media (max-width: 768px) {
-            .countdown-number {
-                font-size: 1.8rem;
-                min-width: 60px;
-                padding: 0.75rem;
-            }
-            
-            .feature {
-                flex: 0 0 calc(50% - 2rem);
-            }
-            
-            .notify-form input {
-                width: 100%;
-                margin-bottom: 1rem;
-            }
-            
-            .notify-form button {
-                margin-left: 0;
-                width: 100%;
-            }
-        }
-        
-        @media (max-width: 480px) {
-            .feature {
-                flex: 0 0 100%;
-            }
-        }
-    </style>
 </head>
 <body>
     <header>
-        <div class="container">
-            <a href="index.html" class="site-logo">
+        <div class="logo">
+            <a href="index.html">
                 <i class="fas fa-brain"></i>
                 <span>AI Fundamentals</span>
             </a>
-            <nav>
-                <ul>
-                    <li><a href="index.html">Learning</a></li>
-                    <li><a href="index.html#ai-tools">AI Tools</a></li>
-                    <li><a href="index.html#premium">Premium</a></li>
-                </ul>
-            </nav>
-            <button class="login-button"><i class="fas fa-sign-in-alt"></i><span> Sign In</span></button>
         </div>
+        <nav>
+            <ul>
+                <li><a href="index.html">Learning</a></li>
+                <li><a href="index.html#ai-tools">AI Tools</a></li>
+                <li><a href="index.html#premium">Premium</a></li>
+                <li class="guest-only"><a href="login.html" id="login-button"><i class="fas fa-sign-in-alt"></i> Sign In</a></li>
+            </ul>
+        </nav>
     </header>
 
-    <section class="hero-section">
+    <section class="hero coming-soon-hero">
         <div class="container">
-            <div class="hero-content">
-                <h2>Virtual Course Coming Soon</h2>
-                <p>We're working hard to bring you an amazing learning experience</p>
+            <h1>Coming Soon</h1>
+            <p>We're working hard to bring you this exciting new content</p>
+        </div>
+    </section>
+
+    <section class="coming-soon-section">
+        <div class="container">
+            <div class="coming-soon-content">
+                <div class="coming-soon-image">
+                    <img src="images/coming-soon.svg" alt="Coming Soon Illustration">
+                </div>
+                <div class="coming-soon-info">
+                    <h2>This Content is Under Development</h2>
+                    <p>Our team of AI experts is currently developing this learning path to ensure it meets our high standards for quality and educational value.</p>
+                    <div class="features-list">
+                        <div class="feature">
+                            <i class="fas fa-calendar-alt"></i>
+                            <div>
+                                <h3>Expected Release</h3>
+                                <p>Q3 2025</p>
+                            </div>
+                        </div>
+                        <div class="feature">
+                            <i class="fas fa-clock"></i>
+                            <div>
+                                <h3>Estimated Duration</h3>
+                                <p>8-10 hours</p>
+                            </div>
+                        </div>
+                        <div class="feature">
+                            <i class="fas fa-graduation-cap"></i>
+                            <div>
+                                <h3>Difficulty Level</h3>
+                                <p>Intermediate</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="notification-signup">
+                        <h3>Get Notified When This Content is Available</h3>
+                        <form id="notification-form">
+                            <div class="form-group">
+                                <input type="email" placeholder="Your email address" required>
+                                <button type="submit" class="btn">Notify Me</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="alternative-courses">
+                <h2>Explore These Courses Instead</h2>
+                <div class="courses-grid">
+                    <div class="course-card">
+                        <div class="course-image">
+                            <img src="images/intro-ai.jpg" alt="Introduction to AI">
+                        </div>
+                        <div class="course-content">
+                            <h3>Introduction to AI</h3>
+                            <p>Learn the basic concepts and terminology of artificial intelligence</p>
+                            <a href="learning-paths.html" class="btn">Start Learning</a>
+                        </div>
+                    </div>
+                    <div class="course-card">
+                        <div class="course-image">
+                            <img src="images/ml-basics.jpg" alt="Machine Learning Basics">
+                        </div>
+                        <div class="course-content">
+                            <h3>Machine Learning Basics</h3>
+                            <p>Understand how machines learn from data and make predictions</p>
+                            <a href="learning-paths.html" class="btn">Start Learning</a>
+                        </div>
+                    </div>
+                    <div class="course-card">
+                        <div class="course-image">
+                            <img src="images/nlp.jpg" alt="Natural Language Processing">
+                        </div>
+                        <div class="course-content">
+                            <h3>Natural Language Processing</h3>
+                            <p>Learn how AI understands and generates human language</p>
+                            <a href="learning-paths.html" class="btn">Start Learning</a>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </section>
 
-    <section>
+    <footer>
         <div class="container">
-            <div class="coming-soon-container">
-                <h1>Comprehensive AI Course Launching Soon</h1>
-                <p>We're putting the finishing touches on our in-depth virtual course. Be the first to know when it launches and get exclusive early-bird discounts!</p>
-                
-                <div class="countdown">
-                    <div class="countdown-item">
-                        <div class="countdown-number" id="days">30</div>
-                        <div class="countdown-label">Days</div>
+            <div class="footer-content">
+                <div class="footer-logo">
+                    <h2>AI Fundamentals</h2>
+                    <p>Your journey to AI mastery starts here</p>
+                </div>
+                <div class="footer-links">
+                    <div class="footer-column">
+                        <h3>Resources</h3>
+                        <ul>
+                            <li><a href="#">Flashcards</a></li>
+                            <li><a href="#">Study Guides</a></li>
+                            <li><a href="#">Video Lessons</a></li>
+                            <li><a href="#">Practice Quizzes</a></li>
+                        </ul>
                     </div>
-                    <div class="countdown-item">
-                        <div class="countdown-number" id="hours">24</div>
-                        <div class="countdown-label">Hours</div>
+                    <div class="footer-column">
+                        <h3>Company</h3>
+                        <ul>
+                            <li><a href="#">About Us</a></li>
+                            <li><a href="#">Contact</a></li>
+                            <li><a href="#">Careers</a></li>
+                            <li><a href="#">Blog</a></li>
+                        </ul>
                     </div>
-                    <div class="countdown-item">
-                        <div class="countdown-number" id="minutes">00</div>
-                        <div class="countdown-label">Minutes</div>
-                    </div>
-                    <div class="countdown-item">
-                        <div class="countdown-number" id="seconds">00</div>
-                        <div class="countdown-label">Seconds</div>
+                    <div class="footer-column">
+                        <h3>Legal</h3>
+                        <ul>
+                            <li><a href="#">Terms of Service</a></li>
+                            <li><a href="#">Privacy Policy</a></li>
+                            <li><a href="#">Cookie Policy</a></li>
+                        </ul>
                     </div>
                 </div>
-                
-                <div class="notify-form">
-                    <input type="email" placeholder="Enter your email address">
-                    <button>Notify Me</button>
-                </div>
-                
-                <div class="course-features">
-                    <div class="feature">
-                        <i class="fas fa-video"></i>
-                        <h3>HD Video Lessons</h3>
-                        <p>Over 50 hours of high-quality video content with practical examples</p>
-                    </div>
-                    <div class="feature">
-                        <i class="fas fa-laptop-code"></i>
-                        <h3>Hands-on Projects</h3>
-                        <p>Build real-world AI applications with step-by-step guidance</p>
-                    </div>
-                    <div class="feature">
-                        <i class="fas fa-certificate"></i>
-                        <h3>Certification</h3>
-                        <p>Earn a certificate upon completion to showcase your skills</p>
-                    </div>
-                    <div class="feature">
-                        <i class="fas fa-users"></i>
-                        <h3>Community Access</h3>
-                        <p>Join our exclusive community of AI enthusiasts and professionals</p>
-                    </div>
-                    <div class="feature">
-                        <i class="fas fa-headset"></i>
-                        <h3>Expert Support</h3>
-                        <p>Get your questions answered by industry experts</p>
-                    </div>
-                    <div class="feature">
-                        <i class="fas fa-sync"></i>
-                        <h3>Lifetime Updates</h3>
-                        <p>Access all future course updates at no additional cost</p>
-                    </div>
-                </div>
-                
-                <div class="discount-badge">
-                    Premium members get 10-15% discount!
+            </div>
+            <div class="footer-bottom">
+                <p>© 2025 AI Fundamentals. All rights reserved.</p>
+                <div class="social-links">
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                    <a href="#"><i class="fab fa-facebook"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                    <a href="#"><i class="fab fa-linkedin"></i></a>
                 </div>
             </div>
         </div>
-    </section>
+    </footer>
 
+    <script src="js/fixed-header.js"></script>
+    <script src="js/add-fixed-header.js"></script>
     <script>
-        // Countdown timer
-        const countdownDate = new Date();
-        countdownDate.setDate(countdownDate.getDate() + 30); // 30 days from now
-        
-        function updateCountdown() {
-            const now = new Date().getTime();
-            const distance = countdownDate - now;
+        document.addEventListener('DOMContentLoaded', function()  {
+            // Handle notification form submission
+            const notificationForm = document.getElementById('notification-form');
+            if (notificationForm) {
+                notificationForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    alert('Thank you! We will notify you when this content becomes available.');
+                    this.reset();
+                });
+            }
             
-            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+            // Check login status for navigation
+            const userString = localStorage.getItem('user');
+            const loginButton = document.getElementById('login-button');
+            const guestElements = document.querySelectorAll('.guest-only');
+            const accountElements = document.querySelectorAll('.account-only');
             
-            document.getElementById("days").innerText = days;
-            document.getElementById("hours").innerText = hours;
-            document.getElementById("minutes").innerText = minutes < 10 ? "0" + minutes : minutes;
-            document.getElementById("seconds").innerText = seconds < 10 ? "0" + seconds : seconds;
-        }
-        
-        setInterval(updateCountdown, 1000);
-        updateCountdown();
+            if (userString) {
+                // User is logged in
+                guestElements.forEach(el => el.style.display = 'none');
+                accountElements.forEach(el => el.style.display = 'block');
+            } else {
+                // User is not logged in
+                guestElements.forEach(el => el.style.display = 'block');
+                accountElements.forEach(el => el.style.display = 'none');
+            }
+        });
     </script>
 </body>
 </html>

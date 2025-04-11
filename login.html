@@ -122,7 +122,7 @@
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>© 2025 AI Fundamentals. All Rights Reserved.</p>
+                <p>© 2025 AI Fundamentals. All rights reserved.</p>
                 <div class="social-links">
                     <a href="#"><i class="fab fa-twitter"></i></a>
                     <a href="#"><i class="fab fa-facebook"></i></a>
@@ -133,25 +133,49 @@
         </div>
     </footer>
 
-    <!-- Firebase Integration -->
-    <script type="module">
-        import { authService } from './js/auth-service.js';
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script>
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyDjMIsQKMgdA6qNg7gnXDumhNOOWOD-Y00",
+            authDomain: "ai-fundamentals-ad37d.firebaseapp.com",
+            projectId: "ai-fundamentals-ad37d",
+            storageBucket: "ai-fundamentals-ad37d.firebasestorage.app",
+            messagingSenderId: "66811544711",
+            appId: "1:66811544711:web:c0772e9f8c6a498737977d",
+            measurementId: "G-2D5V39EQ3T"
+        };
+        
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig) ;
         
         document.addEventListener('DOMContentLoaded', function() {
-            // Set up Google Sign-In button 
+            // Set up Google Sign-In button
             const googleButton = document.getElementById('google-signin-button');
             if (googleButton) {
-                googleButton.addEventListener('click', async function() {
-                    try {
-                        const user = await authService.signInWithGoogle();
-                        console.log("Google sign-in successful:", user);
-                        
-                        // Redirect to account page
-                        window.location.href = 'account.html';
-                    } catch (error) {
-                        console.error("Google sign-in error:", error);
-                        alert("Google sign-in failed. Please try again.");
-                    }
+                googleButton.addEventListener('click', function() {
+                    const provider = new firebase.auth.GoogleAuthProvider();
+                    firebase.auth().signInWithPopup(provider)
+                        .then((result) => {
+                            const user = result.user;
+                            console.log("Google sign-in successful:", user);
+                            
+                            // Store user info in localStorage for demo purposes
+                            localStorage.setItem('user', JSON.stringify({
+                                email: user.email,
+                                displayName: user.displayName,
+                                plan: 'premium'
+                            }));
+                            
+                            // Redirect to account page
+                            window.location.href = 'account.html';
+                        })
+                        .catch((error) => {
+                            console.error("Google sign-in error:", error);
+                            alert("Google sign-in failed. Please try again.");
+                        });
                 });
             }
             
@@ -172,22 +196,31 @@
             // Handle login form submission
             const loginForm = document.getElementById('login-form');
             if (loginForm) {
-                loginForm.addEventListener('submit', async function(event) {
+                loginForm.addEventListener('submit', function(event) {
                     event.preventDefault();
                     
                     const email = document.getElementById('login-email').value;
                     const password = document.getElementById('login-password').value;
                     
-                    try {
-                        const user = await authService.signInWithEmail(email, password);
-                        console.log("Email sign-in successful:", user);
-                        
-                        // Redirect to account page
-                        window.location.href = 'account.html';
-                    } catch (error) {
-                        console.error("Email sign-in error:", error);
-                        alert("Login failed. Please check your email and password.");
-                    }
+                    firebase.auth().signInWithEmailAndPassword(email, password)
+                        .then((userCredential) => {
+                            const user = userCredential.user;
+                            console.log("Email sign-in successful:", user);
+                            
+                            // Store user info in localStorage for demo purposes
+                            localStorage.setItem('user', JSON.stringify({
+                                email: user.email,
+                                displayName: user.displayName || email.split('@')[0],
+                                plan: 'premium'
+                            }));
+                            
+                            // Redirect to account page
+                            window.location.href = 'account.html';
+                        })
+                        .catch((error) => {
+                            console.error("Email sign-in error:", error);
+                            alert("Login failed. Please check your email and password.");
+                        });
                 });
             }
         });
