@@ -3,404 +3,304 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Fundamentals - Account</title>
+    <title>My Account - AI Fundamentals</title>
     <link rel="stylesheet" href="css/styles.css">
-    <link rel="stylesheet" href="css/hero-fix.css">
-    <link rel="stylesheet" href="css/logo.css">
-    <link rel="stylesheet" href="css/mobile.css">
-    <link rel="stylesheet" href="css/header-redesign.css">
     <link rel="stylesheet" href="css/white-text.css">
+    <link rel="stylesheet" href="css/header-redesign.css">
     <link rel="stylesheet" href="css/fixed-header.css">
+    <link rel="stylesheet" href="css/mobile.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <script src="js/add-fixed-header.js"></script>
     <style>
         .account-container {
-            max-width: 800px;
-            margin: 2rem auto;
-            padding: 2rem;
-            background-color: white;
-            border-radius: var(--border-radius);
-            box-shadow: var(--shadow);
+            max-width: 1000px;
+            margin: 40px auto;
+            padding: 30px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1) ;
         }
         
         .account-header {
             display: flex;
             align-items: center;
-            margin-bottom: 2rem;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eee;
         }
         
         .account-avatar {
             width: 80px;
             height: 80px;
+            background-color: #5e35b1;
             border-radius: 50%;
-            background-color: var(--primary-color);
-            color: white;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 2rem;
-            margin-right: 1.5rem;
+            margin-right: 20px;
+            color: white;
+            font-size: 36px;
         }
         
-        .account-info h2 {
-            margin-bottom: 0.5rem;
+        .account-info h1 {
+            margin: 0 0 5px 0;
+            color: #333;
         }
         
         .account-info p {
+            margin: 0;
             color: #666;
         }
         
-        .account-tabs {
-            display: flex;
-            border-bottom: 1px solid var(--border-color);
-            margin-bottom: 1.5rem;
-        }
-        
-        .account-tab {
-            padding: 0.75rem 1.5rem;
-            cursor: pointer;
-            border-bottom: 3px solid transparent;
-            transition: var(--transition);
-        }
-        
-        .account-tab.active {
-            border-bottom-color: var(--primary-color);
-            color: var(--primary-color);
-            font-weight: 500;
-        }
-        
-        .account-tab:hover:not(.active) {
-            border-bottom-color: #ddd;
-        }
-        
-        .tab-content {
-            display: none;
-        }
-        
-        .tab-content.active {
-            display: block;
-        }
-        
-        .subscription-card {
-            border: 1px solid var(--border-color);
-            border-radius: var(--border-radius);
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-        }
-        
-        .subscription-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1rem;
-        }
-        
-        .subscription-status {
-            padding: 0.3rem 0.6rem;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            font-weight: 500;
-        }
-        
-        .status-active {
-            background-color: #d4edda;
-            color: #155724;
-        }
-        
-        .subscription-details {
-            margin-bottom: 1rem;
-        }
-        
-        .subscription-details p {
-            margin-bottom: 0.5rem;
-        }
-        
-        .payment-method {
-            display: flex;
-            align-items: center;
-            padding: 1rem;
-            border: 1px solid var(--border-color);
-            border-radius: var(--border-radius);
-            margin-bottom: 1rem;
-        }
-        
-        .payment-method-icon {
-            margin-right: 1rem;
-            font-size: 1.5rem;
-            color: #666;
-        }
-        
-        .payment-method-details {
-            flex-grow: 1;
-        }
-        
-        .payment-method-actions {
-            display: flex;
-            gap: 0.5rem;
-        }
-        
-        .btn-sm {
-            padding: 0.3rem 0.6rem;
-            font-size: 0.8rem;
-        }
-        
-        .btn-outline {
-            background-color: transparent;
-            border: 1px solid var(--primary-color);
-            color: var(--primary-color);
-        }
-        
-        .btn-outline:hover {
-            background-color: var(--primary-color);
-            color: white;
-        }
-        
-        .game-card {
-            border: 1px solid var(--border-color);
-            border-radius: var(--border-radius);
-            overflow: hidden;
-            margin-bottom: 1.5rem;
-            transition: var(--transition);
-        }
-        
-        .game-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-        }
-        
-        .game-image {
-            height: 150px;
-            background-color: #f5f5f5;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--primary-color);
-            font-size: 3rem;
-        }
-        
-        .game-content {
-            padding: 1.5rem;
-        }
-        
-        .game-content h3 {
-            margin-bottom: 0.5rem;
-        }
-        
-        .game-content p {
-            color: #666;
-            margin-bottom: 1rem;
-        }
-        
-        .games-grid {
+        .account-sections {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 1.5rem;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+        
+        .account-section {
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .account-section h2 {
+            margin-top: 0;
+            color: #5e35b1;
+            font-size: 1.5rem;
+        }
+        
+        .subscription-info {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .plan-badge {
+            background-color: #5e35b1;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            margin-left: 10px;
+            font-size: 0.9rem;
+        }
+        
+        .upgrade-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .upgrade-option {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+            text-align: center;
+        }
+        
+        .upgrade-option h3 {
+            color: #5e35b1;
+            margin-top: 0;
+        }
+        
+        .upgrade-option p {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        
+        .upgrade-btn {
+            background-color: #5e35b1;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.3s;
+            width: 100%;
+        }
+        
+        .upgrade-btn:hover {
+            background-color: #4527a0;
+        }
+        
+        .progress-list, .quiz-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .progress-item, .quiz-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .progress-bar {
+            height: 10px;
+            width: 150px;
+            background-color: #e0e0e0;
+            border-radius: 5px;
+            overflow: hidden;
+            margin: 0 10px;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background-color: #5e35b1;
+        }
+        
+        .account-actions {
+            margin-top: 30px;
+            display: flex;
+            justify-content: flex-end;
+        }
+        
+        .logout-btn {
+            background-color: #f44336;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+        
+        .logout-btn:hover {
+            background-color: #d32f2f;
+        }
+        
+        @media (max-width: 768px) {
+            .account-sections {
+                grid-template-columns: 1fr;
+            }
+            
+            .upgrade-options {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
 <body>
     <header>
-        <div class="container">
-            <h1>AI Fundamentals</h1>
-            <nav>
-                <ul>
-                    <li><a href="index.html">Learning</a></li>
-                    <li><a href="index.html#ai-tools">AI Tools</a></li>
-                    <li><a href="index.html#premium">Premium</a></li>
-                </ul>
-            </nav>
+        <div class="logo">
+            <a href="index.html">
+                <i class="fas fa-brain"></i>
+                <span>AI Fundamentals</span>
+            </a>
+        </div>
+        <nav>
+            <ul>
+                <li><a href="index.html">Learning</a></li>
+                <li><a href="index.html#ai-tools">AI Tools</a></li>
+                <li><a href="index.html#premium">Premium</a></li>
+            </ul>
+        </nav>
+        <div class="auth-buttons">
+            <a href="account.html" class="login-button"><i class="fas fa-user"></i><span> My Account</span></a>
         </div>
     </header>
 
-    <section class="hero-section">
-        <div class="container">
-            <div class="hero-content">
-                <h2>Your Account</h2>
-                <p>Manage your subscription and access premium content</p>
+    <div class="container">
+        <div class="account-container">
+            <div class="account-header">
+                <div class="account-avatar">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div class="account-info">
+                    <h1 id="user-name">User Name</h1>
+                    <p id="user-email">user@example.com</p>
+                </div>
             </div>
-        </div>
-    </section>
-
-    <section>
-        <div class="container">
-            <div class="account-container">
-                <div class="account-header">
-                    <div class="account-avatar">
-                        <i class="fas fa-user"></i>
-                    </div>
-                    <div class="account-info">
-                        <h2 id="user-name">User Name</h2>
-                        <p id="user-email">user@example.com</p>
-                    </div>
-                </div>
-                
-                <div class="account-tabs">
-                    <div class="account-tab active" data-tab="subscription">Subscription</div>
-                    <div class="account-tab" data-tab="games">Premium Games</div>
-                    <div class="account-tab" data-tab="settings">Settings</div>
-                </div>
-                
-                <div id="subscription-tab" class="tab-content active">
-                    <h3>Your Subscription</h3>
-                    
-                    <div class="subscription-card">
-                        <div class="subscription-header">
-                            <h4 id="plan-name">Premium Plan</h4>
-                            <span class="subscription-status status-active">Active</span>
-                        </div>
-                        <div class="subscription-details">
-                            <p><strong>Billing Cycle:</strong> <span id="billing-cycle">Monthly</span></p>
-                            <p><strong>Next Payment:</strong> <span id="next-payment">May 10, 2025</span></p>
-                            <p><strong>Amount:</strong> <span id="payment-amount">$9.99</span></p>
-                        </div>
-                        <div class="subscription-actions">
-                            <button class="btn btn-outline" id="cancel-subscription">Cancel Subscription</button>
-                        </div>
+            
+            <div class="account-sections">
+                <div class="account-section">
+                    <h2>Subscription</h2>
+                    <div class="subscription-info">
+                        <p>Current Plan:</p>
+                        <div class="plan-badge" id="current-plan">Basic</div>
                     </div>
                     
-                    <h3>Payment Method</h3>
+                    <p>Upgrade your plan to access premium features and content.</p>
                     
-                    <div class="payment-method">
-                        <div class="payment-method-icon">
-                            <i class="fab fa-cc-visa"></i>
+                    <div class="upgrade-options" id="upgrade-options">
+                        <div class="upgrade-option">
+                            <h3>Premium</h3>
+                            <p>$9.99/month</p>
+                            <button class="upgrade-btn" data-plan="Premium">Upgrade to Premium</button>
                         </div>
-                        <div class="payment-method-details">
-                            <p><strong>Visa</strong> ending in 4242</p>
-                            <p>Expires 12/2025</p>
-                        </div>
-                        <div class="payment-method-actions">
-                            <button class="btn btn-sm btn-outline">Edit</button>
-                        </div>
-                    </div>
-                    
-                    <h3>Billing History</h3>
-                    
-                    <table style="width: 100%; border-collapse: collapse; margin-bottom: 1.5rem;">
-                        <thead>
-                            <tr style="border-bottom: 1px solid var(--border-color);">
-                                <th style="text-align: left; padding: 0.75rem;">Date</th>
-                                <th style="text-align: left; padding: 0.75rem;">Description</th>
-                                <th style="text-align: right; padding: 0.75rem;">Amount</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr style="border-bottom: 1px solid var(--border-color);">
-                                <td style="padding: 0.75rem;">Apr 10, 2025</td>
-                                <td style="padding: 0.75rem;">Premium Plan - Monthly Subscription</td>
-                                <td style="padding: 0.75rem; text-align: right;">$9.99</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-                
-                <div id="games-tab" class="tab-content">
-                    <h3>Premium Games</h3>
-                    <p>Access exclusive AI learning games with your premium subscription.</p>
-                    
-                    <div class="games-grid">
-                        <div class="game-card">
-                            <div class="game-image">
-                                <i class="fas fa-robot"></i>
-                            </div>
-                            <div class="game-content">
-                                <h3>AI Defender</h3>
-                                <p>Protect your data from AI threats in this strategic game.</p>
-                                <a href="games/ai-defender.html" class="btn">Play Now</a>
-                            </div>
-                        </div>
-                        
-                        <div class="game-card">
-                            <div class="game-image">
-                                <i class="fas fa-brain"></i>
-                            </div>
-                            <div class="game-content">
-                                <h3>Neural Network Builder</h3>
-                                <p>Build and train neural networks to solve complex problems.</p>
-                                <a href="games/neural-network.html" class="btn">Play Now</a>
-                            </div>
-                        </div>
-                        
-                        <div class="game-card">
-                            <div class="game-image">
-                                <i class="fas fa-microchip"></i>
-                            </div>
-                            <div class="game-content">
-                                <h3>AI Ethics Challenge</h3>
-                                <p>Navigate ethical dilemmas in AI development and deployment.</p>
-                                <a href="games/ethics-challenge.html" class="btn">Play Now</a>
-                            </div>
-                        </div>
-                        
-                        <div class="game-card">
-                            <div class="game-image">
-                                <i class="fas fa-code"></i>
-                            </div>
-                            <div class="game-content">
-                                <h3>Prompt Engineering</h3>
-                                <p>Master the art of crafting effective prompts for AI systems.</p>
-                                <a href="games/prompt-engineering.html" class="btn">Play Now</a>
-                            </div>
+                        <div class="upgrade-option">
+                            <h3>Premium Plus</h3>
+                            <p>$19.99/month</p>
+                            <button class="upgrade-btn" data-plan="Premium Plus">Upgrade to Premium Plus</button>
                         </div>
                     </div>
                 </div>
                 
-                <div id="settings-tab" class="tab-content">
-                    <h3>Account Settings</h3>
-                    
-                    <form id="account-settings-form">
+                <div class="account-section">
+                    <h2>Account Settings</h2>
+                    <form id="profile-form">
                         <div class="form-group">
-                            <label for="display-name">Display Name</label>
-                            <input type="text" id="display-name" class="form-control" value="User Name">
+                            <label for="profile-name">Display Name</label>
+                            <input type="text" id="profile-name">
                         </div>
                         
                         <div class="form-group">
-                            <label for="account-email">Email</label>
-                            <input type="email" id="account-email" class="form-control" value="user@example.com">
+                            <label for="profile-email">Email</label>
+                            <input type="email" id="profile-email" disabled>
                         </div>
                         
-                        <div class="form-group">
-                            <label for="notification-preferences">Notification Preferences</label>
-                            <div style="margin-top: 0.5rem;">
-                                <label style="display: flex; align-items: center; margin-bottom: 0.5rem;">
-                                    <input type="checkbox" checked style="margin-right: 0.5rem;"> Email notifications for new content
-                                </label>
-                                <label style="display: flex; align-items: center; margin-bottom: 0.5rem;">
-                                    <input type="checkbox" checked style="margin-right: 0.5rem;"> Subscription and billing alerts
-                                </label>
-                                <label style="display: flex; align-items: center; margin-bottom: 0.5rem;">
-                                    <input type="checkbox" style="margin-right: 0.5rem;"> Weekly learning progress reports
-                                </label>
-                            </div>
-                        </div>
-                        
-                        <button type="submit" class="btn">Save Changes</button>
+                        <button type="submit" class="btn">Update Profile</button>
                     </form>
-                    
-                    <div style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid var(--border-color);">
-                        <h3>Delete Account</h3>
-                        <p>Permanently delete your account and all associated data.</p>
-                        <button class="btn btn-outline" style="color: #dc3545; border-color: #dc3545;">Delete Account</button>
-                    </div>
+                </div>
+                
+                <div class="account-section" id="learning-progress">
+                    <h3>Your Learning Progress</h3>
+                    <p>You haven't started any courses yet. <a href="learning-paths.html">Browse our learning paths</a> to get started!</p>
+                </div>
+                
+                <div class="account-section" id="quiz-history">
+                    <h3>Your Quiz History</h3>
+                    <p>You haven't taken any quizzes yet. Complete some lessons to test your knowledge!</p>
                 </div>
             </div>
+            
+            <div class="account-actions">
+                <button id="logout-btn" class="logout-btn">Sign Out</button>
+            </div>
         </div>
-    </section>
+    </div>
 
     <footer>
         <div class="container">
             <div class="footer-content">
                 <div class="footer-logo">
-                    <h2>AI Fundamentals</h2>
-                    <p>Your journey to AI mastery starts here</p>
+                    <i class="fas fa-brain"></i>
+                    <span>AI Fundamentals</span>
                 </div>
                 <div class="footer-links">
                     <div class="footer-column">
+                        <h3>Learning</h3>
+                        <ul>
+                            <li><a href="learning-paths.html">Learning Paths</a></li>
+                            <li><a href="#">Flashcards</a></li>
+                            <li><a href="#">Practice Tests</a></li>
+                            <li><a href="#">Study Guides</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-column">
                         <h3>Resources</h3>
                         <ul>
-                            <li><a href="#">Flashcards</a></li>
-                            <li><a href="#">Study Guides</a></li>
-                            <li><a href="#">Video Lessons</a></li>
-                            <li><a href="#">Practice Quizzes</a></li>
+                            <li><a href="#">Blog</a></li>
+                            <li><a href="#">Tutorials</a></li>
+                            <li><a href="#">Glossary</a></li>
+                            <li><a href="#">FAQ</a></li>
                         </ul>
                     </div>
                     <div class="footer-column">
@@ -408,149 +308,277 @@
                         <ul>
                             <li><a href="#">About Us</a></li>
                             <li><a href="#">Contact</a></li>
-                            <li><a href="#">Careers</a></li>
-                            <li><a href="#">Blog</a></li>
-                        </ul>
-                    </div>
-                    <div class="footer-column">
-                        <h3>Legal</h3>
-                        <ul>
-                            <li><a href="#">Terms of Service</a></li>
                             <li><a href="#">Privacy Policy</a></li>
-                            <li><a href="#">Cookie Policy</a></li>
+                            <li><a href="#">Terms of Service</a></li>
                         </ul>
                     </div>
                 </div>
             </div>
             <div class="footer-bottom">
                 <p>&copy; 2025 AI Fundamentals. All rights reserved.</p>
-                <div class="social-links">
+                <div class="social-icons">
                     <a href="#"><i class="fab fa-twitter"></i></a>
                     <a href="#"><i class="fab fa-facebook"></i></a>
-                    <a href="#"><i class="fab fa-instagram"></i></a>
                     <a href="#"><i class="fab fa-linkedin"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
                 </div>
             </div>
         </div>
     </footer>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Tab switching functionality
-            const tabs = document.querySelectorAll('.account-tab');
-            tabs.forEach(tab => {
-                tab.addEventListener('click', function() {
-                    // Remove active class from all tabs
-                    tabs.forEach(t => t.classList.remove('active'));
-                    // Add active class to clicked tab
-                    this.classList.add('active');
-                    
-                    // Hide all tab content
-                    const tabContents = document.querySelectorAll('.tab-content');
-                    tabContents.forEach(content => content.classList.remove('active'));
-                    
-                    // Show selected tab content
-                    const tabId = this.getAttribute('data-tab');
-                    document.getElementById(tabId + '-tab').classList.add('active');
+    <script src="js/script.js"></script>
+    <script src="js/fixed-header.js"></script>
+    
+    <!-- Firebase SDK -->
+    <script type="module">
+      import { authService } from './js/auth-service.js';
+      import { userService, progressService, studyService } from './js/db-service.js';
+      
+      // Initialize auth state listener
+      authService.initAuthStateListener(async (user) => {
+        if (user) {
+          // User is signed in, load their data
+          displayUserInfo(user);
+          
+          // Get user profile from Firestore
+          const userId = user.uid;
+          const userProfile = await userService.getUserProfile(userId);
+          
+          // Get user progress
+          const allProgress = await progressService.getAllProgress(userId);
+          
+          // Get quiz history
+          const quizHistory = await studyService.getQuizHistory(userId);
+          
+          // Update UI with user data
+          if (userProfile) {
+            updateSubscriptionUI(userProfile.plan || 'Basic');
+            
+            // Update profile form
+            const nameInput = document.getElementById('profile-name');
+            const emailInput = document.getElementById('profile-email');
+            
+            if (nameInput) nameInput.value = userProfile.displayName || user.displayName || '';
+            if (emailInput) emailInput.value = userProfile.email || user.email || '';
+          }
+          
+          // Display progress data
+          displayProgressData(allProgress);
+          
+          // Display quiz history
+          displayQuizHistory(quizHistory);
+          
+          // Set up profile form submission
+          const profileForm = document.getElementById('profile-form');
+          if (profileForm) {
+            profileForm.addEventListener('submit', async (e) => {
+              e.preventDefault();
+              
+              const nameInput = document.getElementById('profile-name');
+              const name = nameInput ? nameInput.value : '';
+              
+              if (name) {
+                // Update profile in Firestore
+                await userService.saveUserProfile(userId, {
+                  displayName: name
                 });
+                
+                // Update display name in Firebase Auth
+                await updateProfile(user, { displayName: name });
+                
+                // Update UI
+                const nameElement = document.getElementById('user-name');
+                if (nameElement) nameElement.textContent = name;
+                
+                alert('Profile updated successfully!');
+              }
             });
-            
-            // Load user data from localStorage
-            const user = JSON.parse(localStorage.getItem('user') || '{}');
-            if (user.name) {
-                document.getElementById('user-name').textContent = user.name;
-                document.getElementById('display-name').value = user.name;
-            }
-            
-            if (user.email) {
-                document.getElementById('user-email').textContent = user.email;
-                document.getElementById('account-email').value = user.email;
-            }
-            
-            // Load subscription data
-            if (user.subscription) {
-                const subscription = user.subscription;
-                
-                // Update plan name
-                if (subscription.plan === 'price_monthly') {
-                    document.getElementById('plan-name').textContent = 'Premium Plan';
-                    document.getElementById('billing-cycle').textContent = 'Monthly';
-                    document.getElementById('payment-amount').textContent = '$9.99';
-                } else if (subscription.plan === 'price_lifetime') {
-                    document.getElementById('plan-name').textContent = 'Lifetime Plan';
-                    document.getElementById('billing-cycle').textContent = 'One-time payment';
-                    document.getElementById('payment-amount').textContent = '$199';
-                    
-                    // Hide next payment for lifetime plan
-                    const nextPaymentElement = document.getElementById('next-payment').parentElement;
-                    if (nextPaymentElement) {
-                        nextPaymentElement.style.display = 'none';
-                    }
-                }
-                
-                // Calculate next payment date for monthly plan
-                if (subscription.plan === 'price_monthly' && subscription.startDate) {
-                    const startDate = new Date(subscription.startDate);
-                    const nextPaymentDate = new Date(startDate);
-                    nextPaymentDate.setMonth(nextPaymentDate.getMonth() + 1);
-                    
-                    const options = { year: 'numeric', month: 'long', day: 'numeric' };
-                    document.getElementById('next-payment').textContent = nextPaymentDate.toLocaleDateString('en-US', options);
-                }
-            }
-            
-            // Handle cancel subscription button
-            const cancelButton = document.getElementById('cancel-subscription');
-            if (cancelButton) {
-                cancelButton.addEventListener('click', function() {
-                    if (confirm('Are you sure you want to cancel your subscription? You will lose access to premium features at the end of your current billing period.')) {
-                        // In a real implementation, this would make an API call to cancel the subscription
-                        alert('Your subscription has been canceled. You will have access until the end of your current billing period.');
-                        
-                        // Update UI to reflect cancellation
-                        const statusElement = document.querySelector('.subscription-status');
-                        if (statusElement) {
-                            statusElement.textContent = 'Canceled';
-                            statusElement.classList.remove('status-active');
-                        }
-                        
-                        // Update user data in localStorage
-                        const user = JSON.parse(localStorage.getItem('user') || '{}');
-                        if (user.subscription) {
-                            user.subscription.status = 'canceled';
-                            localStorage.setItem('user', JSON.stringify(user));
-                        }
-                        
-                        // Disable cancel button
-                        this.disabled = true;
-                    }
-                });
-            }
-            
-            // Handle account settings form submission
-            const settingsForm = document.getElementById('account-settings-form');
-            if (settingsForm) {
-                settingsForm.addEventListener('submit', function(event) {
-                    event.preventDefault();
-                    
-                    // Get form values
-                    const displayName = document.getElementById('display-name').value;
-                    const email = document.getElementById('account-email').value;
-                    
-                    // Update user data in localStorage
-                    const user = JSON.parse(localStorage.getItem('user') || '{}');
-                    user.name = displayName;
-                    user.email = email;
-                    localStorage.setItem('user', JSON.stringify(user));
-                    
-                    // Update UI
-                    document.getElementById('user-name').textContent = displayName;
-                    document.getElementById('user-email').textContent = email;
-                    
-                    alert('Account settings updated successfully!');
-                });
-            }
+          }
+        } else {
+          // User is not signed in, redirect to login page
+          window.location.href = 'login.html';
+        }
+      });
+      
+      // Logout button
+      const logoutBtn = document.getElementById('logout-btn');
+      if (logoutBtn) {
+        logoutBtn.addEventListener('click', async () => {
+          await authService.signOut();
+          window.location.href = 'index.html';
         });
+      }
+      
+      // Display user info
+      function displayUserInfo(user) {
+        const nameElement = document.getElementById('user-name');
+        const emailElement = document.getElementById('user-email');
+        
+        if (nameElement) nameElement.textContent = user.displayName || 'User';
+        if (emailElement) emailElement.textContent = user.email;
+      }
+      
+      // Update subscription UI
+      function updateSubscriptionUI(plan) {
+        const planElement = document.getElementById('current-plan');
+        const upgradeSection = document.getElementById('upgrade-options');
+        
+        if (planElement) {
+          planElement.textContent = plan;
+        }
+        
+        if (upgradeSection) {
+          if (plan === 'Basic') {
+            // Show both Premium and Premium Plus options
+            upgradeSection.innerHTML = `
+              <div class="upgrade-option">
+                <h3>Premium</h3>
+                <p>$9.99/month</p>
+                <ul style="text-align: left; margin-bottom: 15px;">
+                  <li>All basic features</li>
+                  <li>Access to premium content</li>
+                  <li>Advanced AI tools</li>
+                  <li>10% discount on learning courses</li>
+                </ul>
+                <button class="upgrade-btn" data-plan="Premium">Upgrade to Premium</button>
+              </div>
+              <div class="upgrade-option">
+                <h3>Premium Plus</h3>
+                <p>$19.99/month</p>
+                <ul style="text-align: left; margin-bottom: 15px;">
+                  <li>All premium features</li>
+                  <li>Advanced AI tools access</li>
+                  <li>Unlimited downloads</li>
+                  <li>1-on-1 coaching session</li>
+                  <li>15% discount on learning courses</li>
+                </ul>
+                <button class="upgrade-btn" data-plan="Premium Plus">Upgrade to Premium Plus</button>
+              </div>
+            `;
+          } else if (plan === 'Premium') {
+            // Show only Premium Plus option
+            upgradeSection.innerHTML = `
+              <div class="upgrade-option">
+                <h3>Premium Plus</h3>
+                <p>$19.99/month</p>
+                <ul style="text-align: left; margin-bottom: 15px;">
+                  <li>All premium features</li>
+                  <li>Advanced AI tools access</li>
+                  <li>Unlimited downloads</li>
+                  <li>1-on-1 coaching session</li>
+                  <li>15% discount on learning courses</li>
+                </ul>
+                <button class="upgrade-btn" data-plan="Premium Plus">Upgrade to Premium Plus</button>
+              </div>
+            `;
+          } else {
+            // User already has Premium Plus
+            upgradeSection.innerHTML = `
+              <p>You're already on our highest plan! Enjoy all premium features.</p>
+              <ul style="text-align: left; margin: 15px 0;">
+                <li>All premium features</li>
+                <li>Advanced AI tools access</li>
+                <li>Unlimited downloads</li>
+                <li>1-on-1 coaching session</li>
+                <li>Exclusive webinars</li>
+                <li>15% discount on learning courses</li>
+                <li>Certificate of completion</li>
+              </ul>
+            `;
+          }
+          
+          // Add event listeners to upgrade buttons
+          document.querySelectorAll('.upgrade-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+              const planName = this.getAttribute('data-plan');
+              upgradePlan(planName);
+            });
+          });
+        }
+      }
+      
+      // Function to handle plan upgrades
+      async function upgradePlan(planName) {
+        // In a real application, this would redirect to a payment processor
+        // For this demo, we'll just update the plan directly
+        const userId = authService.currentUser.uid;
+        const success = await userService.updateSubscriptionPlan(userId, planName);
+        
+        if (success) {
+          alert(`Successfully upgraded to ${planName}!`);
+          location.reload(); // Reload the page to show updated plan
+        } else {
+          alert('There was an error upgrading your plan. Please try again.');
+        }
+      }
+      
+      // Function to display progress data
+      function displayProgressData(progressData) {
+        const progressContainer = document.getElementById('learning-progress');
+        
+        if (progressContainer && progressData.length > 0) {
+          let progressHTML = `<h3>Your Learning Progress</h3><ul class="progress-list">`;
+          
+          progressData.forEach(item => {
+            progressHTML += `
+              <li>
+                <div class="progress-item">
+                  <span>${item.courseId}: ${item.moduleId}</span>
+                  <div class="progress-bar">
+                    <div class="progress-fill" style="width: ${item.progress}%;"></div>
+                  </div>
+                  <span>${item.progress}%</span>
+                </div>
+              </li>
+            `;
+          });
+          
+          progressHTML += `</ul>`;
+          progressContainer.innerHTML = progressHTML;
+        } else if (progressContainer) {
+          progressContainer.innerHTML = `
+            <h3>Your Learning Progress</h3>
+            <p>You haven't started any courses yet. <a href="learning-paths.html">Browse our learning paths</a> to get started!</p>
+          `;
+        }
+      }
+      
+      // Function to display quiz history
+      function displayQuizHistory(quizHistory) {
+        const historyContainer = document.getElementById('quiz-history');
+        
+        if (historyContainer && quizHistory.length > 0) {
+          let historyHTML = `<h3>Your Quiz History</h3><ul class="quiz-list">`;
+          
+          quizHistory.forEach(item => {
+            const date = new Date(item.timestamp.toDate()).toLocaleDateString();
+            const score = item.results.score || 0;
+            const total = item.results.total || 0;
+            const percentage = Math.round((score / total) * 100);
+            
+            historyHTML += `
+              <li>
+                <div class="quiz-item">
+                  <span>${item.quizId}</span>
+                  <span>${score}/${total} (${percentage}%)</span>
+                  <span>${date}</span>
+                </div>
+              </li>
+            `;
+          });
+          
+          historyHTML += `</ul>`;
+          historyContainer.innerHTML = historyHTML;
+        } else if (historyContainer) {
+          historyContainer.innerHTML = `
+            <h3>Your Quiz History</h3>
+            <p>You haven't taken any quizzes yet. Complete some lessons to test your knowledge!</p>
+          `;
+        }
+      }
     </script>
+    
+    <!-- Navigation Authentication -->
+    <script type="module" src="js/nav-auth.js"></script>
 </body>
 </html>
