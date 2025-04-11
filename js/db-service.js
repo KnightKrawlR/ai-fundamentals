@@ -40,7 +40,7 @@ export const userService = {
     }
   },
   
-  // Update subscription plan
+  // Update subscription plan 
   updateSubscriptionPlan: async function(userId, planName) {
     try {
       // Update user's plan

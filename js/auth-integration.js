@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', function() {
   setupAuthButtons();
 });
 
-// Check if user is already authenticated
+// Check if user is already authenticated 
 function checkAuthStatus() {
   // First check localStorage for user data
   const storedUser = localStorage.getItem('user');

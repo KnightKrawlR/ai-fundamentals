@@ -60,7 +60,7 @@ function updateNavigation(user) {
     // Hide account-only elements 
     accountLinks.forEach(el => el.style.display = "none");
     
-    // Show guest-only elements
+    // Show guest-only elements 
     guestLinks.forEach(el => el.style.display = "block");
     
     // Hide premium content

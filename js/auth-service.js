@@ -24,7 +24,7 @@ export const authService = {
     }
   },
   
-  // Sign in with email/password
+  // Sign in with email/password 
   signInWithEmail: async function(email, password) {
     try {
       const result = await signInWithEmailAndPassword(auth, email, password);
