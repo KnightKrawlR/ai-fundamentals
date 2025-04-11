@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Fundamentals - Account</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="js/firebase-config.js"></script>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="logo">
+            <a href="index.html">
+                <img src="images/brain-icon.png" alt="AI Fundamentals Logo">
+                <span>AI Fundamentals</span>
+            </a>
+        </div>
+        <nav>
+            <ul>
+                <li><a href="index.html#learning">Learning</a></li>
+                <li><a href="index.html#ai-tools">AI Tools</a></li>
+                <li><a href="index.html#premium">Premium</a></li>
+            </ul>
+        </nav>
+        <div class="auth-buttons">
+            <a href="#" id="logout-button" class="sign-in-button">
+                <i class="fas fa-sign-out-alt"></i> Sign Out
+            </a>
+        </div>
+    </header>
+
+    <!-- Account Section -->
+    <section class="account-section">
+        <div class="container">
+            <div class="account-container">
+                <div class="account-sidebar">
+                    <div class="user-profile">
+                        <div class="profile-image">
+                            <i class="fas fa-user-circle"></i>
+                        </div>
+                        <div class="profile-info">
+                            <h3 id="user-name">Loading...</h3>
+                            <p id="user-email">Loading...</p>
+                        </div>
+                    </div>
+                    <div class="account-nav">
+                        <ul>
+                            <li class="active"><a href="#profile" data-tab="profile-tab"><i class="fas fa-user"></i> Profile</a></li>
+                            <li><a href="#subscription" data-tab="subscription-tab"><i class="fas fa-credit-card"></i> Subscription</a></li>
+                            <li><a href="#progress" data-tab="progress-tab"><i class="fas fa-chart-line"></i> Learning Progress</a></li>
+                            <li><a href="#settings" data-tab="settings-tab"><i class="fas fa-cog"></i> Settings</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="account-content">
+                    <!-- Profile Tab -->
+                    <div id="profile-tab" class="account-tab active">
+                        <h2>Profile Information</h2>
+                        <div class="profile-form">
+                            <div class="form-group">
+                                <label for="display-name">Display Name</label>
+                                <input type="text" id="display-name" placeholder="Your display name">
+                            </div>
+                            <div class="form-group">
+                                <label for="bio">Bio</label>
+                                <textarea id="bio" placeholder="Tell us about yourself"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="occupation">Occupation</label>
+                                <input type="text" id="occupation" placeholder="Your occupation">
+                            </div>
+                            <div class="form-group">
+                                <label for="interests">AI Interests</label>
+                                <input type="text" id="interests" placeholder="Your AI interests">
+                            </div>
+                            <button class="save-profile-btn">Save Changes</button>
+                        </div>
+                    </div>
+
+                    <!-- Subscription Tab -->
+                    <div id="subscription-tab" class="account-tab">
+                        <h2>Your Subscription</h2>
+                        <div class="subscription-info">
+                            <div class="current-plan">
+                                <h3>Current Plan</h3>
+                                <div class="plan-details">
+                                    <div class="plan-name">Free Plan</div>
+                                    <div class="plan-features">
+                                        <ul>
+                                            <li>Access to basic flashcards</li>
+                                            <li>Introduction to AI module</li>
+                                            <li>AI tools directory</li>
+                                        </ul>
+                                    </div>
+                                    <a href="index.html#premium" class="upgrade-btn">Upgrade Now</a>
+                                </div>
+                            </div>
+                            <div class="billing-history">
+                                <h3>Billing History</h3>
+                                <p class="no-billing">No billing history available for free plan.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Progress Tab -->
+                    <div id="progress-tab" class="account-tab">
+                        <h2>Learning Progress</h2>
+                        <div class="progress-overview">
+                            <div class="progress-card">
+                                <div class="progress-title">Overall Completion</div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 15%;"></div>
+                                </div>
+                                <div class="progress-percentage">15%</div>
+                            </div>
+                        </div>
+                        <div class="module-progress">
+                            <h3>Module Progress</h3>
+                            <div class="module-list">
+                                <div class="module-item">
+                                    <div class="module-info">
+                                        <div class="module-name">Introduction to AI</div>
+                                        <div class="module-progress-bar">
+                                            <div class="progress-fill" style="width: 75%;"></div>
+                                        </div>
+                                    </div>
+                                    <div class="module-percentage">75%</div>
+                                </div>
+                                <div class="module-item">
+                                    <div class="module-info">
+                                        <div class="module-name">Machine Learning Fundamentals</div>
+                                        <div class="module-progress-bar">
+                                            <div class="progress-fill" style="width: 30%;"></div>
+                                        </div>
+                                    </div>
+                                    <div class="module-percentage">30%</div>
+                                </div>
+                                <div class="module-item locked">
+                                    <div class="module-info">
+                                        <div class="module-name">Neural Networks <span class="premium-badge">Premium</span></div>
+                                        <div class="module-progress-bar">
+                                            <div class="progress-fill" style="width: 0%;"></div>
+                                        </div>
+                                    </div>
+                                    <div class="module-percentage">0%</div>
+                                </div>
+                                <div class="module-item locked">
+                                    <div class="module-info">
+                                        <div class="module-name">Natural Language Processing <span class="premium-badge">Premium</span></div>
+                                        <div class="module-progress-bar">
+                                            <div class="progress-fill" style="width: 0%;"></div>
+                                        </div>
+                                    </div>
+                                    <div class="module-percentage">0%</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Settings Tab -->
+                    <div id="settings-tab" class="account-tab">
+                        <h2>Account Settings</h2>
+                        <div class="settings-form">
+                            <div class="form-group">
+                                <label for="email-notifications">Email Notifications</label>
+                                <div class="toggle-switch">
+                                    <input type="checkbox" id="email-notifications" checked>
+                                    <label for="email-notifications"></label>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="learning-reminders">Learning Reminders</label>
+                                <div class="toggle-switch">
+                                    <input type="checkbox" id="learning-reminders">
+                                    <label for="learning-reminders"></label>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="new-password">New Password</label>
+                                <input type="password" id="new-password" placeholder="Enter new password">
+                            </div>
+                            <div class="form-group">
+                                <label for="confirm-password">Confirm Password</label>
+                                <input type="password" id="confirm-password" placeholder="Confirm new password">
+                            </div>
+                            <button class="save-settings-btn">Save Settings</button>
+                        </div>
+                        <div class="danger-zone">
+                            <h3>Danger Zone</h3>
+                            <button class="delete-account-btn">Delete Account</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-logo">
+                <img src="images/brain-icon.png" alt="AI Fundamentals Logo">
+                <span>AI Fundamentals</span>
+            </div>
+            <div class="footer-links">
+                <div class="footer-column">
+                    <h4>Learn</h4>
+                    <ul>
+                        <li><a href="index.html#free-resources">Free Resources</a></li>
+                        <li><a href="index.html#learning">Learning Path</a></li>
+                        <li><a href="index.html#ai-tools">AI Tools</a></li>
+                        <li><a href="index.html#premium">Premium</a></li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h4>Company</h4>
+                    <ul>
+                        <li><a href="#">About Us</a></li>
+                        <li><a href="#">Contact</a></li>
+                        <li><a href="#">Careers</a></li>
+                        <li><a href="#">Blog</a></li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h4>Legal</h4>
+                    <ul>
+                        <li><a href="#">Terms of Service</a></li>
+                        <li><a href="#">Privacy Policy</a></li>
+                        <li><a href="#">Cookie Policy</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2025 AI Fundamentals. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Custom Scripts -->
+    <script src="js/main.js"></script>
+    <script src="js/auth-fix.js"></script>
+    <script>
+        // Account page specific JavaScript
+        document.addEventListener('DOMContentLoaded', function() {
+            // Tab switching functionality
+            const tabLinks = document.querySelectorAll('.account-nav a');
+            const tabs = document.querySelectorAll('.account-tab');
+            
+            tabLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    // Remove active class from all links and tabs
+                    tabLinks.forEach(l => l.parentElement.classList.remove('active'));
+                    tabs.forEach(t => t.classList.remove('active'));
+                    
+                    // Add active class to clicked link
+                    this.parentElement.classList.add('active');
+                    
+                    // Show corresponding tab
+                    const tabId = this.getAttribute('data-tab');
+                    document.getElementById(tabId).classList.add('active');
+                });
+            });
+            
+            // Check authentication status
+            firebase.auth().onAuthStateChanged(function(user) {
+                if (user) {
+                    // User is signed in
+                    document.getElementById('user-name').textContent = user.displayName || 'User';
+                    document.getElementById('user-email').textContent = user.email;
+                    
+                    // Populate form fields if user data exists
+                    document.getElementById('display-name').value = user.displayName || '';
+                    
+                    // Set up logout functionality
+                    document.getElementById('logout-button').addEventListener('click', function(e) {
+                        e.preventDefault();
+                        firebase.auth().signOut().then(function() {
+                            // Sign-out successful, redirect to home page
+                            window.location.href = 'index.html';
+                        }).catch(function(error) {
+                            // An error happened
+                            console.error('Sign out error:', error);
+                        });
+                    });
+                } else {
+                    // No user is signed in, redirect to login page
+                    window.location.href = 'login.html';
+                }
+            });
+            
+            // Save profile changes
+            document.querySelector('.save-profile-btn').addEventListener('click', function() {
+                const user = firebase.auth().currentUser;
+                if (user) {
+                    const newDisplayName = document.getElementById('display-name').value;
+                    
+                    // Update profile
+                    user.updateProfile({
+                        displayName: newDisplayName
+                    }).then(function() {
+                        // Update successful
+                        document.getElementById('user-name').textContent = newDisplayName;
+                        alert('Profile updated successfully!');
+                    }).catch(function(error) {
+                        // An error occurred
+                        console.error('Update profile error:', error);
+                        alert('Error updating profile. Please try again.');
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

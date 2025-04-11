@@ -5,120 +5,80 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Fundamentals - Account</title>
     <link rel="stylesheet" href="css/styles.css">
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-        .account-section {
-            padding: 4rem 0;
-            min-height: calc(100vh - 200px);
-        }
-        
         .account-container {
-            display: flex;
-            gap: 2rem;
-            align-items: flex-start;
-        }
-        
-        .account-sidebar {
-            flex: 0 0 300px;
-            background-color: var(--card-background);
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background-color: white;
             border-radius: var(--border-radius);
             box-shadow: var(--shadow);
-            padding: 2rem;
         }
         
-        .account-content {
-            flex: 1;
-            background-color: var(--card-background);
-            border-radius: var(--border-radius);
-            box-shadow: var(--shadow);
-            padding: 2rem;
-        }
-        
-        .user-profile {
+        .account-header {
             display: flex;
             align-items: center;
             margin-bottom: 2rem;
         }
         
-        .profile-image {
-            width: 60px;
-            height: 60px;
+        .account-avatar {
+            width: 80px;
+            height: 80px;
             border-radius: 50%;
             background-color: var(--primary-color);
-            color: var(--light-text);
+            color: white;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 2rem;
-            margin-right: 1rem;
+            margin-right: 1.5rem;
         }
         
-        .profile-info h3 {
-            margin: 0;
-            color: var(--primary-color);
+        .account-info h2 {
+            margin-bottom: 0.5rem;
         }
         
-        .profile-info p {
-            margin: 0.5rem 0 0;
-            font-size: 0.9rem;
-            color: #777;
+        .account-info p {
+            color: #666;
         }
         
-        .account-menu {
-            margin-top: 2rem;
-        }
-        
-        .account-menu ul li {
-            margin-bottom: 1rem;
-        }
-        
-        .account-menu ul li a {
+        .account-tabs {
             display: flex;
-            align-items: center;
-            padding: 0.75rem 1rem;
-            border-radius: var(--border-radius);
-            transition: var(--transition);
-            color: var(--dark-text);
-        }
-        
-        .account-menu ul li a:hover {
-            background-color: var(--light-background);
-        }
-        
-        .account-menu ul li a.active {
-            background-color: var(--primary-color);
-            color: var(--light-text);
-        }
-        
-        .account-menu ul li a i {
-            margin-right: 0.75rem;
-            width: 20px;
-            text-align: center;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 1.5rem;
         }
         
         .account-tab {
-            display: none;
+            padding: 0.75rem 1.5rem;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: var(--transition);
         }
         
         .account-tab.active {
+            border-bottom-color: var(--primary-color);
+            color: var(--primary-color);
+            font-weight: 500;
+        }
+        
+        .account-tab:hover:not(.active) {
+            border-bottom-color: #ddd;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
             display: block;
         }
         
-        .account-tab h2 {
-            margin-top: 0;
-            margin-bottom: 2rem;
-            color: var(--primary-color);
-            text-align: left;
-        }
-        
         .subscription-card {
-            background-color: var(--light-background);
+            border: 1px solid var(--border-color);
             border-radius: var(--border-radius);
             padding: 1.5rem;
-            margin-bottom: 2rem;
+            margin-bottom: 1.5rem;
         }
         
         .subscription-header {
@@ -128,14 +88,8 @@
             margin-bottom: 1rem;
         }
         
-        .subscription-name {
-            font-size: 1.2rem;
-            font-weight: 600;
-            color: var(--primary-color);
-        }
-        
         .subscription-status {
-            padding: 0.25rem 0.75rem;
+            padding: 0.3rem 0.6rem;
             border-radius: 20px;
             font-size: 0.8rem;
             font-weight: 500;
@@ -146,118 +100,104 @@
             color: #155724;
         }
         
-        .status-inactive {
-            background-color: #f8d7da;
-            color: #721c24;
-        }
-        
         .subscription-details {
             margin-bottom: 1rem;
         }
         
-        .subscription-detail {
-            display: flex;
-            justify-content: space-between;
+        .subscription-details p {
             margin-bottom: 0.5rem;
         }
         
-        .detail-label {
-            color: #777;
-        }
-        
-        .subscription-actions {
+        .payment-method {
             display: flex;
-            gap: 1rem;
+            align-items: center;
+            padding: 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            margin-bottom: 1rem;
         }
         
-        .progress-section {
-            margin-bottom: 2rem;
+        .payment-method-icon {
+            margin-right: 1rem;
+            font-size: 1.5rem;
+            color: #666;
         }
         
-        .progress-item {
-            margin-bottom: 1.5rem;
+        .payment-method-details {
+            flex-grow: 1;
         }
         
-        .progress-header {
+        .payment-method-actions {
             display: flex;
-            justify-content: space-between;
-            margin-bottom: 0.5rem;
+            gap: 0.5rem;
         }
         
-        .progress-title {
-            font-weight: 500;
+        .btn-sm {
+            padding: 0.3rem 0.6rem;
+            font-size: 0.8rem;
         }
         
-        .progress-percentage {
-            font-weight: 500;
+        .btn-outline {
+            background-color: transparent;
+            border: 1px solid var(--primary-color);
             color: var(--primary-color);
         }
         
-        .progress-bar-container {
-            height: 8px;
-            background-color: var(--border-color);
-            border-radius: 4px;
-            overflow: hidden;
-        }
-        
-        .progress-bar-fill {
-            height: 100%;
+        .btn-outline:hover {
             background-color: var(--primary-color);
-            border-radius: 4px;
+            color: white;
         }
         
-        .settings-form {
-            max-width: 600px;
-        }
-        
-        .form-group {
-            margin-bottom: 1.5rem;
-        }
-        
-        .form-group label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-weight: 500;
-        }
-        
-        .form-group input {
-            width: 100%;
-            padding: 0.75rem;
+        .game-card {
             border: 1px solid var(--border-color);
             border-radius: var(--border-radius);
-            font-size: 1rem;
+            overflow: hidden;
+            margin-bottom: 1.5rem;
+            transition: var(--transition);
         }
         
-        .form-actions {
+        .game-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .game-image {
+            height: 150px;
+            background-color: #f5f5f5;
             display: flex;
-            justify-content: flex-start;
-            gap: 1rem;
-            margin-top: 2rem;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary-color);
+            font-size: 3rem;
         }
         
-        /* Responsive styles */
-        @media (max-width: 768px) {
-            .account-container {
-                flex-direction: column;
-            }
-            
-            .account-sidebar {
-                flex: 0 0 auto;
-                width: 100%;
-            }
+        .game-content {
+            padding: 1.5rem;
+        }
+        
+        .game-content h3 {
+            margin-bottom: 0.5rem;
+        }
+        
+        .game-content p {
+            color: #666;
+            margin-bottom: 1rem;
+        }
+        
+        .games-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1.5rem;
         }
     </style>
 </head>
 <body>
     <header>
         <div class="container">
-            <a href="index.html" class="site-logo">
-                <i class="fas fa-brain"></i>
-                <span>AI Fundamentals</span>
-            </a>
+            <h1>AI Fundamentals</h1>
             <nav>
                 <ul>
-                    <li><a href="index.html#learning">Learning</a></li>
+                    <li><a href="index.html">Learning</a></li>
                     <li><a href="index.html#ai-tools">AI Tools</a></li>
                     <li><a href="index.html#premium">Premium</a></li>
                 </ul>
@@ -265,249 +205,174 @@
         </div>
     </header>
 
-    <section class="account-section">
+    <section class="hero-section">
+        <div class="container">
+            <div class="hero-content">
+                <h2>Your Account</h2>
+                <p>Manage your subscription and access premium content</p>
+            </div>
+        </div>
+    </section>
+
+    <section>
         <div class="container">
             <div class="account-container">
-                <div class="account-sidebar">
-                    <div class="user-profile">
-                        <div class="profile-image">
-                            <i class="fas fa-user-circle"></i>
-                        </div>
-                        <div class="profile-info">
-                            <h3 id="user-name">Loading...</h3>
-                            <p id="user-email">Loading...</p>
-                        </div>
+                <div class="account-header">
+                    <div class="account-avatar">
+                        <i class="fas fa-user"></i>
                     </div>
-                    
-                    <div class="account-menu">
-                        <ul>
-                            <li><a href="#dashboard" class="active" data-tab="dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
-                            <li><a href="#subscription" data-tab="subscription"><i class="fas fa-credit-card"></i> Subscription</a></li>
-                            <li><a href="#progress" data-tab="progress"><i class="fas fa-chart-line"></i> Learning Progress</a></li>
-                            <li><a href="#settings" data-tab="settings"><i class="fas fa-cog"></i> Account Settings</a></li>
-                            <li><a href="#" id="logout-button"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
-                        </ul>
+                    <div class="account-info">
+                        <h2 id="user-name">User Name</h2>
+                        <p id="user-email">user@example.com</p>
                     </div>
                 </div>
                 
-                <div class="account-content">
-                    <div class="account-tab active" id="dashboard-tab">
-                        <h2>Dashboard</h2>
-                        
-                        <div class="subscription-card">
-                            <div class="subscription-header">
-                                <div class="subscription-name">Basic Plan</div>
-                                <div class="subscription-status status-active">Active</div>
-                            </div>
-                            <div class="subscription-actions">
-                                <a href="index.html#premium" class="btn">Upgrade Plan</a>
-                            </div>
-                        </div>
-                        
-                        <div class="progress-section">
-                            <h3>Learning Progress</h3>
-                            
-                            <div class="progress-item">
-                                <div class="progress-header">
-                                    <div class="progress-title">Introduction to AI</div>
-                                    <div class="progress-percentage">100%</div>
-                                </div>
-                                <div class="progress-bar-container">
-                                    <div class="progress-bar-fill" style="width: 100%;"></div>
-                                </div>
-                            </div>
-                            
-                            <div class="progress-item">
-                                <div class="progress-header">
-                                    <div class="progress-title">Machine Learning Fundamentals</div>
-                                    <div class="progress-percentage">60%</div>
-                                </div>
-                                <div class="progress-bar-container">
-                                    <div class="progress-bar-fill" style="width: 60%;"></div>
-                                </div>
-                            </div>
-                            
-                            <div class="progress-item">
-                                <div class="progress-header">
-                                    <div class="progress-title">Neural Networks</div>
-                                    <div class="progress-percentage">0%</div>
-                                </div>
-                                <div class="progress-bar-container">
-                                    <div class="progress-bar-fill" style="width: 0%;"></div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <a href="index.html#learning" class="btn">Continue Learning</a>
-                    </div>
+                <div class="account-tabs">
+                    <div class="account-tab active" data-tab="subscription">Subscription</div>
+                    <div class="account-tab" data-tab="games">Premium Games</div>
+                    <div class="account-tab" data-tab="settings">Settings</div>
+                </div>
+                
+                <div id="subscription-tab" class="tab-content active">
+                    <h3>Your Subscription</h3>
                     
-                    <div class="account-tab" id="subscription-tab">
-                        <h2>Subscription</h2>
-                        
-                        <div class="subscription-card">
-                            <div class="subscription-header">
-                                <div class="subscription-name">Basic Plan</div>
-                                <div class="subscription-status status-active">Active</div>
-                            </div>
-                            <div class="subscription-details">
-                                <div class="subscription-detail">
-                                    <div class="detail-label">Price</div>
-                                    <div class="detail-value">Free</div>
-                                </div>
-                                <div class="subscription-detail">
-                                    <div class="detail-label">Renewal Date</div>
-                                    <div class="detail-value">N/A</div>
-                                </div>
-                                <div class="subscription-detail">
-                                    <div class="detail-label">Status</div>
-                                    <div class="detail-value">Active</div>
-                                </div>
-                            </div>
-                            <div class="subscription-actions">
-                                <a href="payment.html" class="btn">Upgrade to Premium</a>
-                            </div>
+                    <div class="subscription-card">
+                        <div class="subscription-header">
+                            <h4 id="plan-name">Premium Plan</h4>
+                            <span class="subscription-status status-active">Active</span>
                         </div>
-                        
-                        <h3>Available Plans</h3>
-                        
-                        <div class="pricing-cards">
-                            <div class="pricing-card">
-                                <div class="pricing-header">
-                                    <h3>Basic</h3>
-                                    <div class="pricing">
-                                        <span class="price">Free</span>
-                                        <span class="period">Forever</span>
-                                    </div>
-                                </div>
-                                <div class="pricing-features">
-                                    <ul>
-                                        <li><i class="fas fa-check"></i> Access to basic flashcards</li>
-                                        <li><i class="fas fa-check"></i> Introduction to AI module</li>
-                                        <li><i class="fas fa-check"></i> AI tools directory</li>
-                                        <li><i class="fas fa-times"></i> Advanced learning modules</li>
-                                        <li><i class="fas fa-times"></i> Practice exercises</li>
-                                        <li><i class="fas fa-times"></i> AI project tutorials</li>
-                                        <li><i class="fas fa-times"></i> Community access</li>
-                                    </ul>
-                                </div>
-                                <div class="pricing-cta">
-                                    <button class="btn btn-outline">Current Plan</button>
-                                </div>
-                            </div>
-                            
-                            <div class="pricing-card">
-                                <div class="pricing-header">
-                                    <h3>Premium</h3>
-                                    <div class="pricing">
-                                        <span class="price">$9.99</span>
-                                        <span class="period">per month</span>
-                                    </div>
-                                </div>
-                                <div class="pricing-features">
-                                    <ul>
-                                        <li><i class="fas fa-check"></i> All Basic features</li>
-                                        <li><i class="fas fa-check"></i> Full learning path access</li>
-                                        <li><i class="fas fa-check"></i> Advanced AI concepts</li>
-                                        <li><i class="fas fa-check"></i> Interactive exercises</li>
-                                        <li><i class="fas fa-check"></i> Monthly AI project tutorials</li>
-                                        <li><i class="fas fa-check"></i> Community forum access</li>
-                                        <li><i class="fas fa-times"></i> 1-on-1 mentoring sessions</li>
-                                    </ul>
-                                </div>
-                                <div class="pricing-cta">
-                                    <a href="payment.html" class="btn">Upgrade Now</a>
-                                </div>
-                            </div>
+                        <div class="subscription-details">
+                            <p><strong>Billing Cycle:</strong> <span id="billing-cycle">Monthly</span></p>
+                            <p><strong>Next Payment:</strong> <span id="next-payment">May 10, 2025</span></p>
+                            <p><strong>Amount:</strong> <span id="payment-amount">$9.99</span></p>
+                        </div>
+                        <div class="subscription-actions">
+                            <button class="btn btn-outline" id="cancel-subscription">Cancel Subscription</button>
                         </div>
                     </div>
                     
-                    <div class="account-tab" id="progress-tab">
-                        <h2>Learning Progress</h2>
-                        
-                        <div class="progress-section">
-                            <div class="progress-item">
-                                <div class="progress-header">
-                                    <div class="progress-title">Introduction to AI</div>
-                                    <div class="progress-percentage">100%</div>
-                                </div>
-                                <div class="progress-bar-container">
-                                    <div class="progress-bar-fill" style="width: 100%;"></div>
-                                </div>
-                            </div>
-                            
-                            <div class="progress-item">
-                                <div class="progress-header">
-                                    <div class="progress-title">Machine Learning Fundamentals</div>
-                                    <div class="progress-percentage">60%</div>
-                                </div>
-                                <div class="progress-bar-container">
-                                    <div class="progress-bar-fill" style="width: 60%;"></div>
-                                </div>
-                            </div>
-                            
-                            <div class="progress-item">
-                                <div class="progress-header">
-                                    <div class="progress-title">Neural Networks</div>
-                                    <div class="progress-percentage">0%</div>
-                                </div>
-                                <div class="progress-bar-container">
-                                    <div class="progress-bar-fill" style="width: 0%;"></div>
-                                </div>
-                            </div>
-                            
-                            <div class="progress-item">
-                                <div class="progress-header">
-                                    <div class="progress-title">Natural Language Processing</div>
-                                    <div class="progress-percentage">0%</div>
-                                </div>
-                                <div class="progress-bar-container">
-                                    <div class="progress-bar-fill" style="width: 0%;"></div>
-                                </div>
-                            </div>
-                            
-                            <div class="progress-item">
-                                <div class="progress-header">
-                                    <div class="progress-title">Generative AI</div>
-                                    <div class="progress-percentage">0%</div>
-                                </div>
-                                <div class="progress-bar-container">
-                                    <div class="progress-bar-fill" style="width: 0%;"></div>
-                                </div>
-                            </div>
+                    <h3>Payment Method</h3>
+                    
+                    <div class="payment-method">
+                        <div class="payment-method-icon">
+                            <i class="fab fa-cc-visa"></i>
                         </div>
-                        
-                        <a href="index.html#learning" class="btn">Continue Learning</a>
+                        <div class="payment-method-details">
+                            <p><strong>Visa</strong> ending in 4242</p>
+                            <p>Expires 12/2025</p>
+                        </div>
+                        <div class="payment-method-actions">
+                            <button class="btn btn-sm btn-outline">Edit</button>
+                        </div>
                     </div>
                     
-                    <div class="account-tab" id="settings-tab">
-                        <h2>Account Settings</h2>
-                        
-                        <div class="settings-form">
-                            <div class="form-group">
-                                <label for="display-name">Display Name</label>
-                                <input type="text" id="display-name" placeholder="Your name">
+                    <h3>Billing History</h3>
+                    
+                    <table style="width: 100%; border-collapse: collapse; margin-bottom: 1.5rem;">
+                        <thead>
+                            <tr style="border-bottom: 1px solid var(--border-color);">
+                                <th style="text-align: left; padding: 0.75rem;">Date</th>
+                                <th style="text-align: left; padding: 0.75rem;">Description</th>
+                                <th style="text-align: right; padding: 0.75rem;">Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr style="border-bottom: 1px solid var(--border-color);">
+                                <td style="padding: 0.75rem;">Apr 10, 2025</td>
+                                <td style="padding: 0.75rem;">Premium Plan - Monthly Subscription</td>
+                                <td style="padding: 0.75rem; text-align: right;">$9.99</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div id="games-tab" class="tab-content">
+                    <h3>Premium Games</h3>
+                    <p>Access exclusive AI learning games with your premium subscription.</p>
+                    
+                    <div class="games-grid">
+                        <div class="game-card">
+                            <div class="game-image">
+                                <i class="fas fa-robot"></i>
                             </div>
-                            
-                            <div class="form-group">
-                                <label for="email">Email</label>
-                                <input type="email" id="email" placeholder="Your email" disabled>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label for="password">New Password</label>
-                                <input type="password" id="password" placeholder="Leave blank to keep current password">
-                            </div>
-                            
-                            <div class="form-group">
-                                <label for="confirm-password">Confirm New Password</label>
-                                <input type="password" id="confirm-password" placeholder="Confirm new password">
-                            </div>
-                            
-                            <div class="form-actions">
-                                <button class="btn" id="save-settings">Save Changes</button>
-                                <button class="btn btn-outline" id="cancel-settings">Cancel</button>
+                            <div class="game-content">
+                                <h3>AI Defender</h3>
+                                <p>Protect your data from AI threats in this strategic game.</p>
+                                <a href="games/ai-defender.html" class="btn">Play Now</a>
                             </div>
                         </div>
+                        
+                        <div class="game-card">
+                            <div class="game-image">
+                                <i class="fas fa-brain"></i>
+                            </div>
+                            <div class="game-content">
+                                <h3>Neural Network Builder</h3>
+                                <p>Build and train neural networks to solve complex problems.</p>
+                                <a href="games/neural-network.html" class="btn">Play Now</a>
+                            </div>
+                        </div>
+                        
+                        <div class="game-card">
+                            <div class="game-image">
+                                <i class="fas fa-microchip"></i>
+                            </div>
+                            <div class="game-content">
+                                <h3>AI Ethics Challenge</h3>
+                                <p>Navigate ethical dilemmas in AI development and deployment.</p>
+                                <a href="games/ethics-challenge.html" class="btn">Play Now</a>
+                            </div>
+                        </div>
+                        
+                        <div class="game-card">
+                            <div class="game-image">
+                                <i class="fas fa-code"></i>
+                            </div>
+                            <div class="game-content">
+                                <h3>Prompt Engineering</h3>
+                                <p>Master the art of crafting effective prompts for AI systems.</p>
+                                <a href="games/prompt-engineering.html" class="btn">Play Now</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="settings-tab" class="tab-content">
+                    <h3>Account Settings</h3>
+                    
+                    <form id="account-settings-form">
+                        <div class="form-group">
+                            <label for="display-name">Display Name</label>
+                            <input type="text" id="display-name" class="form-control" value="User Name">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="account-email">Email</label>
+                            <input type="email" id="account-email" class="form-control" value="user@example.com">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="notification-preferences">Notification Preferences</label>
+                            <div style="margin-top: 0.5rem;">
+                                <label style="display: flex; align-items: center; margin-bottom: 0.5rem;">
+                                    <input type="checkbox" checked style="margin-right: 0.5rem;"> Email notifications for new content
+                                </label>
+                                <label style="display: flex; align-items: center; margin-bottom: 0.5rem;">
+                                    <input type="checkbox" checked style="margin-right: 0.5rem;"> Subscription and billing alerts
+                                </label>
+                                <label style="display: flex; align-items: center; margin-bottom: 0.5rem;">
+                                    <input type="checkbox" style="margin-right: 0.5rem;"> Weekly learning progress reports
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="btn">Save Changes</button>
+                    </form>
+                    
+                    <div style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid var(--border-color);">
+                        <h3>Delete Account</h3>
+                        <p>Permanently delete your account and all associated data.</p>
+                        <button class="btn btn-outline" style="color: #dc3545; border-color: #dc3545;">Delete Account</button>
                     </div>
                 </div>
             </div>
@@ -517,35 +382,37 @@
     <footer>
         <div class="container">
             <div class="footer-content">
-                <div class="footer-column">
-                    <h3>AI Fundamentals</h3>
+                <div class="footer-logo">
+                    <h2>AI Fundamentals</h2>
                     <p>Your journey to AI mastery starts here</p>
                 </div>
-                <div class="footer-column">
-                    <h3>Resources</h3>
-                    <ul>
-                        <li><a href="#">Flashcards</a></li>
-                        <li><a href="#">Study Guides</a></li>
-                        <li><a href="#">Video Lessons</a></li>
-                        <li><a href="#">Practice Quizzes</a></li>
-                    </ul>
-                </div>
-                <div class="footer-column">
-                    <h3>Company</h3>
-                    <ul>
-                        <li><a href="#">About Us</a></li>
-                        <li><a href="#">Contact</a></li>
-                        <li><a href="#">Careers</a></li>
-                        <li><a href="#">Blog</a></li>
-                    </ul>
-                </div>
-                <div class="footer-column">
-                    <h3>Legal</h3>
-                    <ul>
-                        <li><a href="#">Terms of Service</a></li>
-                        <li><a href="#">Privacy Policy</a></li>
-                        <li><a href="#">Cookie Policy</a></li>
-                    </ul>
+                <div class="footer-links">
+                    <div class="footer-column">
+                        <h3>Resources</h3>
+                        <ul>
+                            <li><a href="#">Flashcards</a></li>
+                            <li><a href="#">Study Guides</a></li>
+                            <li><a href="#">Video Lessons</a></li>
+                            <li><a href="#">Practice Quizzes</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-column">
+                        <h3>Company</h3>
+                        <ul>
+                            <li><a href="#">About Us</a></li>
+                            <li><a href="#">Contact</a></li>
+                            <li><a href="#">Careers</a></li>
+                            <li><a href="#">Blog</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-column">
+                        <h3>Legal</h3>
+                        <ul>
+                            <li><a href="#">Terms of Service</a></li>
+                            <li><a href="#">Privacy Policy</a></li>
+                            <li><a href="#">Cookie Policy</a></li>
+                        </ul>
+                    </div>
                 </div>
             </div>
             <div class="footer-bottom">
@@ -560,148 +427,122 @@
         </div>
     </footer>
 
-    <script src="js/firebase-config.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Check if user is logged in
-            firebase.auth().onAuthStateChanged(function(user) {
-                if (user) {
-                    // User is signed in
-                    console.log('User is signed in:', user.displayName || user.email);
-                    
-                    // Update user profile information
-                    updateUserProfile(user);
-                    
-                    // Check for demo mode
-                    const urlParams = new URLSearchParams(window.location.search);
-                    const isDemo = urlParams.get('demo') === 'true';
-                    
-                    if (isDemo) {
-                        // Set demo user information
-                        document.getElementById('user-name').textContent = 'Demo User';
-                        document.getElementById('user-email').textContent = 'demo@example.com';
-                    }
-                } else {
-                    // User is not signed in, redirect to login page
-                    console.log('User is not signed in, redirecting to login page');
-                    window.location.href = 'login.html';
-                }
-            });
-            
-            // Update user profile information
-            function updateUserProfile(user) {
-                const userName = document.getElementById('user-name');
-                const userEmail = document.getElementById('user-email');
-                const displayName = document.getElementById('display-name');
-                const email = document.getElementById('email');
-                
-                // Set user name and email
-                userName.textContent = user.displayName || 'User';
-                userEmail.textContent = user.email;
-                
-                // Set form values
-                displayName.value = user.displayName || '';
-                email.value = user.email;
-            }
-            
-            // Tab navigation
-            const tabLinks = document.querySelectorAll('.account-menu a[data-tab]');
-            const tabContents = document.querySelectorAll('.account-tab');
-            
-            tabLinks.forEach(link => {
-                link.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    
-                    // Remove active class from all links and tabs
-                    tabLinks.forEach(link => link.classList.remove('active'));
-                    tabContents.forEach(tab => tab.classList.remove('active'));
-                    
-                    // Add active class to clicked link
+            // Tab switching functionality
+            const tabs = document.querySelectorAll('.account-tab');
+            tabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    // Remove active class from all tabs
+                    tabs.forEach(t => t.classList.remove('active'));
+                    // Add active class to clicked tab
                     this.classList.add('active');
                     
-                    // Show corresponding tab
+                    // Hide all tab content
+                    const tabContents = document.querySelectorAll('.tab-content');
+                    tabContents.forEach(content => content.classList.remove('active'));
+                    
+                    // Show selected tab content
                     const tabId = this.getAttribute('data-tab');
-                    document.getElementById(`${tabId}-tab`).classList.add('active');
+                    document.getElementById(tabId + '-tab').classList.add('active');
                 });
             });
             
-            // Logout functionality
-            const logoutButton = document.getElementById('logout-button');
-            logoutButton.addEventListener('click', function(e) {
-                e.preventDefault();
-                
-                firebase.auth().signOut()
-                    .then(() => {
-                        // Sign-out successful
-                        console.log('User signed out');
-                        window.location.href = 'index.html';
-                    })
-                    .catch((error) => {
-                        // An error happened
-                        console.error('Sign out error:', error);
-                    });
-            });
+            // Load user data from localStorage
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            if (user.name) {
+                document.getElementById('user-name').textContent = user.name;
+                document.getElementById('display-name').value = user.name;
+            }
             
-            // Save settings functionality
-            const saveSettingsButton = document.getElementById('save-settings');
-            saveSettingsButton.addEventListener('click', function() {
-                const user = firebase.auth().currentUser;
-                const newDisplayName = document.getElementById('display-name').value;
-                const newPassword = document.getElementById('password').value;
-                const confirmPassword = document.getElementById('confirm-password').value;
+            if (user.email) {
+                document.getElementById('user-email').textContent = user.email;
+                document.getElementById('account-email').value = user.email;
+            }
+            
+            // Load subscription data
+            if (user.subscription) {
+                const subscription = user.subscription;
                 
-                if (!user) {
-                    alert('You must be logged in to change settings');
-                    return;
-                }
-                
-                // Update display name if changed
-                if (newDisplayName && newDisplayName !== user.displayName) {
-                    user.updateProfile({
-                        displayName: newDisplayName
-                    })
-                    .then(() => {
-                        console.log('Display name updated');
-                        document.getElementById('user-name').textContent = newDisplayName;
-                    })
-                    .catch((error) => {
-                        console.error('Error updating display name:', error);
-                        alert('Error updating display name: ' + error.message);
-                    });
-                }
-                
-                // Update password if provided
-                if (newPassword) {
-                    if (newPassword !== confirmPassword) {
-                        alert('Passwords do not match');
-                        return;
-                    }
+                // Update plan name
+                if (subscription.plan === 'price_monthly') {
+                    document.getElementById('plan-name').textContent = 'Premium Plan';
+                    document.getElementById('billing-cycle').textContent = 'Monthly';
+                    document.getElementById('payment-amount').textContent = '$9.99';
+                } else if (subscription.plan === 'price_lifetime') {
+                    document.getElementById('plan-name').textContent = 'Lifetime Plan';
+                    document.getElementById('billing-cycle').textContent = 'One-time payment';
+                    document.getElementById('payment-amount').textContent = '$199';
                     
-                    user.updatePassword(newPassword)
-                        .then(() => {
-                            console.log('Password updated');
-                            alert('Password updated successfully');
-                            document.getElementById('password').value = '';
-                            document.getElementById('confirm-password').value = '';
-                        })
-                        .catch((error) => {
-                            console.error('Error updating password:', error);
-                            alert('Error updating password: ' + error.message);
-                        });
+                    // Hide next payment for lifetime plan
+                    const nextPaymentElement = document.getElementById('next-payment').parentElement;
+                    if (nextPaymentElement) {
+                        nextPaymentElement.style.display = 'none';
+                    }
                 }
-            });
-            
-            // Cancel settings functionality
-            const cancelSettingsButton = document.getElementById('cancel-settings');
-            cancelSettingsButton.addEventListener('click', function() {
-                const user = firebase.auth().currentUser;
                 
-                if (user) {
-                    document.getElementById('display-name').value = user.displayName || '';
-                    document.getElementById('password').value = '';
-                    document.getElementById('confirm-password').value = '';
+                // Calculate next payment date for monthly plan
+                if (subscription.plan === 'price_monthly' && subscription.startDate) {
+                    const startDate = new Date(subscription.startDate);
+                    const nextPaymentDate = new Date(startDate);
+                    nextPaymentDate.setMonth(nextPaymentDate.getMonth() + 1);
+                    
+                    const options = { year: 'numeric', month: 'long', day: 'numeric' };
+                    document.getElementById('next-payment').textContent = nextPaymentDate.toLocaleDateString('en-US', options);
                 }
-            });
+            }
+            
+            // Handle cancel subscription button
+            const cancelButton = document.getElementById('cancel-subscription');
+            if (cancelButton) {
+                cancelButton.addEventListener('click', function() {
+                    if (confirm('Are you sure you want to cancel your subscription? You will lose access to premium features at the end of your current billing period.')) {
+                        // In a real implementation, this would make an API call to cancel the subscription
+                        alert('Your subscription has been canceled. You will have access until the end of your current billing period.');
+                        
+                        // Update UI to reflect cancellation
+                        const statusElement = document.querySelector('.subscription-status');
+                        if (statusElement) {
+                            statusElement.textContent = 'Canceled';
+                            statusElement.classList.remove('status-active');
+                        }
+                        
+                        // Update user data in localStorage
+                        const user = JSON.parse(localStorage.getItem('user') || '{}');
+                        if (user.subscription) {
+                            user.subscription.status = 'canceled';
+                            localStorage.setItem('user', JSON.stringify(user));
+                        }
+                        
+                        // Disable cancel button
+                        this.disabled = true;
+                    }
+                });
+            }
+            
+            // Handle account settings form submission
+            const settingsForm = document.getElementById('account-settings-form');
+            if (settingsForm) {
+                settingsForm.addEventListener('submit', function(event) {
+                    event.preventDefault();
+                    
+                    // Get form values
+                    const displayName = document.getElementById('display-name').value;
+                    const email = document.getElementById('account-email').value;
+                    
+                    // Update user data in localStorage
+                    const user = JSON.parse(localStorage.getItem('user') || '{}');
+                    user.name = displayName;
+                    user.email = email;
+                    localStorage.setItem('user', JSON.stringify(user));
+                    
+                    // Update UI
+                    document.getElementById('user-name').textContent = displayName;
+                    document.getElementById('user-email').textContent = email;
+                    
+                    alert('Account settings updated successfully!');
+                });
+            }
         });
     </script>
 </body>

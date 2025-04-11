@@ -5,51 +5,74 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Fundamentals - Login</title>
     <link rel="stylesheet" href="css/styles.css">
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-        body {
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
+        .login-container {
+            max-width: 500px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background-color: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
         }
         
-        .login-section {
-            flex: 1;
+        .login-options {
+            margin-top: 2rem;
+        }
+        
+        .login-option {
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 4rem 0;
-        }
-        
-        .login-container {
-            background-color: var(--card-background);
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border: 1px solid var(--border-color);
             border-radius: var(--border-radius);
-            box-shadow: var(--shadow);
-            width: 100%;
-            max-width: 400px;
-            padding: 2rem;
-            margin: 0 auto;
+            cursor: pointer;
+            transition: var(--transition);
         }
         
-        .login-header {
-            text-align: center;
-            margin-bottom: 2rem;
+        .login-option:hover {
+            background-color: #f8f9fa;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
         
-        .login-header h2 {
+        .login-option i {
+            margin-right: 1rem;
+            font-size: 1.5rem;
+        }
+        
+        .google-login {
+            color: #4285F4;
+            border-color: #4285F4;
+        }
+        
+        .demo-login {
             color: var(--primary-color);
-            margin-bottom: 0.5rem;
+            border-color: var(--primary-color);
         }
         
-        .login-header p {
-            color: #777;
-            margin: 0;
+        .login-divider {
+            display: flex;
+            align-items: center;
+            margin: 2rem 0;
+            color: #666;
         }
         
-        .login-form {
-            margin-bottom: 1.5rem;
+        .login-divider::before,
+        .login-divider::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .login-divider::before {
+            margin-right: 1rem;
+        }
+        
+        .login-divider::after {
+            margin-left: 1rem;
         }
         
         .form-group {
@@ -62,177 +85,22 @@
             font-weight: 500;
         }
         
-        .form-group input {
+        .form-control {
             width: 100%;
             padding: 0.75rem;
             border: 1px solid var(--border-color);
             border-radius: var(--border-radius);
             font-size: 1rem;
-        }
-        
-        .form-actions {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1.5rem;
-        }
-        
-        .remember-me {
-            display: flex;
-            align-items: center;
-        }
-        
-        .remember-me input {
-            margin-right: 0.5rem;
-        }
-        
-        .forgot-password {
-            color: var(--primary-color);
-            font-size: 0.9rem;
-        }
-        
-        .login-button {
-            width: 100%;
-            padding: 0.75rem;
-            background-color: var(--primary-color);
-            color: var(--light-text);
-            border: none;
-            border-radius: var(--border-radius);
-            font-size: 1rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: var(--transition);
-        }
-        
-        .login-button:hover {
-            background-color: var(--accent-color);
-        }
-        
-        .social-login {
-            margin-bottom: 1.5rem;
-        }
-        
-        .social-login-title {
-            text-align: center;
-            margin-bottom: 1rem;
-            position: relative;
-        }
-        
-        .social-login-title::before {
-            content: "";
-            position: absolute;
-            top: 50%;
-            left: 0;
-            right: 0;
-            height: 1px;
-            background-color: var(--border-color);
-            z-index: 1;
-        }
-        
-        .social-login-title span {
-            position: relative;
-            background-color: var(--card-background);
-            padding: 0 1rem;
-            z-index: 2;
-            color: #777;
-        }
-        
-        .social-login-buttons {
-            display: flex;
-            gap: 1rem;
-        }
-        
-        .social-login-button {
-            flex: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 0.75rem;
-            border: 1px solid var(--border-color);
-            border-radius: var(--border-radius);
-            background-color: var(--light-background);
-            color: var(--dark-text);
-            font-weight: 500;
-            cursor: pointer;
-            transition: var(--transition);
-        }
-        
-        .social-login-button:hover {
-            background-color: #f0f0f0;
-        }
-        
-        .social-login-button i {
-            margin-right: 0.5rem;
-        }
-        
-        .google-button {
-            color: #DB4437;
-        }
-        
-        .signup-link {
-            text-align: center;
-            margin-top: 1.5rem;
-            color: #777;
-        }
-        
-        .signup-link a {
-            color: var(--primary-color);
-            font-weight: 500;
-        }
-        
-        .or-divider {
-            display: flex;
-            align-items: center;
-            margin: 1.5rem 0;
-            color: #777;
-        }
-        
-        .or-divider::before,
-        .or-divider::after {
-            content: "";
-            flex: 1;
-            height: 1px;
-            background-color: var(--border-color);
-        }
-        
-        .or-divider span {
-            padding: 0 1rem;
-        }
-        
-        .signup-form {
-            display: none;
-        }
-        
-        .login-toggle {
-            text-align: center;
-            margin-top: 1.5rem;
-            color: #777;
-        }
-        
-        .login-toggle a {
-            color: var(--primary-color);
-            font-weight: 500;
-            cursor: pointer;
-        }
-        
-        .error-message {
-            color: #dc3545;
-            font-size: 0.9rem;
-            margin-top: 0.5rem;
-            display: none;
         }
     </style>
 </head>
 <body>
     <header>
         <div class="container">
-            <a href="index.html" class="site-logo">
-                <i class="fas fa-brain"></i>
-                <span>AI Fundamentals</span>
-            </a>
+            <h1>AI Fundamentals</h1>
             <nav>
                 <ul>
-                    <li><a href="index.html#learning">Learning</a></li>
+                    <li><a href="index.html">Learning</a></li>
                     <li><a href="index.html#ai-tools">AI Tools</a></li>
                     <li><a href="index.html#premium">Premium</a></li>
                 </ul>
@@ -240,93 +108,58 @@
         </div>
     </header>
 
-    <section class="login-section">
+    <section class="hero-section">
+        <div class="container">
+            <div class="hero-content">
+                <h2>Sign In</h2>
+                <p>Access your account and premium content</p>
+            </div>
+        </div>
+    </section>
+
+    <section>
         <div class="container">
             <div class="login-container">
-                <div class="login-header">
-                    <h2>Welcome Back</h2>
-                    <p>Sign in to continue your learning journey</p>
-                </div>
+                <h2>Welcome Back</h2>
+                <p>Sign in to access your AI Fundamentals account</p>
                 
-                <div class="login-form" id="login-form">
-                    <div class="form-group">
-                        <label for="email">Email</label>
-                        <input type="email" id="email" placeholder="Enter your email">
-                        <div class="error-message" id="email-error"></div>
+                <div class="login-options">
+                    <div class="login-option google-login" id="google-signin-button">
+                        <i class="fab fa-google"></i>
+                        <span>Sign in with Google</span>
                     </div>
                     
-                    <div class="form-group">
-                        <label for="password">Password</label>
-                        <input type="password" id="password" placeholder="Enter your password">
-                        <div class="error-message" id="password-error"></div>
-                    </div>
-                    
-                    <div class="form-actions">
-                        <div class="remember-me">
-                            <input type="checkbox" id="remember-me">
-                            <label for="remember-me">Remember me</label>
-                        </div>
-                        
-                        <a href="#" class="forgot-password">Forgot password?</a>
-                    </div>
-                    
-                    <button class="login-button" id="login-button">Sign In</button>
-                    
-                    <div class="error-message" id="login-error"></div>
-                </div>
-                
-                <div class="signup-form" id="signup-form">
-                    <div class="form-group">
-                        <label for="signup-name">Full Name</label>
-                        <input type="text" id="signup-name" placeholder="Enter your full name">
-                        <div class="error-message" id="name-error"></div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="signup-email">Email</label>
-                        <input type="email" id="signup-email" placeholder="Enter your email">
-                        <div class="error-message" id="signup-email-error"></div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="signup-password">Password</label>
-                        <input type="password" id="signup-password" placeholder="Create a password">
-                        <div class="error-message" id="signup-password-error"></div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="confirm-password">Confirm Password</label>
-                        <input type="password" id="confirm-password" placeholder="Confirm your password">
-                        <div class="error-message" id="confirm-password-error"></div>
-                    </div>
-                    
-                    <button class="login-button" id="signup-button">Sign Up</button>
-                    
-                    <div class="error-message" id="signup-error"></div>
-                </div>
-                
-                <div class="social-login">
-                    <div class="social-login-title">
-                        <span>Or sign in with</span>
-                    </div>
-                    
-                    <div class="social-login-buttons">
-                        <button class="social-login-button google-button" id="google-login">
-                            <i class="fab fa-google"></i>
-                            <span>Google</span>
-                        </button>
+                    <div class="login-option demo-login" id="demo-login-button">
+                        <i class="fas fa-user"></i>
+                        <span>Demo Login (No Account Required)</span>
                     </div>
                 </div>
                 
-                <div class="or-divider">
-                    <span>OR</span>
-                </div>
+                <div class="login-divider">or</div>
                 
-                <button class="login-button" id="demo-login-button" style="background-color: #6c757d;">Try Demo Login</button>
+                <form id="login-form">
+                    <div class="form-group">
+                        <label for="login-email">Email</label>
+                        <input type="email" id="login-email" class="form-control" placeholder="your@email.com" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="login-password">Password</label>
+                        <input type="password" id="login-password" class="form-control" placeholder="••••••••" required>
+                    </div>
+                    
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                        <label style="display: flex; align-items: center;">
+                            <input type="checkbox" style="margin-right: 0.5rem;"> Remember me
+                        </label>
+                        <a href="#" style="color: var(--primary-color);">Forgot password?</a>
+                    </div>
+                    
+                    <button type="submit" class="btn" style="width: 100%;">Sign In</button>
+                </form>
                 
-                <div class="login-toggle" id="login-toggle">
-                    <span id="login-text">Don't have an account? <a id="show-signup">Sign Up</a></span>
-                    <span id="signup-text" style="display: none;">Already have an account? <a id="show-login">Sign In</a></span>
+                <div style="text-align: center; margin-top: 2rem;">
+                    <p>Don't have an account? <a href="#" style="color: var(--primary-color);">Sign up</a></p>
                 </div>
             </div>
         </div>
@@ -335,35 +168,37 @@
     <footer>
         <div class="container">
             <div class="footer-content">
-                <div class="footer-column">
-                    <h3>AI Fundamentals</h3>
+                <div class="footer-logo">
+                    <h2>AI Fundamentals</h2>
                     <p>Your journey to AI mastery starts here</p>
                 </div>
-                <div class="footer-column">
-                    <h3>Resources</h3>
-                    <ul>
-                        <li><a href="index.html#free-resources">Flashcards</a></li>
-                        <li><a href="index.html#learning">Learning Path</a></li>
-                        <li><a href="index.html#ai-tools">AI Tools</a></li>
-                        <li><a href="index.html#premium">Premium</a></li>
-                    </ul>
-                </div>
-                <div class="footer-column">
-                    <h3>Company</h3>
-                    <ul>
-                        <li><a href="#">About Us</a></li>
-                        <li><a href="#">Contact</a></li>
-                        <li><a href="#">Careers</a></li>
-                        <li><a href="#">Blog</a></li>
-                    </ul>
-                </div>
-                <div class="footer-column">
-                    <h3>Legal</h3>
-                    <ul>
-                        <li><a href="#">Terms of Service</a></li>
-                        <li><a href="#">Privacy Policy</a></li>
-                        <li><a href="#">Cookie Policy</a></li>
-                    </ul>
+                <div class="footer-links">
+                    <div class="footer-column">
+                        <h3>Resources</h3>
+                        <ul>
+                            <li><a href="#">Flashcards</a></li>
+                            <li><a href="#">Study Guides</a></li>
+                            <li><a href="#">Video Lessons</a></li>
+                            <li><a href="#">Practice Quizzes</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-column">
+                        <h3>Company</h3>
+                        <ul>
+                            <li><a href="#">About Us</a></li>
+                            <li><a href="#">Contact</a></li>
+                            <li><a href="#">Careers</a></li>
+                            <li><a href="#">Blog</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-column">
+                        <h3>Legal</h3>
+                        <ul>
+                            <li><a href="#">Terms of Service</a></li>
+                            <li><a href="#">Privacy Policy</a></li>
+                            <li><a href="#">Cookie Policy</a></li>
+                        </ul>
+                    </div>
                 </div>
             </div>
             <div class="footer-bottom">
@@ -378,252 +213,44 @@
         </div>
     </footer>
 
-    <script src="js/firebase-config.js"></script>
+    <script src="js/auth-integration.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Toggle between login and signup forms
-            const loginForm = document.getElementById('login-form');
-            const signupForm = document.getElementById('signup-form');
-            const loginText = document.getElementById('login-text');
-            const signupText = document.getElementById('signup-text');
-            const showSignup = document.getElementById('show-signup');
-            const showLogin = document.getElementById('show-login');
-            
-            showSignup.addEventListener('click', function() {
-                loginForm.style.display = 'none';
-                signupForm.style.display = 'block';
-                loginText.style.display = 'none';
-                signupText.style.display = 'block';
-            });
-            
-            showLogin.addEventListener('click', function() {
-                signupForm.style.display = 'none';
-                loginForm.style.display = 'block';
-                signupText.style.display = 'none';
-                loginText.style.display = 'block';
-            });
-            
-            // Email/Password Login
-            const loginButton = document.getElementById('login-button');
-            const emailInput = document.getElementById('email');
-            const passwordInput = document.getElementById('password');
-            const loginError = document.getElementById('login-error');
-            
-            loginButton.addEventListener('click', function() {
-                const email = emailInput.value;
-                const password = passwordInput.value;
-                
-                // Validate inputs
-                if (!email) {
-                    document.getElementById('email-error').textContent = 'Email is required';
-                    document.getElementById('email-error').style.display = 'block';
-                    return;
-                } else {
-                    document.getElementById('email-error').style.display = 'none';
-                }
-                
-                if (!password) {
-                    document.getElementById('password-error').textContent = 'Password is required';
-                    document.getElementById('password-error').style.display = 'block';
-                    return;
-                } else {
-                    document.getElementById('password-error').style.display = 'none';
-                }
-                
-                // Sign in with email and password
-                firebase.auth().signInWithEmailAndPassword(email, password)
-                    .then((userCredential) => {
-                        // Signed in
-                        const user = userCredential.user;
-                        console.log('User signed in:', user);
-                        
-                        // Redirect to account page or previous page
-                        const urlParams = new URLSearchParams(window.location.search);
-                        const redirectUrl = urlParams.get('redirect') || 'account.html';
-                        window.location.href = redirectUrl;
-                    })
-                    .catch((error) => {
-                        const errorCode = error.code;
-                        const errorMessage = error.message;
-                        console.error('Login error:', errorCode, errorMessage);
-                        
-                        // Display error message
-                        loginError.textContent = getAuthErrorMessage(errorCode);
-                        loginError.style.display = 'block';
-                    });
-            });
-            
-            // Email/Password Signup
-            const signupButton = document.getElementById('signup-button');
-            const nameInput = document.getElementById('signup-name');
-            const signupEmailInput = document.getElementById('signup-email');
-            const signupPasswordInput = document.getElementById('signup-password');
-            const confirmPasswordInput = document.getElementById('confirm-password');
-            const signupError = document.getElementById('signup-error');
-            
-            signupButton.addEventListener('click', function() {
-                const name = nameInput.value;
-                const email = signupEmailInput.value;
-                const password = signupPasswordInput.value;
-                const confirmPassword = confirmPasswordInput.value;
-                
-                // Validate inputs
-                let isValid = true;
-                
-                if (!name) {
-                    document.getElementById('name-error').textContent = 'Name is required';
-                    document.getElementById('name-error').style.display = 'block';
-                    isValid = false;
-                } else {
-                    document.getElementById('name-error').style.display = 'none';
-                }
-                
-                if (!email) {
-                    document.getElementById('signup-email-error').textContent = 'Email is required';
-                    document.getElementById('signup-email-error').style.display = 'block';
-                    isValid = false;
-                } else {
-                    document.getElementById('signup-email-error').style.display = 'none';
-                }
-                
-                if (!password) {
-                    document.getElementById('signup-password-error').textContent = 'Password is required';
-                    document.getElementById('signup-password-error').style.display = 'block';
-                    isValid = false;
-                } else if (password.length < 6) {
-                    document.getElementById('signup-password-error').textContent = 'Password must be at least 6 characters';
-                    document.getElementById('signup-password-error').style.display = 'block';
-                    isValid = false;
-                } else {
-                    document.getElementById('signup-password-error').style.display = 'none';
-                }
-                
-                if (password !== confirmPassword) {
-                    document.getElementById('confirm-password-error').textContent = 'Passwords do not match';
-                    document.getElementById('confirm-password-error').style.display = 'block';
-                    isValid = false;
-                } else {
-                    document.getElementById('confirm-password-error').style.display = 'none';
-                }
-                
-                if (!isValid) return;
-                
-                // Create user with email and password
-                firebase.auth().createUserWithEmailAndPassword(email, password)
-                    .then((userCredential) => {
-                        // Signed up
-                        const user = userCredential.user;
-                        console.log('User created:', user);
-                        
-                        // Update user profile with name
-                        return user.updateProfile({
-                            displayName: name
-                        });
-                    })
-                    .then(() => {
-                        // Redirect to account page
-                        window.location.href = 'account.html';
-                    })
-                    .catch((error) => {
-                        const errorCode = error.code;
-                        const errorMessage = error.message;
-                        console.error('Signup error:', errorCode, errorMessage);
-                        
-                        // Display error message
-                        signupError.textContent = getAuthErrorMessage(errorCode);
-                        signupError.style.display = 'block';
-                    });
-            });
-            
-            // Google Login
-            const googleLoginButton = document.getElementById('google-login');
-            
-            googleLoginButton.addEventListener('click', function() {
-                const provider = new firebase.auth.GoogleAuthProvider();
-                
-                // Use redirect-based sign-in instead of popup to avoid popup blocking
-                firebase.auth().signInWithRedirect(provider)
-                    .catch((error) => {
-                        const errorCode = error.code;
-                        const errorMessage = error.message;
-                        console.error('Google login error:', errorCode, errorMessage);
-                        
-                        // Display error message
-                        loginError.textContent = getAuthErrorMessage(errorCode);
-                        loginError.style.display = 'block';
-                    });
-            });
-            
-            // Handle redirect result
-            firebase.auth().getRedirectResult()
-                .then((result) => {
-                    if (result.user) {
-                        // User signed in with redirect
-                        console.log('User signed in with redirect:', result.user);
-                        
-                        // Redirect to account page or previous page
-                        const urlParams = new URLSearchParams(window.location.search);
-                        const redirectUrl = urlParams.get('redirect') || 'account.html';
-                        window.location.href = redirectUrl;
+            // Set up Google Sign-In button
+            const googleButton = document.getElementById('google-signin-button');
+            if (googleButton) {
+                googleButton.addEventListener('click', function() {
+                    // In a real implementation, this would trigger the Google OAuth flow
+                    // For demo purposes, we'll use our simulation function
+                    const email = prompt('Enter your email for demo login:', 'user@example.com');
+                    if (email) {
+                        const name = prompt('Enter your name:', 'Demo User');
+                        window.authIntegration.simulateGoogleSignIn(email, name);
                     }
-                })
-                .catch((error) => {
-                    const errorCode = error.code;
-                    const errorMessage = error.message;
-                    console.error('Redirect result error:', errorCode, errorMessage);
-                    
-                    // Display error message
-                    loginError.textContent = getAuthErrorMessage(errorCode);
-                    loginError.style.display = 'block';
                 });
+            }
             
-            // Demo Login
-            const demoLoginButton = document.getElementById('demo-login-button');
+            // Set up demo login button
+            const demoButton = document.getElementById('demo-login-button');
+            if (demoButton) {
+                demoButton.addEventListener('click', function() {
+                    window.authIntegration.simulateGoogleSignIn('demo@aifundamentals.com', 'Demo User');
+                });
+            }
             
-            demoLoginButton.addEventListener('click', function() {
-                // Redirect to account page with demo parameter
-                window.location.href = 'account.html?demo=true';
-            });
-            
-            // Check if user is already logged in
-            firebase.auth().onAuthStateChanged(function(user) {
-                if (user) {
-                    // User is signed in
-                    console.log('User is already signed in:', user.displayName || user.email);
+            // Handle login form submission
+            const loginForm = document.getElementById('login-form');
+            if (loginForm) {
+                loginForm.addEventListener('submit', function(event) {
+                    event.preventDefault();
                     
-                    // Check if this is a fresh login or user was already logged in
-                    const urlParams = new URLSearchParams(window.location.search);
-                    const redirectUrl = urlParams.get('redirect');
+                    const email = document.getElementById('login-email').value;
+                    const password = document.getElementById('login-password').value;
                     
-                    if (!redirectUrl) {
-                        // User was already logged in, redirect to account page
-                        window.location.href = 'account.html';
-                    }
-                }
-            });
-            
-            // Helper function to get user-friendly error messages
-            function getAuthErrorMessage(errorCode) {
-                switch (errorCode) {
-                    case 'auth/user-not-found':
-                    case 'auth/wrong-password':
-                        return 'Invalid email or password';
-                    case 'auth/email-already-in-use':
-                        return 'Email is already in use';
-                    case 'auth/weak-password':
-                        return 'Password is too weak';
-                    case 'auth/invalid-email':
-                        return 'Invalid email address';
-                    case 'auth/popup-closed-by-user':
-                        return 'Login popup was closed';
-                    case 'auth/popup-blocked':
-                    case 'auth/popup-blocked-by-browser':
-                        return 'Popup was blocked by the browser';
-                    case 'auth/network-request-failed':
-                        return 'Network error. Please check your connection';
-                    default:
-                        return 'An error occurred. Please try again';
-                }
+                    // In a real implementation, this would validate credentials with a server
+                    // For demo purposes, we'll accept any email/password and use our simulation function
+                    window.authIntegration.simulateGoogleSignIn(email, email.split('@')[0]);
+                });
             }
         });
     </script>

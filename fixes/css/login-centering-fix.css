@@ -1,0 +1,218 @@
+/* Login page centering fix for AI Fundamentals */
+
+/* Main container for login page */
+.login-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: calc(100vh - 80px); /* Account for header height */
+  padding: 20px;
+}
+
+/* Login form container */
+.login-form {
+  background-color: #fff;
+  border-radius: 10px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  padding: 30px;
+  width: 100%;
+  max-width: 450px;
+  margin: 0 auto;
+}
+
+/* Welcome heading */
+.login-form h2 {
+  color: #6c63ff;
+  text-align: center;
+  margin-bottom: 10px;
+  font-size: 2rem;
+}
+
+/* Subtitle */
+.login-form p {
+  text-align: center;
+  margin-bottom: 25px;
+  color: #666;
+}
+
+/* Form fields */
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: #333;
+}
+
+.form-group input[type="email"],
+.form-group input[type="password"],
+.form-group input[type="text"] {
+  width: 100%;
+  padding: 12px 15px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  font-size: 16px;
+  transition: border-color 0.3s;
+}
+
+.form-group input:focus {
+  border-color: #6c63ff;
+  outline: none;
+}
+
+/* Remember me and forgot password row */
+.form-options {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.remember-me {
+  display: flex;
+  align-items: center;
+}
+
+.remember-me input {
+  margin-right: 8px;
+}
+
+.forgot-password {
+  color: #6c63ff;
+  text-decoration: none;
+}
+
+.forgot-password:hover {
+  text-decoration: underline;
+}
+
+/* Sign in button */
+.sign-in-btn {
+  background-color: #6c63ff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  padding: 12px 0;
+  width: 100%;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.sign-in-btn:hover {
+  background-color: #5a52d5;
+}
+
+/* OR divider */
+.divider {
+  display: flex;
+  align-items: center;
+  margin: 25px 0;
+  color: #888;
+}
+
+.divider::before,
+.divider::after {
+  content: "";
+  flex: 1;
+  border-bottom: 1px solid #ddd;
+}
+
+.divider span {
+  padding: 0 15px;
+}
+
+/* Google sign in button */
+.google-btn {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  padding: 12px 0;
+  width: 100%;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.google-btn img {
+  margin-right: 10px;
+  width: 20px;
+  height: 20px;
+}
+
+.google-btn:hover {
+  background-color: #f8f8f8;
+}
+
+/* Demo login button */
+.demo-login-btn {
+  background-color: #4a4a4a;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  padding: 12px 0;
+  width: 100%;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  margin-top: 15px;
+}
+
+.demo-login-btn:hover {
+  background-color: #333;
+}
+
+/* Sign up link */
+.signup-link {
+  text-align: center;
+  margin-top: 25px;
+}
+
+.signup-link a {
+  color: #6c63ff;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.signup-link a:hover {
+  text-decoration: underline;
+}
+
+/* Error message */
+.auth-error {
+  background-color: #f8d7da;
+  color: #721c24;
+  padding: 10px;
+  border-radius: 5px;
+  margin-bottom: 20px;
+  text-align: center;
+  display: none;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .login-form {
+    padding: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .form-options {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .forgot-password {
+    margin-top: 10px;
+  }
+}

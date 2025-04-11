@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Fundamentals - Premium Games</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        .games-container {
+            max-width: 1200px;
+            margin: 2rem auto;
+        }
+        
+        .games-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+        
+        .game-card {
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            transition: var(--transition);
+            background-color: white;
+            box-shadow: var(--shadow);
+        }
+        
+        .game-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        .game-image {
+            height: 200px;
+            background-color: #f5f5f5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary-color);
+            font-size: 4rem;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .game-image::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, rgba(0,0,0,0) 70%, rgba(0,0,0,0.7) 100%);
+        }
+        
+        .game-content {
+            padding: 1.5rem;
+        }
+        
+        .game-content h3 {
+            margin-bottom: 0.5rem;
+            color: var(--primary-color);
+        }
+        
+        .game-content p {
+            color: #666;
+            margin-bottom: 1rem;
+            min-height: 4.5rem;
+        }
+        
+        .game-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+            color: #666;
+        }
+        
+        .game-difficulty {
+            display: flex;
+            align-items: center;
+        }
+        
+        .difficulty-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 4px;
+        }
+        
+        .difficulty-easy {
+            background-color: #28a745;
+        }
+        
+        .difficulty-medium {
+            background-color: #ffc107;
+        }
+        
+        .difficulty-hard {
+            background-color: #dc3545;
+        }
+        
+        .game-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .game-actions .btn {
+            flex: 1;
+        }
+        
+        .game-actions .btn-outline {
+            margin-left: 0.5rem;
+            background-color: transparent;
+            border: 1px solid var(--primary-color);
+            color: var(--primary-color);
+        }
+        
+        .game-actions .btn-outline:hover {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .subscription-required {
+            background-color: #f8f9fa;
+            padding: 2rem;
+            border-radius: var(--border-radius);
+            text-align: center;
+            margin: 2rem 0;
+            border: 1px solid var(--border-color);
+        }
+        
+        .subscription-required h3 {
+            margin-bottom: 1rem;
+            color: var(--primary-color);
+        }
+        
+        .subscription-required p {
+            margin-bottom: 1.5rem;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .locked-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+            z-index: 1;
+        }
+        
+        .locked-overlay i {
+            margin-right: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>AI Fundamentals</h1>
+            <nav>
+                <ul>
+                    <li><a href="index.html">Learning</a></li>
+                    <li><a href="index.html#ai-tools">AI Tools</a></li>
+                    <li><a href="index.html#premium">Premium</a></li>
+                    <li><a href="games.html" class="active">Games</a></li>
+                </ul>
+            </nav>
+            <div class="user-menu" style="display: none;">
+                <span class="user-name">User Name</span>
+                <button class="logout-button"><i class="fas fa-sign-out-alt"></i></button>
+            </div>
+            <button class="login-button btn btn-sm">Sign In</button>
+        </div>
+    </header>
+
+    <section class="hero-section">
+        <div class="container">
+            <div class="hero-content">
+                <h2>AI Learning Games</h2>
+                <p>Interactive games to reinforce your AI knowledge and skills</p>
+            </div>
+        </div>
+    </section>
+
+    <section>
+        <div class="container">
+            <div class="games-container">
+                <div id="subscription-check">
+                    <!-- This div will be populated based on subscription status -->
+                </div>
+                
+                <div class="games-grid">
+                    <div class="game-card premium-content">
+                        <div class="game-image">
+                            <i class="fas fa-robot"></i>
+                            <div class="locked-overlay" style="display: none;">
+                                <i class="fas fa-lock"></i> Premium Only
+                            </div>
+                        </div>
+                        <div class="game-content">
+                            <h3>AI Defender</h3>
+                            <div class="game-meta">
+                                <div class="game-difficulty">
+                                    <span class="difficulty-indicator difficulty-medium"></span>
+                                    Medium
+                                </div>
+                                <div class="game-time">
+                                    <i class="far fa-clock"></i> 15 min
+                                </div>
+                            </div>
+                            <p>Protect your data from AI threats in this strategic game. Learn about AI security while having fun!</p>
+                            <div class="game-actions">
+                                <a href="games/ai-defender.html" class="btn">Play Now</a>
+                                <a href="games/ai-defender-leaderboard.html" class="btn btn-outline">Leaderboard</a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="game-card premium-content">
+                        <div class="game-image">
+                            <i class="fas fa-brain"></i>
+                            <div class="locked-overlay" style="display: none;">
+                                <i class="fas fa-lock"></i> Premium Only
+                            </div>
+                        </div>
+                        <div class="game-content">
+                            <h3>Neural Network Builder</h3>
+                            <div class="game-meta">
+                                <div class="game-difficulty">
+                                    <span class="difficulty-indicator difficulty-hard"></span>
+                                    Hard
+                                </div>
+                                <div class="game-time">
+                                    <i class="far fa-clock"></i> 25 min
+                                </div>
+                            </div>
+                            <p>Build and train neural networks to solve complex problems. Perfect for understanding deep learning concepts.</p>
+                            <div class="game-actions">
+                                <a href="games/neural-network.html" class="btn">Play Now</a>
+                                <a href="games/neural-network-leaderboard.html" class="btn btn-outline">Leaderboard</a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="game-card premium-content">
+                        <div class="game-image">
+                            <i class="fas fa-balance-scale"></i>
+                            <div class="locked-overlay" style="display: none;">
+                                <i class="fas fa-lock"></i> Premium Only
+                            </div>
+                        </div>
+                        <div class="game-content">
+                            <h3>AI Ethics Challenge</h3>
+                            <div class="game-meta">
+                                <div class="game-difficulty">
+                                    <span class="difficulty-indicator difficulty-medium"></span>
+                                    Medium
+                                </div>
+                                <div class="game-time">
+                                    <i class="far fa-clock"></i> 20 min
+                                </div>
+                            </div>
+                            <p>Navigate ethical dilemmas in AI development and deployment. Learn about responsible AI practices.</p>
+                            <div class="game-actions">
+                                <a href="games/ethics-challenge.html" class="btn">Play Now</a>
+                                <a href="games/ethics-challenge-leaderboard.html" class="btn btn-outline">Leaderboard</a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="game-card premium-content">
+                        <div class="game-image">
+                            <i class="fas fa-code"></i>
+                            <div class="locked-overlay" style="display: none;">
+                                <i class="fas fa-lock"></i> Premium Only
+                            </div>
+                        </div>
+                        <div class="game-content">
+                            <h3>Prompt Engineering</h3>
+                            <div class="game-meta">
+                                <div class="game-difficulty">
+                                    <span class="difficulty-indicator difficulty-easy"></span>
+                                    Easy
+                                </div>
+                                <div class="game-time">
+                                    <i class="far fa-clock"></i> 10 min
+                                </div>
+                            </div>
+                            <p>Master the art of crafting effective prompts for AI systems. Improve your AI communication skills.</p>
+                            <div class="game-actions">
+                                <a href="games/prompt-engineering.html" class="btn">Play Now</a>
+                                <a href="games/prompt-engineering-leaderboard.html" class="btn btn-outline">Leaderboard</a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="game-card">
+                        <div class="game-image">
+                            <i class="fas fa-puzzle-piece"></i>
+                        </div>
+                        <div class="game-content">
+                            <h3>AI Trivia Challenge</h3>
+                            <div class="game-meta">
+                                <div class="game-difficulty">
+                                    <span class="difficulty-indicator difficulty-easy"></span>
+                                    Easy
+                                </div>
+                                <div class="game-time">
+                                    <i class="far fa-clock"></i> 5 min
+                                </div>
+                            </div>
+                            <p>Test your knowledge of AI concepts and history with this fast-paced trivia game. Free for all users!</p>
+                            <div class="game-actions">
+                                <a href="games/ai-trivia.html" class="btn">Play Now</a>
+                                <a href="games/ai-trivia-leaderboard.html" class="btn btn-outline">Leaderboard</a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="game-card">
+                        <div class="game-image">
+                            <i class="fas fa-language"></i>
+                        </div>
+                        <div class="game-content">
+                            <h3>AI Terminology Match</h3>
+                            <div class="game-meta">
+                                <div class="game-difficulty">
+                                    <span class="difficulty-indicator difficulty-easy"></span>
+                                    Easy
+                                </div>
+                                <div class="game-time">
+                                    <i class="far fa-clock"></i> 5 min
+                                </div>
+                            </div>
+                            <p>Match AI terms with their definitions in this memory-style game. Great for beginners!</p>
+                            <div class="game-actions">
+                                <a href="games/terminology-match.html" class="btn">Play Now</a>
+                                <a href="games/terminology-match-leaderboard.html" class="btn btn-outline">Leaderboard</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-logo">
+                    <h2>AI Fundamentals</h2>
+                    <p>Your journey to AI mastery starts here</p>
+                </div>
+                <div class="footer-links">
+                    <div class="footer-column">
+                        <h3>Resources</h3>
+                        <ul>
+                            <li><a href="#">Flashcards</a></li>
+                            <li><a href="#">Study Guides</a></li>
+                            <li><a href="#">Video Lessons</a></li>
+                            <li><a href="#">Practice Quizzes</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-column">
+                        <h3>Company</h3>
+                        <ul>
+                            <li><a href="#">About Us</a></li>
+                            <li><a href="#">Contact</a></li>
+                            <li><a href="#">Careers</a></li>
+                            <li><a href="#">Blog</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-column">
+                        <h3>Legal</h3>
+                        <ul>
+                            <li><a href="#">Terms of Service</a></li>
+                            <li><a href="#">Privacy Policy</a></li>
+                            <li><a href="#">Cookie Policy</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 AI Fundamentals. All rights reserved.</p>
+                <div class="social-links">
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                    <a href="#"><i class="fab fa-facebook"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                    <a href="#"><i class="fab fa-linkedin"></i></a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/auth-integration.js"></script>
+    <script src="js/stripe-integration.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check authentication and subscription status
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            const hasSubscription = window.stripeIntegration.hasActiveSubscription();
+            
+            // Update subscription check div
+            const subscriptionCheckDiv = document.getElementById('subscription-check');
+            if (!user.email) {
+                // User is not logged in
+                subscriptionCheckDiv.innerHTML = `
+                    <div class="subscription-required">
+                        <h3>Sign In to Access Premium Games</h3>
+                        <p>Create an account or sign in to access our full library of AI learning games.</p>
+                        <a href="login.html?redirect=games" class="btn">Sign In</a>
+                    </div>
+                `;
+            } else if (!hasSubscription) {
+                // User is logged in but doesn't have a subscription
+                subscriptionCheckDiv.innerHTML = `
+                    <div class="subscription-required">
+                        <h3>Upgrade to Premium</h3>
+                        <p>Unlock all premium games and learning resources with a premium subscription.</p>
+                        <a href="payment.html" class="btn">Upgrade Now</a>
+                    </div>
+                `;
+            } else {
+                // User has an active subscription
+                subscriptionCheckDiv.innerHTML = `
+                    <div class="subscription-required" style="background-color: #d4edda; border-color: #c3e6cb;">
+                        <h3>Premium Access Unlocked</h3>
+                        <p>Enjoy full access to all premium games and learning resources.</p>
+                        <a href="account.html" class="btn">Manage Subscription</a>
+                    </div>
+                `;
+            }
+            
+            // Update premium content access
+            const premiumContent = document.querySelectorAll('.premium-content');
+            const lockedOverlays = document.querySelectorAll('.locked-overlay');
+            
+            if (!hasSubscription) {
+                // Show locked overlays for premium content
+                lockedOverlays.forEach(overlay => {
+                    overlay.style.display = 'flex';
+                });
+                
+                // Disable premium game links
+                premiumContent.forEach(content => {
+                    const links = content.querySelectorAll('a');
+                    links.forEach(link => {
+                        link.addEventListener('click', function(event) {
+                            event.preventDefault();
+                            window.location.href = 'payment.html';
+                        });
+                    });
+                });
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Fundamentals - Learn AI the Right Way</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="js/firebase-config.js"></script>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="logo">
+            <a href="index.html">
+                <img src="images/brain-icon.png" alt="AI Fundamentals Logo">
+                <span>AI Fundamentals</span>
+            </a>
+        </div>
+        <nav>
+            <ul>
+                <li><a href="#learning">Learning</a></li>
+                <li><a href="#ai-tools">AI Tools</a></li>
+                <li><a href="#premium">Premium</a></li>
+            </ul>
+        </nav>
+        <div class="auth-buttons">
+            <a href="login.html" class="sign-in-button">
+                <i class="fas fa-sign-in-alt"></i> Sign In
+            </a>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <h1>Master AI Fundamentals</h1>
+            <p>Learn the core concepts of artificial intelligence through interactive lessons, flashcards, and hands-on projects.</p>
+            <div class="hero-buttons">
+                <a href="#free-resources" class="btn primary-btn">Start Learning</a>
+                <a href="#premium" class="btn secondary-btn">Upgrade to Premium</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Free Resources Section -->
+    <section id="free-resources" class="free-resources">
+        <div class="section-header">
+            <h2>Free Resources</h2>
+            <p>Choose the study mode that works best for you</p>
+        </div>
+
+        <div class="flashcard-section">
+            <div class="card-container">
+                <div class="flashcard">
+                    <div class="card-inner">
+                        <div class="card-front">
+                            <h3>Artificial Intelligence (AI)</h3>
+                            <p>Click to reveal definition</p>
+                        </div>
+                        <div class="card-back">
+                            <p>The simulation of human intelligence processes by machines, especially computer systems.</p>
+                            <p class="click-instruction">Click to see term</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-navigation">
+                <button class="previous">Previous</button>
+                <div class="card-counter">Card 1 of 15</div>
+                <button class="next">Next</button>
+            </div>
+
+            <div class="study-modes">
+                <button class="flip-cards active">Flip Cards</button>
+                <button class="quiz-mode">Quiz Mode</button>
+                <button class="matching-game">Matching Game</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- AI Tools Directory Section -->
+    <section id="ai-tools" class="ai-tools">
+        <div class="section-header">
+            <h2>AI Tools Directory</h2>
+            <p>Discover the best AI tools for different tasks</p>
+        </div>
+
+        <div class="tools-filter">
+            <button class="filter-btn active" data-filter="all">All Tools</button>
+            <button class="filter-btn" data-filter="text">Text Generation</button>
+            <button class="filter-btn" data-filter="image">Image Creation</button>
+            <button class="filter-btn" data-filter="audio">Audio & Voice</button>
+            <button class="filter-btn" data-filter="video">Video Creation</button>
+            <button class="filter-btn" data-filter="coding">Coding</button>
+        </div>
+
+        <div class="tools-grid">
+            <!-- ChatGPT -->
+            <div class="tool-card" data-categories="text coding">
+                <div class="tool-icon">
+                    <img src="images/chatgpt-icon.png" alt="ChatGPT">
+                </div>
+                <div class="tool-info">
+                    <h3>ChatGPT</h3>
+                    <p>Conversational AI assistant that can help with writing, answering questions, and generating creative content.</p>
+                    <div class="tool-categories">
+                        <span class="category text">Text Generation</span>
+                        <span class="category coding">Coding</span>
+                    </div>
+                    <a href="https://chat.openai.com/" class="tool-link" target="_blank">Visit Tool</a>
+                </div>
+            </div>
+
+            <!-- DALL-E -->
+            <div class="tool-card" data-categories="image">
+                <div class="tool-icon">
+                    <img src="images/dalle-icon.png" alt="DALL-E">
+                </div>
+                <div class="tool-info">
+                    <h3>DALL-E</h3>
+                    <p>AI system that creates realistic images and art from natural language descriptions.</p>
+                    <div class="tool-categories">
+                        <span class="category image">Image Creation</span>
+                    </div>
+                    <a href="https://openai.com/dall-e-3" class="tool-link" target="_blank">Visit Tool</a>
+                </div>
+            </div>
+
+            <!-- Jasper -->
+            <div class="tool-card" data-categories="text">
+                <div class="tool-icon">
+                    <img src="images/jasper-icon.png" alt="Jasper">
+                </div>
+                <div class="tool-info">
+                    <h3>Jasper</h3>
+                    <p>AI writing assistant designed for marketing teams to create content for blogs, social media, and ads.</p>
+                    <div class="tool-categories">
+                        <span class="category text">Text Generation</span>
+                    </div>
+                    <a href="https://www.jasper.ai/" class="tool-link" target="_blank">Visit Tool</a>
+                </div>
+            </div>
+
+            <!-- Midjourney -->
+            <div class="tool-card" data-categories="image">
+                <div class="tool-icon">
+                    <img src="images/midjourney-icon.png" alt="Midjourney">
+                </div>
+                <div class="tool-info">
+                    <h3>Midjourney</h3>
+                    <p>AI art generator that creates images from textual descriptions using a Discord bot interface.</p>
+                    <div class="tool-categories">
+                        <span class="category image">Image Creation</span>
+                    </div>
+                    <a href="https://www.midjourney.com/" class="tool-link" target="_blank">Visit Tool</a>
+                </div>
+            </div>
+
+            <!-- ElevenLabs -->
+            <div class="tool-card" data-categories="audio">
+                <div class="tool-icon">
+                    <img src="images/elevenlabs-icon.png" alt="ElevenLabs">
+                </div>
+                <div class="tool-info">
+                    <h3>ElevenLabs</h3>
+                    <p>AI voice generator and text-to-speech platform with natural-sounding voices in multiple languages.</p>
+                    <div class="tool-categories">
+                        <span class="category audio">Audio & Voice</span>
+                    </div>
+                    <a href="https://elevenlabs.io/" class="tool-link" target="_blank">Visit Tool</a>
+                </div>
+            </div>
+
+            <!-- Synthesia -->
+            <div class="tool-card" data-categories="video">
+                <div class="tool-icon">
+                    <img src="images/synthesia-icon.png" alt="Synthesia">
+                </div>
+                <div class="tool-info">
+                    <h3>Synthesia</h3>
+                    <p>AI video generation platform that creates videos with virtual presenters from text scripts.</p>
+                    <div class="tool-categories">
+                        <span class="category video">Video Creation</span>
+                    </div>
+                    <a href="https://www.synthesia.io/" class="tool-link" target="_blank">Visit Tool</a>
+                </div>
+            </div>
+
+            <!-- GitHub Copilot -->
+            <div class="tool-card" data-categories="coding">
+                <div class="tool-icon">
+                    <img src="images/github-copilot-icon.png" alt="GitHub Copilot">
+                </div>
+                <div class="tool-info">
+                    <h3>GitHub Copilot</h3>
+                    <p>AI pair programmer that suggests code completions based on context from comments and code.</p>
+                    <div class="tool-categories">
+                        <span class="category coding">Coding Assistant</span>
+                    </div>
+                    <a href="https://github.com/features/copilot" class="tool-link" target="_blank">Visit Tool</a>
+                </div>
+            </div>
+
+            <!-- Claude -->
+            <div class="tool-card" data-categories="text coding">
+                <div class="tool-icon">
+                    <img src="images/claude-icon.png" alt="Claude">
+                </div>
+                <div class="tool-info">
+                    <h3>Claude</h3>
+                    <p>Conversational AI assistant by Anthropic, designed to be helpful, harmless, and honest.</p>
+                    <div class="tool-categories">
+                        <span class="category text">Text Generation</span>
+                        <span class="category coding">Coding</span>
+                    </div>
+                    <a href="https://claude.ai/" class="tool-link" target="_blank">Visit Tool</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Premium Subscription Section -->
+    <section id="premium" class="premium">
+        <div class="section-header">
+            <h2>Premium Subscription</h2>
+            <p>Unlock advanced learning resources and features</p>
+        </div>
+
+        <div class="pricing-cards">
+            <!-- Basic Plan -->
+            <div class="pricing-card">
+                <div class="plan-name">Basic</div>
+                <div class="plan-price">Free Forever</div>
+                <ul class="plan-features">
+                    <li class="included">Access to basic flashcards</li>
+                    <li class="included">Introduction to AI module</li>
+                    <li class="included">AI tools directory</li>
+                    <li class="not-included">Advanced learning modules</li>
+                    <li class="not-included">Practice exercises</li>
+                    <li class="not-included">AI project tutorials</li>
+                    <li class="not-included">Community access</li>
+                </ul>
+                <a href="#free-resources" class="plan-button">Get Started</a>
+            </div>
+
+            <!-- Premium Plan -->
+            <div class="pricing-card featured">
+                <div class="plan-badge">Most Popular</div>
+                <div class="plan-name">Premium</div>
+                <div class="plan-price">$9.99 <span>per month</span></div>
+                <ul class="plan-features">
+                    <li class="included">All Basic features</li>
+                    <li class="included">Full learning path access</li>
+                    <li class="included">Advanced AI concepts</li>
+                    <li class="included">Interactive exercises</li>
+                    <li class="included">Monthly AI project tutorials</li>
+                    <li class="included">Community forum access</li>
+                    <li class="not-included">1-on-1 mentoring sessions</li>
+                </ul>
+                <a href="payment.html" class="plan-button">Upgrade Now</a>
+            </div>
+
+            <!-- Pro Plan -->
+            <div class="pricing-card">
+                <div class="plan-name">Pro</div>
+                <div class="plan-price">$29.99 <span>per month</span></div>
+                <ul class="plan-features">
+                    <li class="included">All Premium features</li>
+                    <li class="included">Advanced AI project workshops</li>
+                    <li class="included">Weekly 1-on-1 mentoring sessions</li>
+                    <li class="included">Career guidance and support</li>
+                    <li class="included">Resume review and job prep</li>
+                    <li class="included">Priority support</li>
+                    <li class="included">Certificate of completion</li>
+                </ul>
+                <a href="payment.html" class="plan-button">Upgrade Now</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Learning Path Section -->
+    <section id="learning" class="learning-path">
+        <div class="section-header">
+            <h2>Learning Path</h2>
+            <p>Follow our structured learning path to master AI concepts</p>
+        </div>
+
+        <div class="path-modules">
+            <!-- Module 1 -->
+            <div class="path-module">
+                <div class="module-icon">
+                    <i class="fas fa-brain"></i>
+                </div>
+                <div class="module-content">
+                    <h3>Introduction to AI</h3>
+                    <p>Learn the basic concepts and history of artificial intelligence.</p>
+                    <a href="#free-resources" class="module-button">Start Learning</a>
+                </div>
+            </div>
+
+            <!-- Module 2 -->
+            <div class="path-module">
+                <div class="module-icon">
+                    <i class="fas fa-cogs"></i>
+                </div>
+                <div class="module-content">
+                    <h3>Machine Learning Fundamentals</h3>
+                    <p>Understand how machines learn from data and make predictions.</p>
+                    <a href="login.html" class="module-button">Continue Learning</a>
+                </div>
+            </div>
+
+            <!-- Module 3 -->
+            <div class="path-module locked">
+                <div class="module-icon">
+                    <i class="fas fa-network-wired"></i>
+                </div>
+                <div class="module-content">
+                    <h3>Neural Networks</h3>
+                    <p>Explore the structure and function of artificial neural networks.</p>
+                    <a href="login.html" class="module-button">
+                        <i class="fas fa-lock"></i> Sign In to Access
+                    </a>
+                </div>
+            </div>
+
+            <!-- Module 4 -->
+            <div class="path-module locked">
+                <div class="module-icon">
+                    <i class="fas fa-language"></i>
+                </div>
+                <div class="module-content">
+                    <h3>Natural Language Processing</h3>
+                    <p>Learn how AI understands and generates human language.</p>
+                    <a href="login.html" class="module-button">
+                        <i class="fas fa-lock"></i> Sign In to Access
+                    </a>
+                </div>
+            </div>
+
+            <!-- Module 5 -->
+            <div class="path-module locked">
+                <div class="module-icon">
+                    <i class="fas fa-eye"></i>
+                </div>
+                <div class="module-content">
+                    <h3>Computer Vision</h3>
+                    <p>Discover how AI systems interpret and understand visual information.</p>
+                    <a href="login.html" class="module-button">
+                        <i class="fas fa-lock"></i> Sign In to Access
+                    </a>
+                </div>
+            </div>
+
+            <!-- Module 6 -->
+            <div class="path-module locked">
+                <div class="module-icon">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <div class="module-content">
+                    <h3>AI Ethics and Future</h3>
+                    <p>Explore ethical considerations and future directions of AI technology.</p>
+                    <a href="login.html" class="module-button">
+                        <i class="fas fa-lock"></i> Sign In to Access
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- AI Learning Games Section -->
+    <section class="ai-games">
+        <div class="section-header">
+            <h2>AI Learning Games</h2>
+            <p>Make learning fun with interactive AI games</p>
+        </div>
+
+        <div class="games-grid">
+            <!-- Game 1 -->
+            <div class="game-card">
+                <div class="game-image">
+                    <img src="images/ai-quiz-game.jpg" alt="AI Quiz Challenge">
+                </div>
+                <div class="game-info">
+                    <h3>AI Quiz Challenge</h3>
+                    <p>Test your knowledge of AI concepts with our interactive quiz game.</p>
+                    <a href="login.html" class="game-button">
+                        <i class="fas fa-lock"></i> Sign In to Play
+                    </a>
+                </div>
+            </div>
+
+            <!-- Game 2 -->
+            <div class="game-card">
+                <div class="game-image">
+                    <img src="images/neural-network-simulator.jpg" alt="Neural Network Simulator">
+                </div>
+                <div class="game-info">
+                    <h3>Neural Network Simulator</h3>
+                    <p>Build and train your own neural network to solve simple problems.</p>
+                    <a href="login.html" class="game-button">
+                        <i class="fas fa-lock"></i> Sign In to Play
+                    </a>
+                </div>
+            </div>
+
+            <!-- Game 3 -->
+            <div class="game-card">
+                <div class="game-image">
+                    <img src="images/ai-ethics-scenarios.jpg" alt="AI Ethics Scenarios">
+                </div>
+                <div class="game-info">
+                    <h3>AI Ethics Scenarios</h3>
+                    <p>Navigate ethical dilemmas in AI development and deployment.</p>
+                    <a href="login.html" class="game-button">
+                        <i class="fas fa-lock"></i> Sign In to Play
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-logo">
+                <img src="images/brain-icon.png" alt="AI Fundamentals Logo">
+                <span>AI Fundamentals</span>
+            </div>
+            <div class="footer-links">
+                <div class="footer-column">
+                    <h4>Learn</h4>
+                    <ul>
+                        <li><a href="#free-resources">Free Resources</a></li>
+                        <li><a href="#learning">Learning Path</a></li>
+                        <li><a href="#ai-tools">AI Tools</a></li>
+                        <li><a href="#premium">Premium</a></li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h4>Company</h4>
+                    <ul>
+                        <li><a href="#">About Us</a></li>
+                        <li><a href="#">Contact</a></li>
+                        <li><a href="#">Careers</a></li>
+                        <li><a href="#">Blog</a></li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h4>Legal</h4>
+                    <ul>
+                        <li><a href="#">Terms of Service</a></li>
+                        <li><a href="#">Privacy Policy</a></li>
+                        <li><a href="#">Cookie Policy</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2025 AI Fundamentals. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Custom Scripts -->
+    <script src="js/auth-fix.js"></script>
+    <script src="js/learning-games-fix.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>
