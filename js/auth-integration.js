@@ -8,7 +8,7 @@ const googleAuthConfig = {
   cookieName: 'ai_fundamentals_auth'
 };
 
-// User state
+// User state 
 let currentUser = null;
 
 // Initialize authentication when the page loads

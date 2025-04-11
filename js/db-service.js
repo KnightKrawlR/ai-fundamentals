@@ -24,7 +24,7 @@ export const userService = {
     }
   },
   
-  // Create or update user profile
+  // Create or update user profile  
   saveUserProfile: async function(userId, profileData) {
     try {
       const userRef = doc(db, 'users', userId);

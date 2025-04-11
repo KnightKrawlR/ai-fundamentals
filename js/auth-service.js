@@ -9,7 +9,7 @@ import {
   onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
 
-// Google authentication provider
+// Google authentication provider 
 const googleProvider = new GoogleAuthProvider() ;
 
 export const authService = {

@@ -57,7 +57,7 @@ function updateNavigation(user) {
       loginButton.href = "login.html";
     }
     
-    // Hide account-only elements
+    // Hide account-only elements 
     accountLinks.forEach(el => el.style.display = "none");
     
     // Show guest-only elements
