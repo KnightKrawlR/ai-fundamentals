@@ -6,7 +6,7 @@ import { getFirestore } from "https://www.gstatic.com/firebasejs/9.22.0/firebase
 // Your web app's Firebase configuration
 // Replace this with the config object you copied from Firebase Console
 const firebaseConfig = {
-  apiKey: "AIzaSyDjMisQkMgdA6qNg7gnXDumhNOOWOD-Y00",
+  apiKey: "AIzaSyDjMIsQKMgdA6qNg7gnXDumhNOOWOD-Y00",
   authDomain: "ai-fundamentals-ad37d.firebaseapp.com",
   projectId: "ai-fundamentals-ad37d",
   storageBucket: "ai-fundamentals-ad37d.firebasestorage.app",

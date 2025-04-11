@@ -10,7 +10,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
 
 // Google authentication provider 
-const googleProvider = new GoogleAuthProvider() ;
+const googleProvider = new GoogleAuthProvider();
 
 export const authService = {
   // Sign in with Google

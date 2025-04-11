@@ -5,185 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Fundamentals - Payment</title>
     <link rel="stylesheet" href="css/styles.css">
-    <link rel="stylesheet" href="css/hero-fix.css">
-    <link rel="stylesheet" href="css/logo.css">
-    <link rel="stylesheet" href="css/mobile.css">
-    <link rel="stylesheet" href="css/header-redesign.css">
-    <link rel="stylesheet" href="css/white-text.css">
-    <link rel="stylesheet" href="css/fixed-header.css">
-    <link rel="stylesheet" href="css/anchor-fix.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <script src="js/add-fixed-header.js"></script>
-    <style>
-        .payment-container {
-            max-width: 800px;
-            margin: 2rem auto;
-            padding: 2rem;
-            background-color: white;
-            border-radius: var(--border-radius);
-            box-shadow: var(--shadow);
-        }
-        
-        .payment-header {
-            text-align: center;
-            margin-bottom: 2rem;
-        }
-        
-        .payment-header h2 {
-            color: var(--primary-color);
-            margin-bottom: 0.5rem;
-        }
-        
-        .payment-options {
-            display: flex;
-            justify-content: center;
-            margin-bottom: 2rem;
-        }
-        
-        .payment-option {
-            flex: 1;
-            padding: 1.5rem;
-            margin: 0 1rem;
-            border: 2px solid #eee;
-            border-radius: var(--border-radius);
-            text-align: center;
-            cursor: pointer;
-            transition: var(--transition);
-        }
-        
-        .payment-option:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-        }
-        
-        .payment-option.selected {
-            border-color: var(--primary-color);
-            background-color: rgba(94, 53, 177, 0.05);
-        }
-        
-        .payment-option h3 {
-            color: var(--primary-color);
-            margin-bottom: 1rem;
-        }
-        
-        .payment-price {
-            font-size: 2rem;
-            font-weight: bold;
-            margin-bottom: 0.5rem;
-        }
-        
-        .payment-period {
-            color: #666;
-            font-size: 0.9rem;
-        }
-        
-        .payment-features {
-            margin: 1.5rem 0;
-            padding: 0;
-            list-style: none;
-        }
-        
-        .payment-features li {
-            margin-bottom: 0.5rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .payment-features li i {
-            color: var(--primary-color);
-            margin-right: 0.5rem;
-        }
-        
-        .payment-form {
-            margin-top: 2rem;
-        }
-        
-        .form-group {
-            margin-bottom: 1.5rem;
-        }
-        
-        .form-group label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-weight: 500;
-        }
-        
-        .form-control {
-            width: 100%;
-            padding: 0.75rem;
-            border: 1px solid var(--border-color);
-            border-radius: var(--border-radius);
-            font-size: 1rem;
-        }
-        
-        .form-row {
-            display: flex;
-            gap: 1rem;
-        }
-        
-        .form-row .form-group {
-            flex: 1;
-        }
-        
-        .payment-methods {
-            display: flex;
-            gap: 1rem;
-            margin-bottom: 1.5rem;
-        }
-        
-        .payment-method {
-            flex: 1;
-            padding: 1rem;
-            border: 1px solid var(--border-color);
-            border-radius: var(--border-radius);
-            text-align: center;
-            cursor: pointer;
-        }
-        
-        .payment-method.selected {
-            border-color: var(--primary-color);
-            background-color: rgba(94, 53, 177, 0.05);
-        }
-        
-        .payment-method i {
-            font-size: 2rem;
-            margin-bottom: 0.5rem;
-        }
-        
-        .secure-badge {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-top: 1rem;
-            color: #666;
-            font-size: 0.9rem;
-        }
-        
-        .secure-badge i {
-            color: #28a745;
-            margin-right: 0.5rem;
-        }
-        
-        @media (max-width: 768px) {
-            .payment-options {
-                flex-direction: column;
-            }
-            
-            .payment-option {
-                margin: 0 0 1rem 0;
-            }
-            
-            .form-row {
-                flex-direction: column;
-                gap: 0;
-            }
-            
-            .payment-methods {
-                flex-direction: column;
-            }
-        }
-    </style>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
 </head>
 <body>
     <header>
@@ -194,130 +17,126 @@
             </a>
             <nav>
                 <ul>
-                    <li><a href="index.html">Learning</a></li>
+                    <li><a href="index.html#learning">Learning</a></li>
                     <li><a href="index.html#ai-tools">AI Tools</a></li>
                     <li><a href="index.html#premium">Premium</a></li>
                 </ul>
             </nav>
-            <button class="login-button"><i class="fas fa-sign-in-alt"></i><span> Sign In</span></button>
+            <button class="login-button"><i class="fas fa-user"></i><span> My Account</span></button>
         </div>
     </header>
 
-    <section class="hero-section">
+    <section class="payment-section">
         <div class="container">
-            <div class="hero-content">
-                <h2 style="color: #fff;">Upgrade Your Membership</h2>
-                <p style="color: #fff;">Get access to premium content and features</p>
+            <div class="payment-header">
+                <h2>Choose Your Plan</h2>
+                <p>Select the membership plan that works best for you</p>
             </div>
-        </div>
-    </section>
-
-    <section>
-        <div class="container">
-            <div class="payment-container">
-                <div class="payment-header">
-                    <h2>Choose Your Plan</h2>
-                    <p>Select the membership plan that works best for you</p>
+            
+            <div class="premium-plans">
+                <div class="premium-plan">
+                    <h3>Basic</h3>
+                    <div class="plan-price">Free</div>
+                    <ul class="plan-features">
+                        <li><i class="fas fa-check"></i> Access to basic flashcards</li>
+                        <li><i class="fas fa-check"></i> Limited study modes</li>
+                        <li><i class="fas fa-check"></i> Basic AI tools directory</li>
+                        <li><i class="fas fa-check"></i> Community forum access</li>
+                    </ul>
+                    <a href="#" class="btn" id="basic-plan-btn">Current Plan</a>
                 </div>
                 
-                <div class="payment-options">
-                    <div class="payment-option" data-plan="monthly">
-                        <h3>Monthly</h3>
-                        <div class="payment-price">$9.99</div>
-                        <div class="payment-period">per month</div>
-                        <ul class="payment-features">
-                            <li><i class="fas fa-check"></i> Advanced Learning Paths</li>
-                            <li><i class="fas fa-check"></i> Premium AI Tools</li>
-                            <li><i class="fas fa-check"></i> Certificate of Completion</li>
-                            <li><i class="fas fa-check"></i> Community Access</li>
-                        </ul>
+                <div class="premium-plan featured-plan">
+                    <div class="featured-badge">Most Popular</div>
+                    <h3>Premium</h3>
+                    <div class="plan-price">$9.99<span class="period">/month</span></div>
+                    <ul class="plan-features">
+                        <li><i class="fas fa-check"></i> All basic features</li>
+                        <li><i class="fas fa-check"></i> 500+ advanced AI flashcards</li>
+                        <li><i class="fas fa-check"></i> Unlimited study sessions</li>
+                        <li><i class="fas fa-check"></i> Progress tracking</li>
+                        <li><i class="fas fa-check"></i> Downloadable resources</li>
+                        <li><i class="fas fa-check"></i> 10% discount on learning courses</li>
+                        <li><i class="fas fa-check"></i> Priority support</li>
+                    </ul>
+                    <a href="#" class="btn upgrade-btn" id="premium-plan-btn">Upgrade Now</a>
+                </div>
+                
+                <div class="premium-plan">
+                    <h3>Premium Plus</h3>
+                    <div class="plan-price">$19.99<span class="period">/month</span></div>
+                    <ul class="plan-features">
+                        <li><i class="fas fa-check"></i> All premium features</li>
+                        <li><i class="fas fa-check"></i> Advanced AI tools access</li>
+                        <li><i class="fas fa-check"></i> Unlimited downloads</li>
+                        <li><i class="fas fa-check"></i> 1-on-1 coaching session</li>
+                        <li><i class="fas fa-check"></i> Exclusive webinars</li>
+                        <li><i class="fas fa-check"></i> 15% discount on learning courses</li>
+                        <li><i class="fas fa-check"></i> Certificate of completion</li>
+                    </ul>
+                    <a href="#" class="btn upgrade-btn" id="premium-plus-plan-btn">Upgrade to Plus</a>
+                </div>
+            </div>
+            
+            <div class="payment-form" id="payment-form" style="display: none;">
+                <h3>Payment Information</h3>
+                
+                <div class="payment-methods">
+                    <div class="payment-method selected" data-method="card">
+                        <i class="fas fa-credit-card"></i>
+                        <div>Credit Card</div>
                     </div>
-                    
-                    <div class="payment-option selected" data-plan="annual">
-                        <h3>Annual</h3>
-                        <div class="payment-price">$99.99</div>
-                        <div class="payment-period">per year (save 17%)</div>
-                        <ul class="payment-features">
-                            <li><i class="fas fa-check"></i> All Monthly Features</li>
-                            <li><i class="fas fa-check"></i> Priority Support</li>
-                            <li><i class="fas fa-check"></i> Downloadable Resources</li>
-                            <li><i class="fas fa-check"></i> Exclusive Webinars</li>
-                        </ul>
-                    </div>
-                    
-                    <div class="payment-option" data-plan="lifetime">
-                        <h3>Lifetime</h3>
-                        <div class="payment-price">$299</div>
-                        <div class="payment-period">one-time payment</div>
-                        <ul class="payment-features">
-                            <li><i class="fas fa-check"></i> All Annual Features</li>
-                            <li><i class="fas fa-check"></i> Lifetime Updates</li>
-                            <li><i class="fas fa-check"></i> 1-on-1 Mentoring Session</li>
-                            <li><i class="fas fa-check"></i> Early Access to New Content</li>
-                        </ul>
+                    <div class="payment-method" data-method="paypal">
+                        <i class="fab fa-paypal"></i>
+                        <div>PayPal</div>
                     </div>
                 </div>
                 
-                <div class="payment-form">
-                    <h3>Payment Information</h3>
-                    
-                    <div class="payment-methods">
-                        <div class="payment-method selected" data-method="card">
-                            <i class="fas fa-credit-card"></i>
-                            <div>Credit Card</div>
-                        </div>
-                        <div class="payment-method" data-method="paypal">
-                            <i class="fab fa-paypal"></i>
-                            <div>PayPal</div>
-                        </div>
-                    </div>
-                    
+                <div class="form-group">
+                    <label for="card-name">Name on Card</label>
+                    <input type="text" id="card-name" placeholder="John Doe">
+                </div>
+                
+                <div class="form-group">
+                    <label for="card-number">Card Number</label>
+                    <input type="text" id="card-number" placeholder="1234 5678 9012 3456">
+                </div>
+                
+                <div class="form-row">
                     <div class="form-group">
-                        <label for="card-name">Name on Card</label>
-                        <input type="text" id="card-name" class="form-control" placeholder="John Doe">
+                        <label for="card-expiry">Expiration Date</label>
+                        <input type="text" id="card-expiry" placeholder="MM/YY">
                     </div>
-                    
                     <div class="form-group">
-                        <label for="card-number">Card Number</label>
-                        <input type="text" id="card-number" class="form-control" placeholder="1234 5678 9012 3456">
+                        <label for="card-cvc">CVC</label>
+                        <input type="text" id="card-cvc" placeholder="123">
                     </div>
-                    
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="card-expiry">Expiration Date</label>
-                            <input type="text" id="card-expiry" class="form-control" placeholder="MM/YY">
-                        </div>
-                        <div class="form-group">
-                            <label for="card-cvc">CVC</label>
-                            <input type="text" id="card-cvc" class="form-control" placeholder="123">
-                        </div>
-                    </div>
-                    
+                </div>
+                
+                <div class="form-group">
+                    <label for="billing-address">Billing Address</label>
+                    <input type="text" id="billing-address" placeholder="123 Main St">
+                </div>
+                
+                <div class="form-row">
                     <div class="form-group">
-                        <label for="billing-address">Billing Address</label>
-                        <input type="text" id="billing-address" class="form-control" placeholder="123 Main St">
+                        <label for="billing-city">City</label>
+                        <input type="text" id="billing-city" placeholder="New York">
                     </div>
-                    
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="billing-city">City</label>
-                            <input type="text" id="billing-city" class="form-control" placeholder="New York">
-                        </div>
-                        <div class="form-group">
-                            <label for="billing-state">State</label>
-                            <input type="text" id="billing-state" class="form-control" placeholder="NY">
-                        </div>
-                        <div class="form-group">
-                            <label for="billing-zip">ZIP Code</label>
-                            <input type="text" id="billing-zip" class="form-control" placeholder="10001">
-                        </div>
+                    <div class="form-group">
+                        <label for="billing-state">State</label>
+                        <input type="text" id="billing-state" placeholder="NY">
                     </div>
-                    
-                    <button type="button" id="submit-payment" class="btn" style="width: 100%;">Complete Payment</button>
-                    
-                    <div class="secure-badge">
-                        <i class="fas fa-lock"></i> Secure payment processing
+                    <div class="form-group">
+                        <label for="billing-zip">ZIP Code</label>
+                        <input type="text" id="billing-zip" placeholder="10001">
                     </div>
+                </div>
+                
+                <button type="button" id="submit-payment" class="btn">Complete Payment</button>
+                
+                <div class="secure-badge">
+                    <i class="fas fa-lock"></i> Secure payment processing
                 </div>
             </div>
         </div>
@@ -326,37 +145,35 @@
     <footer>
         <div class="container">
             <div class="footer-content">
-                <div class="footer-logo">
-                    <h2>AI Fundamentals</h2>
+                <div class="footer-column">
+                    <h3>AI Fundamentals</h3>
                     <p>Your journey to AI mastery starts here</p>
                 </div>
-                <div class="footer-links">
-                    <div class="footer-column">
-                        <h3>Resources</h3>
-                        <ul>
-                            <li><a href="#">Flashcards</a></li>
-                            <li><a href="#">Study Guides</a></li>
-                            <li><a href="#">Video Lessons</a></li>
-                            <li><a href="#">Practice Quizzes</a></li>
-                        </ul>
-                    </div>
-                    <div class="footer-column">
-                        <h3>Company</h3>
-                        <ul>
-                            <li><a href="#">About Us</a></li>
-                            <li><a href="#">Contact</a></li>
-                            <li><a href="#">Careers</a></li>
-                            <li><a href="#">Blog</a></li>
-                        </ul>
-                    </div>
-                    <div class="footer-column">
-                        <h3>Legal</h3>
-                        <ul>
-                            <li><a href="#">Terms of Service</a></li>
-                            <li><a href="#">Privacy Policy</a></li>
-                            <li><a href="#">Cookie Policy</a></li>
-                        </ul>
-                    </div>
+                <div class="footer-column">
+                    <h3>Resources</h3>
+                    <ul>
+                        <li><a href="#">Flashcards</a></li>
+                        <li><a href="#">Study Guides</a></li>
+                        <li><a href="#">Video Lessons</a></li>
+                        <li><a href="#">Practice Quizzes</a></li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h3>Company</h3>
+                    <ul>
+                        <li><a href="#">About Us</a></li>
+                        <li><a href="#">Contact</a></li>
+                        <li><a href="#">Careers</a></li>
+                        <li><a href="#">Blog</a></li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h3>Legal</h3>
+                    <ul>
+                        <li><a href="#">Terms of Service</a></li>
+                        <li><a href="#">Privacy Policy</a></li>
+                        <li><a href="#">Cookie Policy</a></li>
+                    </ul>
                 </div>
             </div>
             <div class="footer-bottom">
@@ -371,18 +188,15 @@
         </div>
     </footer>
 
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script>
-        // Your web app's Firebase configuration
+        // Firebase configuration
         const firebaseConfig = {
             apiKey: "AIzaSyDjMIsQKMgdA6qNg7gnXDumhNOOWOD-Y00",
             authDomain: "ai-fundamentals-ad37d.firebaseapp.com",
             projectId: "ai-fundamentals-ad37d",
             storageBucket: "ai-fundamentals-ad37d.firebasestorage.app",
-            messagingSenderId: "66811544711",
-            appId: "1:66811544711:web:c0772e9f8c6a498737977d",
+            messagingSenderId: "668115447112",
+            appId: "1:668115447112:web:c0772e9f8c6a498737977d",
             measurementId: "G-2D5V39EQ3T"
         };
         
@@ -390,40 +204,18 @@
         firebase.initializeApp(firebaseConfig);
         
         document.addEventListener('DOMContentLoaded', function() {
-            // Set up login button
-            const loginButton = document.querySelector('.login-button');
-            if (loginButton) {
-                loginButton.addEventListener('click', function() {
-                    window.location.href = 'login.html';
-                });
-            }
-            
             // Check if user is logged in
-            const userString = localStorage.getItem('user');
-            if (userString) {
-                const user = JSON.parse(userString);
-                // Update login button to show account
-                if (loginButton) {
-                    loginButton.innerHTML = '<i class="fas fa-user"></i><span> My Account</span>';
-                    loginButton.addEventListener('click', function() {
-                        window.location.href = 'account.html';
-                    });
+            firebase.auth().onAuthStateChanged(function(user) {
+                if (user) {
+                    // User is signed in
+                    updateUIWithUserData(user);
+                } else {
+                    // User is not signed in, redirect to login
+                    window.location.href = 'login.html';
                 }
-            } else {
-                // Redirect to login if not logged in
-                window.location.href = 'login.html';
-            }
-            
-            // Handle payment option selection
-            const paymentOptions = document.querySelectorAll('.payment-option');
-            paymentOptions.forEach(option => {
-                option.addEventListener('click', function() {
-                    paymentOptions.forEach(opt => opt.classList.remove('selected'));
-                    this.classList.add('selected');
-                });
             });
             
-            // Handle payment method selection
+            // Set up payment method selection
             const paymentMethods = document.querySelectorAll('.payment-method');
             paymentMethods.forEach(method => {
                 method.addEventListener('click', function() {
@@ -432,41 +224,141 @@
                 });
             });
             
-            // Handle payment submission
-            const submitButton = document.getElementById('submit-payment');
-            if (submitButton) {
-                submitButton.addEventListener('click', function() {
-                    // Get selected plan
-                    const selectedPlan = document.querySelector('.payment-option.selected').getAttribute('data-plan');
-                    
-                    // In a real application, you would process the payment here
-                    // For this demo, we'll just update the user's plan in localStorage
-                    
-                    const userString = localStorage.getItem('user');
-                    if (userString) {
-                        const user = JSON.parse(userString);
-                        user.plan = 'premium';
-                        localStorage.setItem('user', JSON.stringify(user));
-                        
-                        alert('Payment successful! You are now a premium member.');
-                        window.location.href = 'account.html';
-                    }
+            // Set up plan selection
+            const basicPlanBtn = document.getElementById('basic-plan-btn');
+            const premiumPlanBtn = document.getElementById('premium-plan-btn');
+            const premiumPlusPlanBtn = document.getElementById('premium-plus-plan-btn');
+            const paymentForm = document.getElementById('payment-form');
+            
+            let selectedPlan = '';
+            
+            if (basicPlanBtn) {
+                basicPlanBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    // No payment needed for basic plan
+                    updateUserPlan('Basic');
                 });
             }
             
-            // Pre-select plan from URL parameter if available
+            if (premiumPlanBtn) {
+                premiumPlanBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    selectedPlan = 'Premium';
+                    paymentForm.style.display = 'block';
+                    scrollToPaymentForm();
+                });
+            }
+            
+            if (premiumPlusPlanBtn) {
+                premiumPlusPlanBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    selectedPlan = 'Premium Plus';
+                    paymentForm.style.display = 'block';
+                    scrollToPaymentForm();
+                });
+            }
+            
+            // Set up payment submission
+            const submitPaymentBtn = document.getElementById('submit-payment');
+            if (submitPaymentBtn) {
+                submitPaymentBtn.addEventListener('click', function() {
+                    // In a real app, this would process the payment
+                    // For this demo, we'll just update the user's plan
+                    updateUserPlan(selectedPlan);
+                });
+            }
+            
+            // Check URL parameters for pre-selected plan
             const urlParams = new URLSearchParams(window.location.search);
             const planParam = urlParams.get('plan');
-            if (planParam) {
-                const planOption = document.querySelector(`.payment-option[data-plan="${planParam.toLowerCase()}"]`);
-                if (planOption) {
-                    paymentOptions.forEach(opt => opt.classList.remove('selected'));
-                    planOption.classList.add('selected');
-                }
+            if (planParam === 'plus' && premiumPlusPlanBtn) {
+                selectedPlan = 'Premium Plus';
+                paymentForm.style.display = 'block';
+                setTimeout(scrollToPaymentForm, 500);
             }
         });
+        
+        // Update UI with user data
+        function updateUIWithUserData(user) {
+            // Try to get user data from localStorage first (for demo users)
+            let userData = null;
+            const storedUser = localStorage.getItem('user');
+            
+            if (storedUser) {
+                userData = JSON.parse(storedUser);
+            } else if (user) {
+                // Use Firebase user data
+                userData = {
+                    uid: user.uid,
+                    name: user.displayName || 'User',
+                    email: user.email,
+                    plan: 'Basic' // Default plan
+                };
+                
+                // Save to localStorage for demo purposes
+                localStorage.setItem('user', JSON.stringify(userData));
+            }
+            
+            if (userData) {
+                // Update login button
+                const loginButton = document.querySelector('.login-button');
+                if (loginButton) {
+                    loginButton.innerHTML = '<i class="fas fa-user"></i><span> My Account</span>';
+                    loginButton.addEventListener('click', function() {
+                        window.location.href = 'account.html';
+                    });
+                }
+                
+                // Update plan buttons based on current plan
+                const basicPlanBtn = document.getElementById('basic-plan-btn');
+                const premiumPlanBtn = document.getElementById('premium-plan-btn');
+                const premiumPlusPlanBtn = document.getElementById('premium-plus-plan-btn');
+                
+                if (userData.plan === 'Basic' || !userData.plan) {
+                    if (basicPlanBtn) basicPlanBtn.textContent = 'Current Plan';
+                    if (premiumPlanBtn) premiumPlanBtn.textContent = 'Upgrade Now';
+                    if (premiumPlusPlanBtn) premiumPlusPlanBtn.textContent = 'Upgrade to Plus';
+                } else if (userData.plan === 'Premium' || userData.plan === 'premium') {
+                    if (basicPlanBtn) basicPlanBtn.textContent = 'Downgrade';
+                    if (premiumPlanBtn) premiumPlanBtn.textContent = 'Current Plan';
+                    if (premiumPlusPlanBtn) premiumPlusPlanBtn.textContent = 'Upgrade to Plus';
+                } else if (userData.plan === 'Premium Plus') {
+                    if (basicPlanBtn) basicPlanBtn.textContent = 'Downgrade';
+                    if (premiumPlanBtn) premiumPlanBtn.textContent = 'Downgrade';
+                    if (premiumPlusPlanBtn) premiumPlusPlanBtn.textContent = 'Current Plan';
+                }
+            }
+        }
+        
+        // Update user's plan
+        function updateUserPlan(planName) {
+            // Get current user data
+            const userString = localStorage.getItem('user');
+            if (userString) {
+                const userData = JSON.parse(userString);
+                
+                // Update plan
+                userData.plan = planName;
+                
+                // Save updated user data
+                localStorage.setItem('user', JSON.stringify(userData));
+                
+                // Show success message
+                alert(`Your plan has been updated to ${planName}!`);
+                
+                // Redirect to account page
+                window.location.href = 'account.html';
+            }
+        }
+        
+        // Scroll to payment form
+        function scrollToPaymentForm() {
+            const paymentForm = document.getElementById('payment-form');
+            if (paymentForm) {
+                paymentForm.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
     </script>
-    <script src="js/fixed-header.js"></script>
-    <script src="js/stripe-integration.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </body>
 </html>
