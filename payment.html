@@ -5,20 +5,98 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Fundamentals - Payment</title>
     <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/hero-fix.css">
+    <link rel="stylesheet" href="css/logo.css">
+    <link rel="stylesheet" href="css/mobile.css">
     <link rel="stylesheet" href="css/header-redesign.css">
+    <link rel="stylesheet" href="css/white-text.css">
     <link rel="stylesheet" href="css/fixed-header.css">
     <link rel="stylesheet" href="css/anchor-fix.css">
-    <link rel="stylesheet" href="css/mobile.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <script src="https://js.stripe.com/v3/"></script>
+    <script src="js/add-fixed-header.js"></script>
     <style>
         .payment-container {
-            max-width: 600px;
+            max-width: 800px;
             margin: 2rem auto;
             padding: 2rem;
             background-color: white;
-            border-radius: var(--border-radius) ;
+            border-radius: var(--border-radius);
             box-shadow: var(--shadow);
+        }
+        
+        .payment-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .payment-header h2 {
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+        
+        .payment-options {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 2rem;
+        }
+        
+        .payment-option {
+            flex: 1;
+            padding: 1.5rem;
+            margin: 0 1rem;
+            border: 2px solid #eee;
+            border-radius: var(--border-radius);
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        
+        .payment-option:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .payment-option.selected {
+            border-color: var(--primary-color);
+            background-color: rgba(94, 53, 177, 0.05);
+        }
+        
+        .payment-option h3 {
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+        
+        .payment-price {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+        
+        .payment-period {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .payment-features {
+            margin: 1.5rem 0;
+            padding: 0;
+            list-style: none;
+        }
+        
+        .payment-features li {
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .payment-features li i {
+            color: var(--primary-color);
+            margin-right: 0.5rem;
+        }
+        
+        .payment-form {
+            margin-top: 2rem;
         }
         
         .form-group {
@@ -36,153 +114,210 @@
             padding: 0.75rem;
             border: 1px solid var(--border-color);
             border-radius: var(--border-radius);
+            font-size: 1rem;
         }
         
-        .plan-selection {
+        .form-row {
             display: flex;
             gap: 1rem;
-            margin-bottom: 2rem;
         }
         
-        .plan-option {
+        .form-row .form-group {
+            flex: 1;
+        }
+        
+        .payment-methods {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .payment-method {
             flex: 1;
             padding: 1rem;
             border: 1px solid var(--border-color);
             border-radius: var(--border-radius);
             text-align: center;
             cursor: pointer;
-            transition: all 0.3s ease;
         }
         
-        .plan-option.selected {
+        .payment-method.selected {
             border-color: var(--primary-color);
-            background-color: rgba(var(--primary-rgb), 0.05);
+            background-color: rgba(94, 53, 177, 0.05);
         }
         
-        .plan-option h3 {
-            margin-top: 0;
-        }
-        
-        .plan-price {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: var(--primary-color);
-            margin: 0.5rem 0;
-        }
-        
-        .plan-billing {
-            font-size: 0.875rem;
-            color: var(--text-muted);
-        }
-        
-        .payment-summary {
-            background-color: #f8f9fa;
-            padding: 1rem;
-            border-radius: var(--border-radius);
-            margin-bottom: 1.5rem;
-        }
-        
-        .summary-item {
-            display: flex;
-            justify-content: space-between;
+        .payment-method i {
+            font-size: 2rem;
             margin-bottom: 0.5rem;
         }
         
-        .summary-total {
-            font-weight: bold;
-            border-top: 1px solid var(--border-color);
-            padding-top: 0.5rem;
-            margin-top: 0.5rem;
+        .secure-badge {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 1rem;
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .secure-badge i {
+            color: #28a745;
+            margin-right: 0.5rem;
+        }
+        
+        @media (max-width: 768px) {
+            .payment-options {
+                flex-direction: column;
+            }
+            
+            .payment-option {
+                margin: 0 0 1rem 0;
+            }
+            
+            .form-row {
+                flex-direction: column;
+                gap: 0;
+            }
+            
+            .payment-methods {
+                flex-direction: column;
+            }
         }
     </style>
 </head>
 <body>
     <header>
-        <div class="logo">
-            <a href="index.html">
+        <div class="container">
+            <a href="index.html" class="site-logo">
                 <i class="fas fa-brain"></i>
                 <span>AI Fundamentals</span>
             </a>
+            <nav>
+                <ul>
+                    <li><a href="index.html">Learning</a></li>
+                    <li><a href="index.html#ai-tools">AI Tools</a></li>
+                    <li><a href="index.html#premium">Premium</a></li>
+                </ul>
+            </nav>
+            <button class="login-button"><i class="fas fa-sign-in-alt"></i><span> Sign In</span></button>
         </div>
-        <nav>
-            <ul>
-                <li><a href="index.html">Learning</a></li>
-                <li><a href="index.html#ai-tools">AI Tools</a></li>
-                <li><a href="index.html#premium">Premium</a></li>
-                <li class="guest-only"><a href="login.html" id="login-button"><i class="fas fa-sign-in-alt"></i> Sign In</a></li>
-                <li class="account-only"><a href="account.html"><i class="fas fa-user"></i> My Account</a></li>
-            </ul>
-        </nav>
     </header>
 
-    <section class="hero">
+    <section class="hero-section">
         <div class="container">
-            <h1>Upgrade Your Plan</h1>
-            <p>Choose the plan that's right for you</p>
+            <div class="hero-content">
+                <h2 style="color: #fff;">Upgrade Your Membership</h2>
+                <p style="color: #fff;">Get access to premium content and features</p>
+            </div>
         </div>
     </section>
 
-    <section class="payment-section">
+    <section>
         <div class="container">
             <div class="payment-container">
-                <h2>Select Your Plan</h2>
-                
-                <div class="plan-selection">
-                    <div class="plan-option" data-plan="premium">
-                        <h3>Premium</h3>
-                        <div class="plan-price">$9.99</div>
-                        <div class="plan-billing">per month</div>
-                        <ul class="plan-features">
-                            <li>All Basic features</li>
-                            <li>Access to premium content</li>
-                            <li>Advanced AI tools</li>
-                            <li>10% discount on courses</li>
-                        </ul>
-                    </div>
-                    <div class="plan-option" data-plan="premium-plus">
-                        <h3>Premium Plus</h3>
-                        <div class="plan-price">$19.99</div>
-                        <div class="plan-billing">per month</div>
-                        <ul class="plan-features">
-                            <li>All Premium features</li>
-                            <li>1-on-1 coaching session</li>
-                            <li>Exclusive webinars</li>
-                            <li>15% discount on courses</li>
-                        </ul>
-                    </div>
+                <div class="payment-header">
+                    <h2>Choose Your Plan</h2>
+                    <p>Select the membership plan that works best for you</p>
                 </div>
                 
-                <div class="payment-summary">
-                    <h3>Order Summary</h3>
-                    <div class="summary-item">
-                        <span>Plan:</span>
-                        <span id="summary-plan">Premium</span>
-                    </div>
-                    <div class="summary-item">
-                        <span>Billing:</span>
-                        <span>Monthly</span>
-                    </div>
-                    <div class="summary-item summary-total">
-                        <span>Total:</span>
-                        <span id="summary-total">$9.99/month</span>
-                    </div>
-                </div>
-                
-                <form id="payment-form">
-                    <div class="form-group">
-                        <label for="card-element">Credit or debit card</label>
-                        <div id="card-element" class="form-control">
-                            <!-- Stripe Card Element will be inserted here -->
-                        </div>
-                        <div id="card-errors" role="alert"></div>
+                <div class="payment-options">
+                    <div class="payment-option" data-plan="monthly">
+                        <h3>Monthly</h3>
+                        <div class="payment-price">$9.99</div>
+                        <div class="payment-period">per month</div>
+                        <ul class="payment-features">
+                            <li><i class="fas fa-check"></i> Advanced Learning Paths</li>
+                            <li><i class="fas fa-check"></i> Premium AI Tools</li>
+                            <li><i class="fas fa-check"></i> Certificate of Completion</li>
+                            <li><i class="fas fa-check"></i> Community Access</li>
+                        </ul>
                     </div>
                     
-                    <button type="submit" class="btn btn-primary btn-block">Subscribe Now</button>
-                </form>
+                    <div class="payment-option selected" data-plan="annual">
+                        <h3>Annual</h3>
+                        <div class="payment-price">$99.99</div>
+                        <div class="payment-period">per year (save 17%)</div>
+                        <ul class="payment-features">
+                            <li><i class="fas fa-check"></i> All Monthly Features</li>
+                            <li><i class="fas fa-check"></i> Priority Support</li>
+                            <li><i class="fas fa-check"></i> Downloadable Resources</li>
+                            <li><i class="fas fa-check"></i> Exclusive Webinars</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="payment-option" data-plan="lifetime">
+                        <h3>Lifetime</h3>
+                        <div class="payment-price">$299</div>
+                        <div class="payment-period">one-time payment</div>
+                        <ul class="payment-features">
+                            <li><i class="fas fa-check"></i> All Annual Features</li>
+                            <li><i class="fas fa-check"></i> Lifetime Updates</li>
+                            <li><i class="fas fa-check"></i> 1-on-1 Mentoring Session</li>
+                            <li><i class="fas fa-check"></i> Early Access to New Content</li>
+                        </ul>
+                    </div>
+                </div>
                 
-                <div class="payment-info">
-                    <p>Your subscription will begin immediately. You can cancel anytime from your account settings.</p>
-                    <p>By subscribing, you agree to our <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>.</p>
+                <div class="payment-form">
+                    <h3>Payment Information</h3>
+                    
+                    <div class="payment-methods">
+                        <div class="payment-method selected" data-method="card">
+                            <i class="fas fa-credit-card"></i>
+                            <div>Credit Card</div>
+                        </div>
+                        <div class="payment-method" data-method="paypal">
+                            <i class="fab fa-paypal"></i>
+                            <div>PayPal</div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="card-name">Name on Card</label>
+                        <input type="text" id="card-name" class="form-control" placeholder="John Doe">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="card-number">Card Number</label>
+                        <input type="text" id="card-number" class="form-control" placeholder="1234 5678 9012 3456">
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="card-expiry">Expiration Date</label>
+                            <input type="text" id="card-expiry" class="form-control" placeholder="MM/YY">
+                        </div>
+                        <div class="form-group">
+                            <label for="card-cvc">CVC</label>
+                            <input type="text" id="card-cvc" class="form-control" placeholder="123">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="billing-address">Billing Address</label>
+                        <input type="text" id="billing-address" class="form-control" placeholder="123 Main St">
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="billing-city">City</label>
+                            <input type="text" id="billing-city" class="form-control" placeholder="New York">
+                        </div>
+                        <div class="form-group">
+                            <label for="billing-state">State</label>
+                            <input type="text" id="billing-state" class="form-control" placeholder="NY">
+                        </div>
+                        <div class="form-group">
+                            <label for="billing-zip">ZIP Code</label>
+                            <input type="text" id="billing-zip" class="form-control" placeholder="10001">
+                        </div>
+                    </div>
+                    
+                    <button type="button" id="submit-payment" class="btn" style="width: 100%;">Complete Payment</button>
+                    
+                    <div class="secure-badge">
+                        <i class="fas fa-lock"></i> Secure payment processing
+                    </div>
                 </div>
             </div>
         </div>
@@ -225,7 +360,7 @@
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>© 2025 AI Fundamentals. All rights reserved.</p>
+                <p>&copy; 2025 AI Fundamentals. All rights reserved.</p>
                 <div class="social-links">
                     <a href="#"><i class="fab fa-twitter"></i></a>
                     <a href="#"><i class="fab fa-facebook"></i></a>
@@ -236,82 +371,102 @@
         </div>
     </footer>
 
-    <script src="js/fixed-header.js"></script>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script>
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyDjMIsQKMgdA6qNg7gnXDumhNOOWOD-Y00",
+            authDomain: "ai-fundamentals-ad37d.firebaseapp.com",
+            projectId: "ai-fundamentals-ad37d",
+            storageBucket: "ai-fundamentals-ad37d.firebasestorage.app",
+            messagingSenderId: "66811544711",
+            appId: "1:66811544711:web:c0772e9f8c6a498737977d",
+            measurementId: "G-2D5V39EQ3T"
+        };
+        
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        
         document.addEventListener('DOMContentLoaded', function() {
-            // Plan selection
-            const planOptions = document.querySelectorAll('.plan-option');
-            const summaryPlan = document.getElementById('summary-plan');
-            const summaryTotal = document.getElementById('summary-total');
+            // Set up login button
+            const loginButton = document.querySelector('.login-button');
+            if (loginButton) {
+                loginButton.addEventListener('click', function() {
+                    window.location.href = 'login.html';
+                });
+            }
             
-            planOptions.forEach(option => {
+            // Check if user is logged in
+            const userString = localStorage.getItem('user');
+            if (userString) {
+                const user = JSON.parse(userString);
+                // Update login button to show account
+                if (loginButton) {
+                    loginButton.innerHTML = '<i class="fas fa-user"></i><span> My Account</span>';
+                    loginButton.addEventListener('click', function() {
+                        window.location.href = 'account.html';
+                    });
+                }
+            } else {
+                // Redirect to login if not logged in
+                window.location.href = 'login.html';
+            }
+            
+            // Handle payment option selection
+            const paymentOptions = document.querySelectorAll('.payment-option');
+            paymentOptions.forEach(option => {
                 option.addEventListener('click', function() {
-                    // Remove selected class from all options
-                    planOptions.forEach(opt => opt.classList.remove('selected'));
-                    
-                    // Add selected class to clicked option
+                    paymentOptions.forEach(opt => opt.classList.remove('selected'));
                     this.classList.add('selected');
-                    
-                    // Update summary
-                    const plan = this.getAttribute('data-plan');
-                    if (plan === 'premium') {
-                        summaryPlan.textContent = 'Premium';
-                        summaryTotal.textContent = '$9.99/month';
-                    } else if (plan === 'premium-plus') {
-                        summaryPlan.textContent = 'Premium Plus';
-                        summaryTotal.textContent = '$19.99/month';
-                    }
                 });
             });
             
-            // Select Premium by default
-            planOptions[0].click();
-            
-            // Initialize Stripe
-            const stripe = Stripe('pk_test_TYooMQauvdEDq54NiTphI7jx');
-            const elements = stripe.elements();
-            
-            // Create card element
-            const cardElement = elements.create('card');
-            cardElement.mount('#card-element');
-            
-            // Handle form submission
-            const form = document.getElementById('payment-form');
-            form.addEventListener('submit', function(event) {
-                event.preventDefault();
-                
-                // Simulate successful payment
-                alert('Payment successful! Your subscription has been activated.');
-                
-                // Store subscription info in user data
-                const userString = localStorage.getItem('user');
-                if (userString) {
-                    const user = JSON.parse(userString);
-                    const selectedPlan = document.querySelector('.plan-option.selected').getAttribute('data-plan');
-                    user.plan = selectedPlan;
-                    localStorage.setItem('user', JSON.stringify(user));
-                }
-                
-                // Redirect to account page
-                window.location.href = 'account.html';
+            // Handle payment method selection
+            const paymentMethods = document.querySelectorAll('.payment-method');
+            paymentMethods.forEach(method => {
+                method.addEventListener('click', function() {
+                    paymentMethods.forEach(m => m.classList.remove('selected'));
+                    this.classList.add('selected');
+                });
             });
             
-            // Check login status for navigation
-            const userString = localStorage.getItem('user');
-            const loginButton = document.getElementById('login-button');
-            const guestElements = document.querySelectorAll('.guest-only');
-            const accountElements = document.querySelectorAll('.account-only');
+            // Handle payment submission
+            const submitButton = document.getElementById('submit-payment');
+            if (submitButton) {
+                submitButton.addEventListener('click', function() {
+                    // Get selected plan
+                    const selectedPlan = document.querySelector('.payment-option.selected').getAttribute('data-plan');
+                    
+                    // In a real application, you would process the payment here
+                    // For this demo, we'll just update the user's plan in localStorage
+                    
+                    const userString = localStorage.getItem('user');
+                    if (userString) {
+                        const user = JSON.parse(userString);
+                        user.plan = 'premium';
+                        localStorage.setItem('user', JSON.stringify(user));
+                        
+                        alert('Payment successful! You are now a premium member.');
+                        window.location.href = 'account.html';
+                    }
+                });
+            }
             
-            if (userString) {
-                // User is logged in
-                guestElements.forEach(el => el.style.display = 'none');
-                accountElements.forEach(el => el.style.display = 'block');
-            } else {
-                // User is not logged in
-                guestElements.forEach(el => el.style.display = 'block');
-                accountElements.forEach(el => el.style.display = 'none');
+            // Pre-select plan from URL parameter if available
+            const urlParams = new URLSearchParams(window.location.search);
+            const planParam = urlParams.get('plan');
+            if (planParam) {
+                const planOption = document.querySelector(`.payment-option[data-plan="${planParam.toLowerCase()}"]`);
+                if (planOption) {
+                    paymentOptions.forEach(opt => opt.classList.remove('selected'));
+                    planOption.classList.add('selected');
+                }
             }
         });
     </script>
+    <script src="js/fixed-header.js"></script>
+    <script src="js/stripe-integration.js"></script>
 </body>
 </html>
