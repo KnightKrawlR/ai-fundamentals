@@ -1,53 +1,230 @@
-<script type="module">
-    import { authService } from './js/auth-service.js';
-    
-    document.addEventListener('DOMContentLoaded', function() {
-      // Set up Google Sign-In button
-      const googleButton = document.querySelector('.google-signin-button');
-      if (googleButton) {
-        googleButton.addEventListener('click', async function() {
-          try {
-            const user = await authService.signInWithGoogle();
-            window.location.href = 'account.html';
-          } catch (error) {
-            console.error("Google sign-in error:", error);
-            alert("Google sign-in failed. Please try again.");
-          }
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Fundamentals - Login</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/header-redesign.css">
+    <link rel="stylesheet" href="css/fixed-header.css">
+    <link rel="stylesheet" href="css/anchor-fix.css">
+    <link rel="stylesheet" href="css/mobile.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <a href="index.html">
+                <i class="fas fa-brain"></i>
+                <span>AI Fundamentals</span>
+            </a>
+        </div>
+        <nav>
+            <ul>
+                <li><a href="index.html">Learning</a></li>
+                <li><a href="index.html#ai-tools">AI Tools</a></li>
+                <li><a href="index.html#premium">Premium</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <section class="hero">
+        <div class="container">
+            <h1>Sign In</h1>
+            <p>Access your account and premium content</p>
+        </div>
+    </section>
+
+    <section class="login-section">
+        <div class="container">
+            <div class="login-container">
+                <h2>Welcome Back</h2>
+                <p>Sign in to access your AI Fundamentals account</p>
+                
+                <div class="social-login">
+                    <button id="google-signin-button" class="google-signin-button">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" alt="Google">
+                        Sign in with Google
+                    </button>
+                    
+                    <button id="demo-login-button" class="demo-login-button">
+                        <i class="fas fa-user"></i>
+                        Demo Login (No Account Required) 
+                    </button>
+                </div>
+                
+                <div class="divider">
+                    <span>or</span>
+                </div>
+                
+                <form id="login-form">
+                    <div class="form-group">
+                        <label for="login-email">Email</label>
+                        <input type="email" id="login-email" placeholder="your@email.com" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="login-password">Password</label>
+                        <input type="password" id="login-password" placeholder="••••••••" required>
+                    </div>
+                    
+                    <div class="form-options">
+                        <label>
+                            <input type="checkbox"> Remember me
+                        </label>
+                        <a href="#">Forgot password?</a>
+                    </div>
+                    
+                    <button type="submit" class="btn">Sign In</button>
+                </form>
+                
+                <div class="signup-link">
+                    <p>Don't have an account? <a href="#">Sign up</a></p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-logo">
+                    <h2>AI Fundamentals</h2>
+                    <p>Your journey to AI mastery starts here</p>
+                </div>
+                <div class="footer-links">
+                    <div class="footer-column">
+                        <h3>Resources</h3>
+                        <ul>
+                            <li><a href="#">Flashcards</a></li>
+                            <li><a href="#">Study Guides</a></li>
+                            <li><a href="#">Video Lessons</a></li>
+                            <li><a href="#">Practice Quizzes</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-column">
+                        <h3>Company</h3>
+                        <ul>
+                            <li><a href="#">About Us</a></li>
+                            <li><a href="#">Contact</a></li>
+                            <li><a href="#">Careers</a></li>
+                            <li><a href="#">Blog</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-column">
+                        <h3>Legal</h3>
+                        <ul>
+                            <li><a href="#">Terms of Service</a></li>
+                            <li><a href="#">Privacy Policy</a></li>
+                            <li><a href="#">Cookie Policy</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>© 2025 AI Fundamentals. All rights reserved.</p>
+                <div class="social-links">
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                    <a href="#"><i class="fab fa-facebook"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                    <a href="#"><i class="fab fa-linkedin"></i></a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        // Import the functions you need from the SDKs
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+        import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
+        
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyDjMIsQKMgdA6qNg7gnXDumhNOOWOD-Y00",
+            authDomain: "ai-fundamentals-ad37d.firebaseapp.com",
+            projectId: "ai-fundamentals-ad37d",
+            storageBucket: "ai-fundamentals-ad37d.firebasestorage.app",
+            messagingSenderId: "66811544711",
+            appId: "1:66811544711:web:c0772e9f8c6a498737977d",
+            measurementId: "G-2D5V39EQ3T"
+        };
+        
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig) ;
+        const auth = getAuth(app);
+        const googleProvider = new GoogleAuthProvider();
+        
+        // Set up Google Sign-In button
+        document.addEventListener('DOMContentLoaded', function() {
+            const googleButton = document.getElementById('google-signin-button');
+            if (googleButton) {
+                googleButton.addEventListener('click', async function() {
+                    try {
+                        const result = await signInWithPopup(auth, googleProvider);
+                        const user = result.user;
+                        console.log("Google sign-in successful:", user);
+                        
+                        // Store user info in localStorage for demo purposes
+                        localStorage.setItem('user', JSON.stringify({
+                            email: user.email,
+                            displayName: user.displayName,
+                            plan: 'premium'
+                        }));
+                        
+                        // Redirect to account page
+                        window.location.href = 'account.html';
+                    } catch (error) {
+                        console.error("Google sign-in error:", error);
+                        alert("Google sign-in failed. Please try again.");
+                    }
+                });
+            }
+            
+            // Set up demo login button
+            const demoButton = document.getElementById('demo-login-button');
+            if (demoButton) {
+                demoButton.addEventListener('click', function() {
+                    // Store demo user in localStorage for simulation
+                    localStorage.setItem('user', JSON.stringify({
+                        email: 'demo@aifundamentals.com',
+                        displayName: 'Demo User',
+                        plan: 'premium'
+                    }));
+                    window.location.href = 'account.html';
+                });
+            }
+            
+            // Handle login form submission
+            const loginForm = document.getElementById('login-form');
+            if (loginForm) {
+                loginForm.addEventListener('submit', async function(event) {
+                    event.preventDefault();
+                    
+                    const email = document.getElementById('login-email').value;
+                    const password = document.getElementById('login-password').value;
+                    
+                    try {
+                        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                        const user = userCredential.user;
+                        
+                        // Store user info in localStorage for demo purposes
+                        localStorage.setItem('user', JSON.stringify({
+                            email: user.email,
+                            displayName: user.displayName || email.split('@')[0],
+                            plan: 'premium'
+                        }));
+                        
+                        // Redirect to account page
+                        window.location.href = 'account.html';
+                    } catch (error) {
+                        console.error("Email sign-in error:", error);
+                        alert("Login failed. Please check your email and password.");
+                    }
+                });
+            }
         });
-      }
-      
-      // Set up demo login button
-      const demoButton = document.querySelector('.demo-login-button');
-      if (demoButton) {
-        demoButton.addEventListener('click', function() {
-          // Store demo user in localStorage for simulation
-          localStorage.setItem('user', JSON.stringify({
-            email: 'demo@aifundamentals.com',
-            displayName: 'Demo User',
-            plan: 'premium'
-          }));
-          window.location.href = 'account.html';
-        });
-      }
-      
-      // Handle login form submission
-      const loginForm = document.getElementById('login-form');
-      if (loginForm) {
-        loginForm.addEventListener('submit', async function(event) {
-          event.preventDefault();
-          
-          const email = document.getElementById('login-email').value;
-          const password = document.getElementById('login-password').value;
-          
-          try {
-            const user = await authService.signInWithEmail(email, password);
-            window.location.href = 'account.html';
-          } catch (error) {
-            console.error("Email sign-in error:", error);
-            alert("Login failed. Please check your email and password.");
-          }
-        });
-      }
-    });
-  </script>
-  
+    </script>
+    <script src="js/fixed-header.js"></script>
+</body>
+</html>
