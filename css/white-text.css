@@ -1,0 +1,23 @@
+.site-logo, .site-logo i, .site-logo span,
+nav ul li a, 
+.login-button, .login-button i, .login-button span {
+    color: white !important;
+    text-decoration: none;
+}
+
+/* Ensure active items maintain white color */
+nav ul li a.active {
+    color: white !important;
+}
+
+/* Ensure consistent hover states */
+nav ul li a:hover, 
+.login-button:hover {
+    color: rgba(255, 255, 255, 0.9) !important;
+}
+
+/* Ensure hero section text is white */
+.hero-content h2,
+.hero-content p {
+    color: white !important;
+}

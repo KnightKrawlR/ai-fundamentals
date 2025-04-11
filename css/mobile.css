@@ -1,0 +1,64 @@
+/* Mobile-optimized header styles */
+.site-logo {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    color: var(--light-text);
+}
+
+.site-logo i {
+    font-size: 1.5rem;
+    margin-right: 0.5rem;
+    color: var(--light-text);
+}
+
+.site-logo:hover {
+    opacity: 0.9;
+}
+
+/* Responsive navigation */
+@media (max-width: 768px) {
+    header .container {
+        flex-wrap: wrap;
+        justify-content: space-between;
+    }
+    
+    nav {
+        order: 3;
+        width: 100%;
+        margin-top: 0.5rem;
+    }
+    
+    nav ul {
+        justify-content: space-between;
+        width: 100%;
+    }
+    
+    nav ul li {
+        margin-left: 0;
+    }
+    
+    .login-button {
+        padding: 0.5rem;
+        font-size: 0.875rem;
+    }
+    
+    .login-button span {
+        display: none;
+    }
+    
+    .login-button i {
+        margin-right: 0;
+    }
+}
+
+@media (max-width: 480px) {
+    .site-logo span {
+        font-size: 0.9rem;
+    }
+    
+    nav ul li a {
+        font-size: 0.9rem;
+        padding: 0.25rem 0;
+    }
+}

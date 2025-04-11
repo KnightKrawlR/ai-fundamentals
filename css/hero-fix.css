@@ -1,0 +1,11 @@
+.hero-section {
+    background: linear-gradient(135deg, var(--primary-color) 0%, #2c1a4d 100%);
+    color: #fff !important;
+    padding: 4rem 0;
+    text-align: center;
+}
+
+.hero-content h2, 
+.hero-content p {
+    color: #fff !important;
+}

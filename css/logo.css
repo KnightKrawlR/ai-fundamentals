@@ -1,0 +1,16 @@
+/* AI Fundamentals Logo */
+.site-logo {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    color: var(--light-text);
+}
+
+.site-logo img {
+    height: 32px;
+    margin-right: 10px;
+}
+
+.site-logo:hover {
+    opacity: 0.9;
+}

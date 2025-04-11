@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Fundamentals - Course Coming Soon</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/hero-fix.css">
+    <link rel="stylesheet" href="css/logo.css">
+    <link rel="stylesheet" href="css/mobile.css">
+    <link rel="stylesheet" href="css/header-redesign.css">
+    <link rel="stylesheet" href="css/white-text.css">
+    <link rel="stylesheet" href="css/fixed-header.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="js/add-fixed-header.js"></script>
+    <style>
+        .coming-soon-container {
+            max-width: 800px;
+            margin: 4rem auto;
+            padding: 2rem;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        
+        .coming-soon-container h1 {
+            color: var(--primary-color);
+            margin-bottom: 1.5rem;
+            font-size: 2.5rem;
+        }
+        
+        .coming-soon-container p {
+            font-size: 1.2rem;
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+            color: #333;
+        }
+        
+        .countdown {
+            display: flex;
+            justify-content: center;
+            margin: 2rem 0;
+        }
+        
+        .countdown-item {
+            margin: 0 1rem;
+            text-align: center;
+        }
+        
+        .countdown-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            background: #f5f5f5;
+            border-radius: 8px;
+            padding: 1rem;
+            min-width: 80px;
+            display: inline-block;
+        }
+        
+        .countdown-label {
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+            color: #666;
+        }
+        
+        .notify-form {
+            margin: 2rem 0;
+        }
+        
+        .notify-form input {
+            padding: 0.75rem 1rem;
+            width: 60%;
+            max-width: 400px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+        
+        .notify-form button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 4px;
+            font-size: 1rem;
+            cursor: pointer;
+            margin-left: 0.5rem;
+        }
+        
+        .notify-form button:hover {
+            background-color: #3b2568;
+        }
+        
+        .course-features {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin: 2rem 0;
+        }
+        
+        .feature {
+            flex: 0 0 calc(33.333% - 2rem);
+            margin: 1rem;
+            padding: 1.5rem;
+            background: #f9f9f9;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .feature i {
+            font-size: 2.5rem;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+        
+        .feature h3 {
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+            color: #333;
+        }
+        
+        .feature p {
+            font-size: 0.9rem;
+            color: #666;
+        }
+        
+        .discount-badge {
+            display: inline-block;
+            background-color: #ff6b6b;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: bold;
+            margin-top: 1rem;
+        }
+        
+        @media (max-width: 768px) {
+            .countdown-number {
+                font-size: 1.8rem;
+                min-width: 60px;
+                padding: 0.75rem;
+            }
+            
+            .feature {
+                flex: 0 0 calc(50% - 2rem);
+            }
+            
+            .notify-form input {
+                width: 100%;
+                margin-bottom: 1rem;
+            }
+            
+            .notify-form button {
+                margin-left: 0;
+                width: 100%;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .feature {
+                flex: 0 0 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <a href="index.html" class="site-logo">
+                <i class="fas fa-brain"></i>
+                <span>AI Fundamentals</span>
+            </a>
+            <nav>
+                <ul>
+                    <li><a href="index.html">Learning</a></li>
+                    <li><a href="index.html#ai-tools">AI Tools</a></li>
+                    <li><a href="index.html#premium">Premium</a></li>
+                </ul>
+            </nav>
+            <button class="login-button"><i class="fas fa-sign-in-alt"></i><span> Sign In</span></button>
+        </div>
+    </header>
+
+    <section class="hero-section">
+        <div class="container">
+            <div class="hero-content">
+                <h2>Virtual Course Coming Soon</h2>
+                <p>We're working hard to bring you an amazing learning experience</p>
+            </div>
+        </div>
+    </section>
+
+    <section>
+        <div class="container">
+            <div class="coming-soon-container">
+                <h1>Comprehensive AI Course Launching Soon</h1>
+                <p>We're putting the finishing touches on our in-depth virtual course. Be the first to know when it launches and get exclusive early-bird discounts!</p>
+                
+                <div class="countdown">
+                    <div class="countdown-item">
+                        <div class="countdown-number" id="days">30</div>
+                        <div class="countdown-label">Days</div>
+                    </div>
+                    <div class="countdown-item">
+                        <div class="countdown-number" id="hours">24</div>
+                        <div class="countdown-label">Hours</div>
+                    </div>
+                    <div class="countdown-item">
+                        <div class="countdown-number" id="minutes">00</div>
+                        <div class="countdown-label">Minutes</div>
+                    </div>
+                    <div class="countdown-item">
+                        <div class="countdown-number" id="seconds">00</div>
+                        <div class="countdown-label">Seconds</div>
+                    </div>
+                </div>
+                
+                <div class="notify-form">
+                    <input type="email" placeholder="Enter your email address">
+                    <button>Notify Me</button>
+                </div>
+                
+                <div class="course-features">
+                    <div class="feature">
+                        <i class="fas fa-video"></i>
+                        <h3>HD Video Lessons</h3>
+                        <p>Over 50 hours of high-quality video content with practical examples</p>
+                    </div>
+                    <div class="feature">
+                        <i class="fas fa-laptop-code"></i>
+                        <h3>Hands-on Projects</h3>
+                        <p>Build real-world AI applications with step-by-step guidance</p>
+                    </div>
+                    <div class="feature">
+                        <i class="fas fa-certificate"></i>
+                        <h3>Certification</h3>
+                        <p>Earn a certificate upon completion to showcase your skills</p>
+                    </div>
+                    <div class="feature">
+                        <i class="fas fa-users"></i>
+                        <h3>Community Access</h3>
+                        <p>Join our exclusive community of AI enthusiasts and professionals</p>
+                    </div>
+                    <div class="feature">
+                        <i class="fas fa-headset"></i>
+                        <h3>Expert Support</h3>
+                        <p>Get your questions answered by industry experts</p>
+                    </div>
+                    <div class="feature">
+                        <i class="fas fa-sync"></i>
+                        <h3>Lifetime Updates</h3>
+                        <p>Access all future course updates at no additional cost</p>
+                    </div>
+                </div>
+                
+                <div class="discount-badge">
+                    Premium members get 10-15% discount!
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        // Countdown timer
+        const countdownDate = new Date();
+        countdownDate.setDate(countdownDate.getDate() + 30); // 30 days from now
+        
+        function updateCountdown() {
+            const now = new Date().getTime();
+            const distance = countdownDate - now;
+            
+            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+            
+            document.getElementById("days").innerText = days;
+            document.getElementById("hours").innerText = hours;
+            document.getElementById("minutes").innerText = minutes < 10 ? "0" + minutes : minutes;
+            document.getElementById("seconds").innerText = seconds < 10 ? "0" + seconds : seconds;
+        }
+        
+        setInterval(updateCountdown, 1000);
+        updateCountdown();
+    </script>
+</body>
+</html>

@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Fundamentals - Login</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/hero-fix.css">
+    <link rel="stylesheet" href="css/logo.css">
+    <link rel="stylesheet" href="css/mobile.css">
+    <link rel="stylesheet" href="css/header-redesign.css">
+    <link rel="stylesheet" href="css/white-text.css">
+    <link rel="stylesheet" href="css/fixed-header.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="js/add-fixed-header.js"></script>
+    <style>
+        .login-container {
+            max-width: 500px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background-color: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+        }
+        
+        .login-options {
+            margin-top: 2rem;
+        }
+        
+        .login-option {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        
+        .login-option:hover {
+            background-color: #f8f9fa;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .login-option i {
+            margin-right: 1rem;
+            font-size: 1.5rem;
+        }
+        
+        .google-login {
+            color: #4285F4;
+            border-color: #4285F4;
+        }
+        
+        .demo-login {
+            color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        .login-divider {
+            display: flex;
+            align-items: center;
+            margin: 2rem 0;
+            color: #666;
+        }
+        
+        .login-divider::before,
+        .login-divider::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .login-divider::before {
+            margin-right: 1rem;
+        }
+        
+        .login-divider::after {
+            margin-left: 1rem;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            font-size: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <a href="index.html" class="site-logo">
+                <i class="fas fa-brain"></i>
+                <span>AI Fundamentals</span>
+            </a>
+            <nav>
+                <ul>
+                    <li><a href="index.html">Learning</a></li>
+                    <li><a href="index.html#ai-tools">AI Tools</a></li>
+                    <li><a href="index.html#premium">Premium</a></li>
+                </ul>
+            </nav>
+            <button class="login-button active"><i class="fas fa-sign-in-alt"></i><span> Sign In</span></button>
+        </div>
+    </header>
+
+    <section class="hero-section">
+        <div class="container">
+            <div class="hero-content">
+                <h2 style="color: #fff;">Sign In</h2>
+                <p style="color: #fff;">Access your account and premium content</p>
+            </div>
+        </div>
+    </section>
+
+    <section>
+        <div class="container">
+            <div class="login-container">
+                <h2>Welcome Back</h2>
+                <p>Sign in to access your AI Fundamentals account</p>
+                
+                <div class="login-options">
+                    <div class="login-option google-login" id="google-signin-button">
+                        <i class="fab fa-google"></i>
+                        <span>Sign in with Google</span>
+                    </div>
+                    
+                    <div class="login-option demo-login" id="demo-login-button">
+                        <i class="fas fa-user"></i>
+                        <span>Demo Login (No Account Required)</span>
+                    </div>
+                </div>
+                
+                <div class="login-divider">or</div>
+                
+                <form id="login-form">
+                    <div class="form-group">
+                        <label for="login-email">Email</label>
+                        <input type="email" id="login-email" class="form-control" placeholder="your@email.com" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="login-password">Password</label>
+                        <input type="password" id="login-password" class="form-control" placeholder="••••••••" required>
+                    </div>
+                    
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                        <label style="display: flex; align-items: center;">
+                            <input type="checkbox" style="margin-right: 0.5rem;"> Remember me
+                        </label>
+                        <a href="#" style="color: var(--primary-color);">Forgot password?</a>
+                    </div>
+                    
+                    <button type="submit" class="btn" style="width: 100%;">Sign In</button>
+                </form>
+                
+                <div style="text-align: center; margin-top: 2rem;">
+                    <p>Don't have an account? <a href="#" style="color: var(--primary-color);">Sign up</a></p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-logo">
+                    <h2>AI Fundamentals</h2>
+                    <p>Your journey to AI mastery starts here</p>
+                </div>
+                <div class="footer-links">
+                    <div class="footer-column">
+                        <h3>Resources</h3>
+                        <ul>
+                            <li><a href="#">Flashcards</a></li>
+                            <li><a href="#">Study Guides</a></li>
+                            <li><a href="#">Video Lessons</a></li>
+                            <li><a href="#">Practice Quizzes</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-column">
+                        <h3>Company</h3>
+                        <ul>
+                            <li><a href="#">About Us</a></li>
+                            <li><a href="#">Contact</a></li>
+                            <li><a href="#">Careers</a></li>
+                            <li><a href="#">Blog</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-column">
+                        <h3>Legal</h3>
+                        <ul>
+                            <li><a href="#">Terms of Service</a></li>
+                            <li><a href="#">Privacy Policy</a></li>
+                            <li><a href="#">Cookie Policy</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 AI Fundamentals. All rights reserved.</p>
+                <div class="social-links">
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                    <a href="#"><i class="fab fa-facebook"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                    <a href="#"><i class="fab fa-linkedin"></i></a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/auth-integration.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set up Google Sign-In button
+            const googleButton = document.getElementById('google-signin-button');
+            if (googleButton) {
+                googleButton.addEventListener('click', function() {
+                    // In a real implementation, this would trigger the Google OAuth flow
+                    // For demo purposes, we'll use our simulation function
+                    const email = prompt('Enter your email for demo login:', 'user@example.com');
+                    if (email) {
+                        const name = prompt('Enter your name:', 'Demo User');
+                        window.authIntegration.simulateGoogleSignIn(email, name);
+                    }
+                });
+            }
+            
+            // Set up demo login button
+            const demoButton = document.getElementById('demo-login-button');
+            if (demoButton) {
+                demoButton.addEventListener('click', function() {
+                    window.authIntegration.simulateGoogleSignIn('demo@aifundamentals.com', 'Demo User');
+                });
+            }
+            
+            // Handle login form submission
+            const loginForm = document.getElementById('login-form');
+            if (loginForm) {
+                loginForm.addEventListener('submit', function(event) {
+                    event.preventDefault();
+                    
+                    const email = document.getElementById('login-email').value;
+                    const password = document.getElementById('login-password').value;
+                    
+                    // In a real implementation, this would validate credentials with a server
+                    // For demo purposes, we'll accept any email/password and use our simulation function
+                    window.authIntegration.simulateGoogleSignIn(email, email.split('@')[0]);
+                });
+            }
+        });
+    </script>
+</body>
+</html>
