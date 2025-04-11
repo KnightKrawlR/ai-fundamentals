@@ -1,168 +1,119 @@
-// Main JavaScript file for AI Fundamentals website
-
+// Main JavaScript for AI Fundamentals website
 document.addEventListener('DOMContentLoaded', function() {
-    // Flashcard flip functionality
-    const flashcard = document.querySelector('.flashcard');
-    if (flashcard) {
-        flashcard.addEventListener('click', function() {
-            this.classList.toggle('flipped');
+    // Navigation scroll
+    const navLinks = document.querySelectorAll('nav a[href^="#"]');
+    
+    navLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            const targetId = this.getAttribute('href').substring(1);
+            const targetElement = document.getElementById(targetId);
+            
+            if (targetElement) {
+                window.scrollTo({
+                    top: targetElement.offsetTop - 80,
+                    behavior: 'smooth'
+                });
+            }
+        });
+    });
+    
+    // Check if user is logged in
+    if (typeof firebase !== 'undefined') {
+        firebase.auth().onAuthStateChanged(function(user) {
+            updateUIForUser(user);
         });
     }
     
-    // Flashcard navigation
-    const prevButton = document.querySelector('.prev-card');
-    const nextButton = document.querySelector('.next-card');
-    const cardCounter = document.querySelector('.card-counter');
-    let currentCard = 1;
-    const totalCards = 15;
-    
-    if (prevButton && nextButton) {
-        prevButton.addEventListener('click', function(e) {
-            e.stopPropagation(); // Prevent triggering the flip
-            if (currentCard > 1) {
-                currentCard--;
-                updateCardCounter();
-                // In a real implementation, this would load the previous card content
-            }
-        });
+    // Update UI based on authentication state
+    function updateUIForUser(user) {
+        const loginButton = document.querySelector('.login-button');
+        const premiumButtons = document.querySelectorAll('.premium-button');
+        const lockedModules = document.querySelectorAll('.learning-module.locked');
         
-        nextButton.addEventListener('click', function(e) {
-            e.stopPropagation(); // Prevent triggering the flip
-            if (currentCard < totalCards) {
-                currentCard++;
-                updateCardCounter();
-                // In a real implementation, this would load the next card content
+        if (user) {
+            // User is signed in
+            if (loginButton) {
+                loginButton.innerHTML = '<i class="fas fa-user-circle"></i> My Account';
+                loginButton.href = 'account.html';
             }
-        });
-        
-        function updateCardCounter() {
-            if (cardCounter) {
-                cardCounter.textContent = `Card ${currentCard} of ${totalCards}`;
+            
+            // Check if user has premium access (this is a placeholder, you would check this in your database)
+            const hasPremium = false; // Replace with actual check
+            
+            if (hasPremium) {
+                // User has premium access
+                premiumButtons.forEach(button => {
+                    button.textContent = 'Access Premium';
+                    button.href = 'premium-content.html';
+                });
+                
+                // Unlock premium modules
+                lockedModules.forEach(module => {
+                    if (module.classList.contains('premium-module')) {
+                        module.classList.remove('locked');
+                        const lockIcon = module.querySelector('.lock-icon');
+                        if (lockIcon) {
+                            lockIcon.style.display = 'none';
+                        }
+                        const moduleButton = module.querySelector('.module-button .btn');
+                        if (moduleButton) {
+                            moduleButton.textContent = 'Start Learning';
+                            moduleButton.classList.remove('premium-button');
+                            moduleButton.classList.add('btn');
+                        }
+                    }
+                });
+            }
+        } else {
+            // User is not signed in
+            if (loginButton) {
+                loginButton.innerHTML = '<i class="fas fa-sign-in-alt"></i> Sign In';
+                loginButton.href = 'login.html';
             }
         }
     }
     
-    // Flashcard study modes
-    const modeButtons = document.querySelectorAll('.mode-button');
-    if (modeButtons.length > 0) {
-        modeButtons.forEach(button => {
-            button.addEventListener('click', function() {
-                // Remove active class from all buttons
-                modeButtons.forEach(btn => btn.classList.remove('active'));
-                
-                // Add active class to clicked button
-                this.classList.add('active');
-                
-                // In a real implementation, this would change the study mode
-                const mode = this.getAttribute('data-mode');
-                console.log(`Changing to ${mode} mode`);
-            });
-        });
-    }
-    
-    // AI Tools filter functionality
+    // Tools filtering
     const filterButtons = document.querySelectorAll('.filter-btn');
     const toolCards = document.querySelectorAll('.tool-card');
     
-    if (filterButtons.length > 0 && toolCards.length > 0) {
-        filterButtons.forEach(button => {
-            button.addEventListener('click', function() {
-                // Remove active class from all buttons
-                filterButtons.forEach(btn => btn.classList.remove('active'));
-                
-                // Add active class to clicked button
-                this.classList.add('active');
-                
-                // Get filter value
-                const filterValue = this.getAttribute('data-filter');
-                
-                // Show/hide cards based on filter
-                toolCards.forEach(card => {
-                    if (filterValue === 'all' || card.getAttribute('data-category') === filterValue) {
+    filterButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            // Remove active class from all buttons
+            filterButtons.forEach(btn => btn.classList.remove('active'));
+            
+            // Add active class to clicked button
+            this.classList.add('active');
+            
+            // Get filter value
+            const filter = this.getAttribute('data-filter');
+            
+            // Show/hide tool cards based on filter
+            toolCards.forEach(card => {
+                if (filter === 'all') {
+                    card.style.display = 'flex';
+                } else {
+                    const cardCategories = card.getAttribute('data-categories').split(',');
+                    if (cardCategories.includes(filter)) {
                         card.style.display = 'flex';
                     } else {
                         card.style.display = 'none';
                     }
-                });
-            });
-        });
-    }
-    
-    // Fix navigation links for smooth scrolling
-    const navLinks = document.querySelectorAll('header nav ul li a');
-    navLinks.forEach(link => {
-        link.addEventListener('click', function(e) {
-            const targetId = this.getAttribute('href');
-            if (targetId.startsWith('#')) {
-                e.preventDefault();
-                const targetElement = document.querySelector(targetId);
-                if (targetElement) {
-                    targetElement.scrollIntoView({ behavior: 'smooth' });
                 }
-            }
+            });
         });
     });
     
-    // Login button functionality
-    const loginButton = document.querySelector('.login-button');
-    if (loginButton) {
-        loginButton.addEventListener('click', function() {
-            window.location.href = 'login.html';
-        });
-    }
-    
-    // Firebase Authentication State Observer
-    firebase.auth().onAuthStateChanged(function(user) {
-        if (user) {
-            // User is signed in
-            console.log('User is signed in:', user.displayName || user.email);
+    // Initialize demo login if needed
+    const demoLoginButton = document.getElementById('demo-login-button');
+    if (demoLoginButton) {
+        demoLoginButton.addEventListener('click', function(e) {
+            e.preventDefault();
             
-            // Update UI for authenticated user
-            updateUIForAuthenticatedUser(user);
-        } else {
-            // User is signed out
-            console.log('User is signed out');
-            
-            // Update UI for non-authenticated user
-            updateUIForNonAuthenticatedUser();
-        }
-    });
-    
-    // Update UI based on authentication state
-    function updateUIForAuthenticatedUser(user) {
-        // Update login button
-        if (loginButton) {
-            loginButton.innerHTML = `<i class="fas fa-user"></i><span> ${user.displayName || 'Account'}</span>`;
-            loginButton.addEventListener('click', function() {
-                window.location.href = 'account.html';
-            });
-        }
-        
-        // Update locked content
-        const signInButtons = document.querySelectorAll('.sign-in-button');
-        signInButtons.forEach(button => {
-            button.textContent = 'Access Content';
-            button.classList.add('unlocked');
-        });
-        
-        // Update premium buttons if user has premium
-        // This would require checking the user's subscription status in a real implementation
-    }
-    
-    function updateUIForNonAuthenticatedUser() {
-        // Reset login button
-        if (loginButton) {
-            loginButton.innerHTML = `<i class="fas fa-sign-in-alt"></i><span> Sign In</span>`;
-            loginButton.addEventListener('click', function() {
-                window.location.href = 'login.html';
-            });
-        }
-        
-        // Ensure locked content stays locked
-        const signInButtons = document.querySelectorAll('.sign-in-button');
-        signInButtons.forEach(button => {
-            button.textContent = 'Sign In to Access';
-            button.classList.remove('unlocked');
+            // Redirect to account page with demo parameter
+            window.location.href = 'account.html?demo=true';
         });
     }
 });

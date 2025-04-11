@@ -7,46 +7,67 @@
     <link rel="stylesheet" href="css/styles.css">
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         .payment-section {
             padding: 4rem 0;
+            min-height: calc(100vh - 200px);
+            display: flex;
+            align-items: center;
         }
         
         .payment-container {
-            max-width: 800px;
-            margin: 0 auto;
+            display: flex;
+            gap: 2rem;
+            align-items: flex-start;
+        }
+        
+        .payment-details {
+            flex: 1;
             background-color: var(--card-background);
             border-radius: var(--border-radius);
             box-shadow: var(--shadow);
             padding: 2rem;
         }
         
+        .payment-summary {
+            flex: 0 0 300px;
+            background-color: var(--card-background);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            padding: 2rem;
+            position: sticky;
+            top: 2rem;
+        }
+        
         .payment-header {
-            text-align: center;
             margin-bottom: 2rem;
         }
         
         .payment-header h2 {
+            margin-top: 0;
+            margin-bottom: 0.5rem;
             color: var(--primary-color);
+            text-align: left;
+        }
+        
+        .payment-header p {
+            margin: 0;
+            color: #777;
         }
         
         .plan-selection {
             margin-bottom: 2rem;
         }
         
-        .plan-options {
-            display: flex;
-            gap: 1rem;
-            margin-bottom: 1.5rem;
-        }
-        
         .plan-option {
-            flex: 1;
-            padding: 1.5rem;
-            border: 2px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            border: 1px solid var(--border-color);
             border-radius: var(--border-radius);
-            text-align: center;
+            margin-bottom: 1rem;
             cursor: pointer;
             transition: var(--transition);
         }
@@ -57,47 +78,34 @@
         
         .plan-option.selected {
             border-color: var(--primary-color);
-            background-color: #f8f4ff;
+            background-color: rgba(106, 61, 232, 0.05);
+        }
+        
+        .plan-radio {
+            margin-right: 1rem;
+        }
+        
+        .plan-info {
+            flex: 1;
         }
         
         .plan-name {
             font-weight: 600;
             color: var(--primary-color);
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.25rem;
         }
         
         .plan-price {
-            font-size: 1.5rem;
-            font-weight: 700;
-            margin-bottom: 0.5rem;
-        }
-        
-        .plan-period {
-            color: #777;
             font-size: 0.9rem;
+            color: #777;
         }
         
         .payment-form {
-            margin-top: 2rem;
-        }
-        
-        .form-section {
             margin-bottom: 2rem;
         }
         
-        .form-section h3 {
-            margin-bottom: 1rem;
-            color: var(--primary-color);
-        }
-        
-        .form-row {
-            display: flex;
-            gap: 1rem;
-            margin-bottom: 1rem;
-        }
-        
         .form-group {
-            flex: 1;
+            margin-bottom: 1.5rem;
         }
         
         .form-group label {
@@ -106,12 +114,21 @@
             font-weight: 500;
         }
         
-        .form-group input, .form-group select {
+        .form-group input {
             width: 100%;
             padding: 0.75rem;
             border: 1px solid var(--border-color);
             border-radius: var(--border-radius);
             font-size: 1rem;
+        }
+        
+        .form-row {
+            display: flex;
+            gap: 1rem;
+        }
+        
+        .form-row .form-group {
+            flex: 1;
         }
         
         .card-icons {
@@ -121,39 +138,81 @@
         }
         
         .card-icon {
-            font-size: 1.5rem;
+            width: 40px;
+            height: 25px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+        
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .summary-item:last-child {
+            border-bottom: none;
+        }
+        
+        .summary-label {
             color: #777;
         }
         
-        .form-footer {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        .summary-value {
+            font-weight: 500;
+        }
+        
+        .summary-total {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+        
+        .payment-actions {
             margin-top: 2rem;
+        }
+        
+        .payment-button {
+            width: 100%;
+            padding: 1rem;
+            font-size: 1.1rem;
         }
         
         .secure-badge {
             display: flex;
             align-items: center;
-            color: #28a745;
-            font-weight: 500;
+            justify-content: center;
+            margin-top: 1rem;
+            color: #777;
+            font-size: 0.9rem;
         }
         
         .secure-badge i {
             margin-right: 0.5rem;
+            color: #28a745;
         }
         
-        .submit-btn {
-            padding: 0.75rem 2rem;
-        }
-        
+        /* Responsive styles */
         @media (max-width: 768px) {
-            .plan-options {
+            .payment-container {
                 flex-direction: column;
+            }
+            
+            .payment-summary {
+                flex: 0 0 auto;
+                width: 100%;
+                position: static;
             }
             
             .form-row {
                 flex-direction: column;
+                gap: 0;
             }
         }
     </style>
@@ -172,82 +231,139 @@
                     <li><a href="index.html#premium">Premium</a></li>
                 </ul>
             </nav>
-            <button class="login-button"><i class="fas fa-user"></i><span> Account</span></button>
         </div>
     </header>
 
     <section class="payment-section">
         <div class="container">
             <div class="payment-container">
-                <div class="payment-header">
-                    <h2>Upgrade Your Subscription</h2>
-                    <p>Choose a plan that works for you</p>
-                </div>
-                
-                <div class="plan-selection">
-                    <h3>Select Your Plan</h3>
-                    <div class="plan-options">
-                        <div class="plan-option" data-plan="premium">
-                            <div class="plan-name">Premium</div>
-                            <div class="plan-price">$9.99</div>
-                            <div class="plan-period">per month</div>
-                        </div>
-                        <div class="plan-option selected" data-plan="premium-plus">
-                            <div class="plan-name">Premium Plus</div>
-                            <div class="plan-price">$19.99</div>
-                            <div class="plan-period">per month</div>
-                        </div>
+                <div class="payment-details">
+                    <div class="payment-header">
+                        <h2>Upgrade to Premium</h2>
+                        <p>Get full access to all AI Fundamentals learning resources</p>
                     </div>
-                </div>
-                
-                <div class="payment-form">
-                    <div class="form-section">
-                        <h3>Billing Information</h3>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="first-name">First Name</label>
-                                <input type="text" id="first-name" required>
+                    
+                    <div class="plan-selection">
+                        <h3>Select Your Plan</h3>
+                        
+                        <div class="plan-option selected" data-plan="monthly" data-price="9.99">
+                            <div class="plan-radio">
+                                <input type="radio" name="plan" id="monthly-plan" checked>
                             </div>
-                            <div class="form-group">
-                                <label for="last-name">Last Name</label>
-                                <input type="text" id="last-name" required>
+                            <div class="plan-info">
+                                <div class="plan-name">Monthly Premium</div>
+                                <div class="plan-price">$9.99 per month</div>
                             </div>
                         </div>
-                        <div class="form-group">
-                            <label for="email">Email Address</label>
-                            <input type="email" id="email" required>
+                        
+                        <div class="plan-option" data-plan="annual" data-price="99.99">
+                            <div class="plan-radio">
+                                <input type="radio" name="plan" id="annual-plan">
+                            </div>
+                            <div class="plan-info">
+                                <div class="plan-name">Annual Premium</div>
+                                <div class="plan-price">$99.99 per year (Save 17%)</div>
+                            </div>
                         </div>
                     </div>
                     
-                    <div class="form-section">
-                        <h3>Payment Method</h3>
+                    <div class="payment-form">
+                        <h3>Payment Information</h3>
+                        
                         <div class="card-icons">
                             <div class="card-icon"><i class="fab fa-cc-visa"></i></div>
                             <div class="card-icon"><i class="fab fa-cc-mastercard"></i></div>
                             <div class="card-icon"><i class="fab fa-cc-amex"></i></div>
-                            <div class="card-icon"><i class="fab fa-cc-paypal"></i></div>
+                            <div class="card-icon"><i class="fab fa-cc-discover"></i></div>
                         </div>
+                        
+                        <div class="form-group">
+                            <label for="card-name">Name on Card</label>
+                            <input type="text" id="card-name" placeholder="John Smith">
+                        </div>
+                        
                         <div class="form-group">
                             <label for="card-number">Card Number</label>
-                            <input type="text" id="card-number" placeholder="1234 5678 9012 3456" required>
+                            <input type="text" id="card-number" placeholder="1234 5678 9012 3456">
                         </div>
+                        
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="expiry-date">Expiry Date</label>
-                                <input type="text" id="expiry-date" placeholder="MM/YY" required>
+                                <input type="text" id="expiry-date" placeholder="MM/YY">
                             </div>
+                            
                             <div class="form-group">
                                 <label for="cvv">CVV</label>
-                                <input type="text" id="cvv" placeholder="123" required>
+                                <input type="text" id="cvv" placeholder="123">
                             </div>
                         </div>
                     </div>
                     
-                    <div class="form-footer">
-                        <div class="secure-badge">
-                            <i class="fas fa-lock"></i> Secure Payment
+                    <div class="billing-address">
+                        <h3>Billing Address</h3>
+                        
+                        <div class="form-group">
+                            <label for="address">Address</label>
+                            <input type="text" id="address" placeholder="123 Main St">
                         </div>
-                        <button class="btn submit-btn">Complete Payment</button>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="city">City</label>
+                                <input type="text" id="city" placeholder="New York">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="state">State</label>
+                                <input type="text" id="state" placeholder="NY">
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="zip">ZIP Code</label>
+                                <input type="text" id="zip" placeholder="10001">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="country">Country</label>
+                                <input type="text" id="country" placeholder="United States">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="payment-summary">
+                    <h3>Order Summary</h3>
+                    
+                    <div class="summary-item">
+                        <div class="summary-label">Plan</div>
+                        <div class="summary-value" id="summary-plan">Monthly Premium</div>
+                    </div>
+                    
+                    <div class="summary-item">
+                        <div class="summary-label">Price</div>
+                        <div class="summary-value" id="summary-price">$9.99</div>
+                    </div>
+                    
+                    <div class="summary-item">
+                        <div class="summary-label">Billing</div>
+                        <div class="summary-value" id="summary-billing">Monthly</div>
+                    </div>
+                    
+                    <div class="summary-item">
+                        <div class="summary-label">Total</div>
+                        <div class="summary-value summary-total" id="summary-total">$9.99</div>
+                    </div>
+                    
+                    <div class="payment-actions">
+                        <button class="btn payment-button" id="complete-payment">Complete Payment</button>
+                        
+                        <div class="secure-badge">
+                            <i class="fas fa-lock"></i>
+                            <span>Secure Payment</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -300,32 +416,25 @@
         </div>
     </footer>
 
+    <script src="js/firebase-config.js"></script>
     <script>
-        // Firebase configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyDjMIsQKMgdA6qNg7gnXDumhNOOWOD-Y00",
-            authDomain: "ai-fundamentals-ad37d.firebaseapp.com",
-            projectId: "ai-fundamentals-ad37d",
-            storageBucket: "ai-fundamentals-ad37d.firebasestorage.app",
-            messagingSenderId: "668115447112",
-            appId: "1:668115447112:web:c0772e9f8c6a498737977d",
-            measurementId: "G-2D5V39EQ3T"
-        };
-        
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        
         document.addEventListener('DOMContentLoaded', function() {
-            // Check authentication state
+            // Check if user is logged in
             firebase.auth().onAuthStateChanged(function(user) {
                 if (!user) {
-                    // User is not signed in, redirect to login
-                    window.location.href = 'login.html';
+                    // User is not signed in, redirect to login page
+                    console.log('User is not signed in, redirecting to login page');
+                    window.location.href = 'login.html?redirect=payment.html';
                 }
             });
             
             // Plan selection
             const planOptions = document.querySelectorAll('.plan-option');
+            const summaryPlan = document.getElementById('summary-plan');
+            const summaryPrice = document.getElementById('summary-price');
+            const summaryBilling = document.getElementById('summary-billing');
+            const summaryTotal = document.getElementById('summary-total');
+            
             planOptions.forEach(option => {
                 option.addEventListener('click', function() {
                     // Remove selected class from all options
@@ -333,16 +442,51 @@
                     
                     // Add selected class to clicked option
                     this.classList.add('selected');
+                    
+                    // Update radio button
+                    const radioInput = this.querySelector('input[type="radio"]');
+                    radioInput.checked = true;
+                    
+                    // Update summary
+                    const plan = this.getAttribute('data-plan');
+                    const price = this.getAttribute('data-price');
+                    
+                    if (plan === 'monthly') {
+                        summaryPlan.textContent = 'Monthly Premium';
+                        summaryPrice.textContent = '$' + price;
+                        summaryBilling.textContent = 'Monthly';
+                        summaryTotal.textContent = '$' + price;
+                    } else if (plan === 'annual') {
+                        summaryPlan.textContent = 'Annual Premium';
+                        summaryPrice.textContent = '$' + price;
+                        summaryBilling.textContent = 'Yearly';
+                        summaryTotal.textContent = '$' + price;
+                    }
                 });
             });
             
-            // Form submission
-            const submitBtn = document.querySelector('.submit-btn');
-            submitBtn.addEventListener('click', function() {
-                // In a real implementation, this would process the payment
-                // For this demo, we'll just show a success message and redirect
-                alert('Payment successful! Your subscription has been upgraded.');
-                window.location.href = 'account.html';
+            // Complete payment button
+            const completePaymentButton = document.getElementById('complete-payment');
+            completePaymentButton.addEventListener('click', function() {
+                // Validate form
+                const cardName = document.getElementById('card-name').value;
+                const cardNumber = document.getElementById('card-number').value;
+                const expiryDate = document.getElementById('expiry-date').value;
+                const cvv = document.getElementById('cvv').value;
+                
+                if (!cardName || !cardNumber || !expiryDate || !cvv) {
+                    alert('Please fill in all payment details');
+                    return;
+                }
+                
+                // Simulate payment processing
+                completePaymentButton.textContent = 'Processing...';
+                completePaymentButton.disabled = true;
+                
+                setTimeout(() => {
+                    // Redirect to account page with success message
+                    window.location.href = 'account.html?payment=success';
+                }, 2000);
             });
         });
     </script>

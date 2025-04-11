@@ -9,8 +9,14 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        
         .login-section {
-            min-height: calc(100vh - 200px);
+            flex: 1;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -21,81 +27,33 @@
             background-color: var(--card-background);
             border-radius: var(--border-radius);
             box-shadow: var(--shadow);
-            padding: 3rem;
             width: 100%;
-            max-width: 500px;
-            text-align: center;
+            max-width: 400px;
+            padding: 2rem;
+            margin: 0 auto;
         }
         
-        .login-title {
-            color: var(--primary-color);
+        .login-header {
+            text-align: center;
             margin-bottom: 2rem;
         }
         
-        .login-options {
-            display: flex;
-            flex-direction: column;
-            gap: 1.5rem;
-        }
-        
-        .login-option {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 1rem;
-            border-radius: var(--border-radius);
-            cursor: pointer;
-            transition: var(--transition);
-            font-weight: 500;
-        }
-        
-        .login-option i {
-            margin-right: 0.5rem;
-        }
-        
-        .google-login {
-            background-color: #ffffff;
-            color: #444444;
-            border: 1px solid #dddddd;
-        }
-        
-        .google-login:hover {
-            background-color: #f1f1f1;
-        }
-        
-        .email-login {
-            background-color: var(--primary-color);
-            color: var(--light-text);
-            border: 1px solid var(--primary-color);
-        }
-        
-        .email-login:hover {
-            background-color: var(--accent-color);
-        }
-        
-        .demo-login {
-            background-color: transparent;
+        .login-header h2 {
             color: var(--primary-color);
-            border: 1px solid var(--primary-color);
+            margin-bottom: 0.5rem;
         }
         
-        .demo-login:hover {
-            background-color: var(--primary-color);
-            color: var(--light-text);
+        .login-header p {
+            color: #777;
+            margin: 0;
         }
         
         .login-form {
-            display: none;
-            margin-top: 2rem;
-        }
-        
-        .login-form.active {
-            display: block;
+            margin-bottom: 1.5rem;
         }
         
         .form-group {
             margin-bottom: 1.5rem;
-            text-align: left;
         }
         
         .form-group label {
@@ -116,38 +74,152 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-top: 2rem;
+            margin-bottom: 1.5rem;
         }
         
-        .form-actions a {
-            color: var(--primary-color);
-            text-decoration: underline;
-        }
-        
-        .back-to-options {
-            margin-top: 1rem;
-            color: var(--primary-color);
-            cursor: pointer;
-            display: inline-block;
-        }
-        
-        .login-divider {
+        .remember-me {
             display: flex;
             align-items: center;
-            margin: 2rem 0;
         }
         
-        .login-divider::before,
-        .login-divider::after {
+        .remember-me input {
+            margin-right: 0.5rem;
+        }
+        
+        .forgot-password {
+            color: var(--primary-color);
+            font-size: 0.9rem;
+        }
+        
+        .login-button {
+            width: 100%;
+            padding: 0.75rem;
+            background-color: var(--primary-color);
+            color: var(--light-text);
+            border: none;
+            border-radius: var(--border-radius);
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        
+        .login-button:hover {
+            background-color: var(--accent-color);
+        }
+        
+        .social-login {
+            margin-bottom: 1.5rem;
+        }
+        
+        .social-login-title {
+            text-align: center;
+            margin-bottom: 1rem;
+            position: relative;
+        }
+        
+        .social-login-title::before {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background-color: var(--border-color);
+            z-index: 1;
+        }
+        
+        .social-login-title span {
+            position: relative;
+            background-color: var(--card-background);
+            padding: 0 1rem;
+            z-index: 2;
+            color: #777;
+        }
+        
+        .social-login-buttons {
+            display: flex;
+            gap: 1rem;
+        }
+        
+        .social-login-button {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            background-color: var(--light-background);
+            color: var(--dark-text);
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        
+        .social-login-button:hover {
+            background-color: #f0f0f0;
+        }
+        
+        .social-login-button i {
+            margin-right: 0.5rem;
+        }
+        
+        .google-button {
+            color: #DB4437;
+        }
+        
+        .signup-link {
+            text-align: center;
+            margin-top: 1.5rem;
+            color: #777;
+        }
+        
+        .signup-link a {
+            color: var(--primary-color);
+            font-weight: 500;
+        }
+        
+        .or-divider {
+            display: flex;
+            align-items: center;
+            margin: 1.5rem 0;
+            color: #777;
+        }
+        
+        .or-divider::before,
+        .or-divider::after {
             content: "";
             flex: 1;
-            border-bottom: 1px solid var(--border-color);
+            height: 1px;
+            background-color: var(--border-color);
         }
         
-        .login-divider span {
+        .or-divider span {
             padding: 0 1rem;
+        }
+        
+        .signup-form {
+            display: none;
+        }
+        
+        .login-toggle {
+            text-align: center;
+            margin-top: 1.5rem;
             color: #777;
+        }
+        
+        .login-toggle a {
+            color: var(--primary-color);
+            font-weight: 500;
+            cursor: pointer;
+        }
+        
+        .error-message {
+            color: #dc3545;
             font-size: 0.9rem;
+            margin-top: 0.5rem;
+            display: none;
         }
     </style>
 </head>
@@ -171,40 +243,90 @@
     <section class="login-section">
         <div class="container">
             <div class="login-container">
-                <h2 class="login-title">Sign In to AI Fundamentals</h2>
-                
-                <div class="login-options" id="login-options">
-                    <button class="login-option google-login" id="google-login">
-                        <i class="fab fa-google"></i> Sign in with Google
-                    </button>
-                    <button class="login-option email-login" id="show-email-form">
-                        <i class="fas fa-envelope"></i> Sign in with Email
-                    </button>
-                    <div class="login-divider">
-                        <span>OR</span>
-                    </div>
-                    <button class="login-option demo-login" id="demo-login">
-                        <i class="fas fa-user-check"></i> Try Demo Login
-                    </button>
+                <div class="login-header">
+                    <h2>Welcome Back</h2>
+                    <p>Sign in to continue your learning journey</p>
                 </div>
                 
-                <div class="login-form" id="email-login-form">
+                <div class="login-form" id="login-form">
                     <div class="form-group">
                         <label for="email">Email</label>
                         <input type="email" id="email" placeholder="Enter your email">
+                        <div class="error-message" id="email-error"></div>
                     </div>
+                    
                     <div class="form-group">
                         <label for="password">Password</label>
                         <input type="password" id="password" placeholder="Enter your password">
+                        <div class="error-message" id="password-error"></div>
                     </div>
-                    <button class="btn" id="email-sign-in">Sign In</button>
+                    
                     <div class="form-actions">
-                        <a href="#" id="forgot-password">Forgot Password?</a>
-                        <a href="#" id="create-account">Create Account</a>
+                        <div class="remember-me">
+                            <input type="checkbox" id="remember-me">
+                            <label for="remember-me">Remember me</label>
+                        </div>
+                        
+                        <a href="#" class="forgot-password">Forgot password?</a>
                     </div>
-                    <div class="back-to-options" id="back-to-options">
-                        <i class="fas fa-arrow-left"></i> Back to all options
+                    
+                    <button class="login-button" id="login-button">Sign In</button>
+                    
+                    <div class="error-message" id="login-error"></div>
+                </div>
+                
+                <div class="signup-form" id="signup-form">
+                    <div class="form-group">
+                        <label for="signup-name">Full Name</label>
+                        <input type="text" id="signup-name" placeholder="Enter your full name">
+                        <div class="error-message" id="name-error"></div>
                     </div>
+                    
+                    <div class="form-group">
+                        <label for="signup-email">Email</label>
+                        <input type="email" id="signup-email" placeholder="Enter your email">
+                        <div class="error-message" id="signup-email-error"></div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="signup-password">Password</label>
+                        <input type="password" id="signup-password" placeholder="Create a password">
+                        <div class="error-message" id="signup-password-error"></div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="confirm-password">Confirm Password</label>
+                        <input type="password" id="confirm-password" placeholder="Confirm your password">
+                        <div class="error-message" id="confirm-password-error"></div>
+                    </div>
+                    
+                    <button class="login-button" id="signup-button">Sign Up</button>
+                    
+                    <div class="error-message" id="signup-error"></div>
+                </div>
+                
+                <div class="social-login">
+                    <div class="social-login-title">
+                        <span>Or sign in with</span>
+                    </div>
+                    
+                    <div class="social-login-buttons">
+                        <button class="social-login-button google-button" id="google-login">
+                            <i class="fab fa-google"></i>
+                            <span>Google</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="or-divider">
+                    <span>OR</span>
+                </div>
+                
+                <button class="login-button" id="demo-login-button" style="background-color: #6c757d;">Try Demo Login</button>
+                
+                <div class="login-toggle" id="login-toggle">
+                    <span id="login-text">Don't have an account? <a id="show-signup">Sign Up</a></span>
+                    <span id="signup-text" style="display: none;">Already have an account? <a id="show-login">Sign In</a></span>
                 </div>
             </div>
         </div>
@@ -220,10 +342,10 @@
                 <div class="footer-column">
                     <h3>Resources</h3>
                     <ul>
-                        <li><a href="#">Flashcards</a></li>
-                        <li><a href="#">Study Guides</a></li>
-                        <li><a href="#">Video Lessons</a></li>
-                        <li><a href="#">Practice Quizzes</a></li>
+                        <li><a href="index.html#free-resources">Flashcards</a></li>
+                        <li><a href="index.html#learning">Learning Path</a></li>
+                        <li><a href="index.html#ai-tools">AI Tools</a></li>
+                        <li><a href="index.html#premium">Premium</a></li>
                     </ul>
                 </div>
                 <div class="footer-column">
@@ -256,135 +378,253 @@
         </div>
     </footer>
 
+    <script src="js/firebase-config.js"></script>
     <script>
-        // Firebase configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyDjMIsQKMgdA6qNg7gnXDumhNOOWOD-Y00",
-            authDomain: "ai-fundamentals-ad37d.firebaseapp.com",
-            projectId: "ai-fundamentals-ad37d",
-            storageBucket: "ai-fundamentals-ad37d.firebasestorage.app",
-            messagingSenderId: "668115447112",
-            appId: "1:668115447112:web:c0772e9f8c6a498737977d",
-            measurementId: "G-2D5V39EQ3T"
-        };
-        
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        
         document.addEventListener('DOMContentLoaded', function() {
-            // Email login form toggle
-            const showEmailFormBtn = document.getElementById('show-email-form');
-            const emailLoginForm = document.getElementById('email-login-form');
-            const loginOptions = document.getElementById('login-options');
-            const backToOptionsBtn = document.getElementById('back-to-options');
+            // Toggle between login and signup forms
+            const loginForm = document.getElementById('login-form');
+            const signupForm = document.getElementById('signup-form');
+            const loginText = document.getElementById('login-text');
+            const signupText = document.getElementById('signup-text');
+            const showSignup = document.getElementById('show-signup');
+            const showLogin = document.getElementById('show-login');
             
-            showEmailFormBtn.addEventListener('click', function() {
-                loginOptions.style.display = 'none';
-                emailLoginForm.classList.add('active');
+            showSignup.addEventListener('click', function() {
+                loginForm.style.display = 'none';
+                signupForm.style.display = 'block';
+                loginText.style.display = 'none';
+                signupText.style.display = 'block';
             });
             
-            backToOptionsBtn.addEventListener('click', function() {
-                loginOptions.style.display = 'flex';
-                emailLoginForm.classList.remove('active');
+            showLogin.addEventListener('click', function() {
+                signupForm.style.display = 'none';
+                loginForm.style.display = 'block';
+                signupText.style.display = 'none';
+                loginText.style.display = 'block';
             });
             
-            // Google Sign In
-            const googleLoginBtn = document.getElementById('google-login');
-            googleLoginBtn.addEventListener('click', function() {
-                const provider = new firebase.auth.GoogleAuthProvider();
-                firebase.auth().signInWithPopup(provider)
-                    .then((result) => {
-                        // User signed in
-                        console.log('Google sign in successful');
-                        window.location.href = 'account.html';
-                    })
-                    .catch((error) => {
-                        // Handle errors
-                        console.error('Google sign in error:', error);
-                        alert('Error signing in with Google: ' + error.message);
-                    });
-            });
+            // Email/Password Login
+            const loginButton = document.getElementById('login-button');
+            const emailInput = document.getElementById('email');
+            const passwordInput = document.getElementById('password');
+            const loginError = document.getElementById('login-error');
             
-            // Email Sign In
-            const emailSignInBtn = document.getElementById('email-sign-in');
-            emailSignInBtn.addEventListener('click', function() {
-                const email = document.getElementById('email').value;
-                const password = document.getElementById('password').value;
+            loginButton.addEventListener('click', function() {
+                const email = emailInput.value;
+                const password = passwordInput.value;
                 
-                if (!email || !password) {
-                    alert('Please enter both email and password');
+                // Validate inputs
+                if (!email) {
+                    document.getElementById('email-error').textContent = 'Email is required';
+                    document.getElementById('email-error').style.display = 'block';
                     return;
+                } else {
+                    document.getElementById('email-error').style.display = 'none';
                 }
                 
+                if (!password) {
+                    document.getElementById('password-error').textContent = 'Password is required';
+                    document.getElementById('password-error').style.display = 'block';
+                    return;
+                } else {
+                    document.getElementById('password-error').style.display = 'none';
+                }
+                
+                // Sign in with email and password
                 firebase.auth().signInWithEmailAndPassword(email, password)
                     .then((userCredential) => {
-                        // User signed in
-                        console.log('Email sign in successful');
-                        window.location.href = 'account.html';
+                        // Signed in
+                        const user = userCredential.user;
+                        console.log('User signed in:', user);
+                        
+                        // Redirect to account page or previous page
+                        const urlParams = new URLSearchParams(window.location.search);
+                        const redirectUrl = urlParams.get('redirect') || 'account.html';
+                        window.location.href = redirectUrl;
                     })
                     .catch((error) => {
-                        // Handle errors
-                        console.error('Email sign in error:', error);
-                        alert('Error signing in with email: ' + error.message);
+                        const errorCode = error.code;
+                        const errorMessage = error.message;
+                        console.error('Login error:', errorCode, errorMessage);
+                        
+                        // Display error message
+                        loginError.textContent = getAuthErrorMessage(errorCode);
+                        loginError.style.display = 'block';
                     });
             });
             
+            // Email/Password Signup
+            const signupButton = document.getElementById('signup-button');
+            const nameInput = document.getElementById('signup-name');
+            const signupEmailInput = document.getElementById('signup-email');
+            const signupPasswordInput = document.getElementById('signup-password');
+            const confirmPasswordInput = document.getElementById('confirm-password');
+            const signupError = document.getElementById('signup-error');
+            
+            signupButton.addEventListener('click', function() {
+                const name = nameInput.value;
+                const email = signupEmailInput.value;
+                const password = signupPasswordInput.value;
+                const confirmPassword = confirmPasswordInput.value;
+                
+                // Validate inputs
+                let isValid = true;
+                
+                if (!name) {
+                    document.getElementById('name-error').textContent = 'Name is required';
+                    document.getElementById('name-error').style.display = 'block';
+                    isValid = false;
+                } else {
+                    document.getElementById('name-error').style.display = 'none';
+                }
+                
+                if (!email) {
+                    document.getElementById('signup-email-error').textContent = 'Email is required';
+                    document.getElementById('signup-email-error').style.display = 'block';
+                    isValid = false;
+                } else {
+                    document.getElementById('signup-email-error').style.display = 'none';
+                }
+                
+                if (!password) {
+                    document.getElementById('signup-password-error').textContent = 'Password is required';
+                    document.getElementById('signup-password-error').style.display = 'block';
+                    isValid = false;
+                } else if (password.length < 6) {
+                    document.getElementById('signup-password-error').textContent = 'Password must be at least 6 characters';
+                    document.getElementById('signup-password-error').style.display = 'block';
+                    isValid = false;
+                } else {
+                    document.getElementById('signup-password-error').style.display = 'none';
+                }
+                
+                if (password !== confirmPassword) {
+                    document.getElementById('confirm-password-error').textContent = 'Passwords do not match';
+                    document.getElementById('confirm-password-error').style.display = 'block';
+                    isValid = false;
+                } else {
+                    document.getElementById('confirm-password-error').style.display = 'none';
+                }
+                
+                if (!isValid) return;
+                
+                // Create user with email and password
+                firebase.auth().createUserWithEmailAndPassword(email, password)
+                    .then((userCredential) => {
+                        // Signed up
+                        const user = userCredential.user;
+                        console.log('User created:', user);
+                        
+                        // Update user profile with name
+                        return user.updateProfile({
+                            displayName: name
+                        });
+                    })
+                    .then(() => {
+                        // Redirect to account page
+                        window.location.href = 'account.html';
+                    })
+                    .catch((error) => {
+                        const errorCode = error.code;
+                        const errorMessage = error.message;
+                        console.error('Signup error:', errorCode, errorMessage);
+                        
+                        // Display error message
+                        signupError.textContent = getAuthErrorMessage(errorCode);
+                        signupError.style.display = 'block';
+                    });
+            });
+            
+            // Google Login
+            const googleLoginButton = document.getElementById('google-login');
+            
+            googleLoginButton.addEventListener('click', function() {
+                const provider = new firebase.auth.GoogleAuthProvider();
+                
+                // Use redirect-based sign-in instead of popup to avoid popup blocking
+                firebase.auth().signInWithRedirect(provider)
+                    .catch((error) => {
+                        const errorCode = error.code;
+                        const errorMessage = error.message;
+                        console.error('Google login error:', errorCode, errorMessage);
+                        
+                        // Display error message
+                        loginError.textContent = getAuthErrorMessage(errorCode);
+                        loginError.style.display = 'block';
+                    });
+            });
+            
+            // Handle redirect result
+            firebase.auth().getRedirectResult()
+                .then((result) => {
+                    if (result.user) {
+                        // User signed in with redirect
+                        console.log('User signed in with redirect:', result.user);
+                        
+                        // Redirect to account page or previous page
+                        const urlParams = new URLSearchParams(window.location.search);
+                        const redirectUrl = urlParams.get('redirect') || 'account.html';
+                        window.location.href = redirectUrl;
+                    }
+                })
+                .catch((error) => {
+                    const errorCode = error.code;
+                    const errorMessage = error.message;
+                    console.error('Redirect result error:', errorCode, errorMessage);
+                    
+                    // Display error message
+                    loginError.textContent = getAuthErrorMessage(errorCode);
+                    loginError.style.display = 'block';
+                });
+            
             // Demo Login
-            const demoLoginBtn = document.getElementById('demo-login');
-            demoLoginBtn.addEventListener('click', function() {
-                // This would typically use a demo account, but for this example
-                // we'll just redirect to a demo version of the account page
-                console.log('Demo login clicked');
+            const demoLoginButton = document.getElementById('demo-login-button');
+            
+            demoLoginButton.addEventListener('click', function() {
+                // Redirect to account page with demo parameter
                 window.location.href = 'account.html?demo=true';
             });
             
-            // Create Account
-            const createAccountBtn = document.getElementById('create-account');
-            createAccountBtn.addEventListener('click', function(e) {
-                e.preventDefault();
-                const email = document.getElementById('email').value;
-                const password = document.getElementById('password').value;
-                
-                if (!email || !password) {
-                    alert('Please enter both email and password');
-                    return;
-                }
-                
-                firebase.auth().createUserWithEmailAndPassword(email, password)
-                    .then((userCredential) => {
-                        // Account created
-                        console.log('Account created successfully');
+            // Check if user is already logged in
+            firebase.auth().onAuthStateChanged(function(user) {
+                if (user) {
+                    // User is signed in
+                    console.log('User is already signed in:', user.displayName || user.email);
+                    
+                    // Check if this is a fresh login or user was already logged in
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const redirectUrl = urlParams.get('redirect');
+                    
+                    if (!redirectUrl) {
+                        // User was already logged in, redirect to account page
                         window.location.href = 'account.html';
-                    })
-                    .catch((error) => {
-                        // Handle errors
-                        console.error('Account creation error:', error);
-                        alert('Error creating account: ' + error.message);
-                    });
+                    }
+                }
             });
             
-            // Forgot Password
-            const forgotPasswordBtn = document.getElementById('forgot-password');
-            forgotPasswordBtn.addEventListener('click', function(e) {
-                e.preventDefault();
-                const email = document.getElementById('email').value;
-                
-                if (!email) {
-                    alert('Please enter your email address');
-                    return;
+            // Helper function to get user-friendly error messages
+            function getAuthErrorMessage(errorCode) {
+                switch (errorCode) {
+                    case 'auth/user-not-found':
+                    case 'auth/wrong-password':
+                        return 'Invalid email or password';
+                    case 'auth/email-already-in-use':
+                        return 'Email is already in use';
+                    case 'auth/weak-password':
+                        return 'Password is too weak';
+                    case 'auth/invalid-email':
+                        return 'Invalid email address';
+                    case 'auth/popup-closed-by-user':
+                        return 'Login popup was closed';
+                    case 'auth/popup-blocked':
+                    case 'auth/popup-blocked-by-browser':
+                        return 'Popup was blocked by the browser';
+                    case 'auth/network-request-failed':
+                        return 'Network error. Please check your connection';
+                    default:
+                        return 'An error occurred. Please try again';
                 }
-                
-                firebase.auth().sendPasswordResetEmail(email)
-                    .then(() => {
-                        // Email sent
-                        alert('Password reset email sent. Check your inbox.');
-                    })
-                    .catch((error) => {
-                        // Handle errors
-                        console.error('Password reset error:', error);
-                        alert('Error sending password reset email: ' + error.message);
-                    });
-            });
+            }
         });
     </script>
 </body>
