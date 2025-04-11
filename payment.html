@@ -7,6 +7,156 @@
     <link rel="stylesheet" href="css/styles.css">
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        .payment-section {
+            padding: 4rem 0;
+        }
+        
+        .payment-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: var(--card-background);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            padding: 2rem;
+        }
+        
+        .payment-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .payment-header h2 {
+            color: var(--primary-color);
+        }
+        
+        .plan-selection {
+            margin-bottom: 2rem;
+        }
+        
+        .plan-options {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .plan-option {
+            flex: 1;
+            padding: 1.5rem;
+            border: 2px solid var(--border-color);
+            border-radius: var(--border-radius);
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        
+        .plan-option:hover {
+            border-color: var(--primary-color);
+        }
+        
+        .plan-option.selected {
+            border-color: var(--primary-color);
+            background-color: #f8f4ff;
+        }
+        
+        .plan-name {
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+        
+        .plan-price {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        
+        .plan-period {
+            color: #777;
+            font-size: 0.9rem;
+        }
+        
+        .payment-form {
+            margin-top: 2rem;
+        }
+        
+        .form-section {
+            margin-bottom: 2rem;
+        }
+        
+        .form-section h3 {
+            margin-bottom: 1rem;
+            color: var(--primary-color);
+        }
+        
+        .form-row {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .form-group {
+            flex: 1;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+        
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            font-size: 1rem;
+        }
+        
+        .card-icons {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .card-icon {
+            font-size: 1.5rem;
+            color: #777;
+        }
+        
+        .form-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 2rem;
+        }
+        
+        .secure-badge {
+            display: flex;
+            align-items: center;
+            color: #28a745;
+            font-weight: 500;
+        }
+        
+        .secure-badge i {
+            margin-right: 0.5rem;
+        }
+        
+        .submit-btn {
+            padding: 0.75rem 2rem;
+        }
+        
+        @media (max-width: 768px) {
+            .plan-options {
+                flex-direction: column;
+            }
+            
+            .form-row {
+                flex-direction: column;
+            }
+        }
+    </style>
 </head>
 <body>
     <header>
@@ -22,121 +172,83 @@
                     <li><a href="index.html#premium">Premium</a></li>
                 </ul>
             </nav>
-            <button class="login-button"><i class="fas fa-user"></i><span> My Account</span></button>
+            <button class="login-button"><i class="fas fa-user"></i><span> Account</span></button>
         </div>
     </header>
 
     <section class="payment-section">
         <div class="container">
-            <div class="payment-header">
-                <h2>Choose Your Plan</h2>
-                <p>Select the membership plan that works best for you</p>
-            </div>
-            
-            <div class="premium-plans">
-                <div class="premium-plan">
-                    <h3>Basic</h3>
-                    <div class="plan-price">Free</div>
-                    <ul class="plan-features">
-                        <li><i class="fas fa-check"></i> Access to basic flashcards</li>
-                        <li><i class="fas fa-check"></i> Limited study modes</li>
-                        <li><i class="fas fa-check"></i> Basic AI tools directory</li>
-                        <li><i class="fas fa-check"></i> Community forum access</li>
-                    </ul>
-                    <a href="#" class="btn" id="basic-plan-btn">Current Plan</a>
+            <div class="payment-container">
+                <div class="payment-header">
+                    <h2>Upgrade Your Subscription</h2>
+                    <p>Choose a plan that works for you</p>
                 </div>
                 
-                <div class="premium-plan featured-plan">
-                    <div class="featured-badge">Most Popular</div>
-                    <h3>Premium</h3>
-                    <div class="plan-price">$9.99<span class="period">/month</span></div>
-                    <ul class="plan-features">
-                        <li><i class="fas fa-check"></i> All basic features</li>
-                        <li><i class="fas fa-check"></i> 500+ advanced AI flashcards</li>
-                        <li><i class="fas fa-check"></i> Unlimited study sessions</li>
-                        <li><i class="fas fa-check"></i> Progress tracking</li>
-                        <li><i class="fas fa-check"></i> Downloadable resources</li>
-                        <li><i class="fas fa-check"></i> 10% discount on learning courses</li>
-                        <li><i class="fas fa-check"></i> Priority support</li>
-                    </ul>
-                    <a href="#" class="btn upgrade-btn" id="premium-plan-btn">Upgrade Now</a>
-                </div>
-                
-                <div class="premium-plan">
-                    <h3>Premium Plus</h3>
-                    <div class="plan-price">$19.99<span class="period">/month</span></div>
-                    <ul class="plan-features">
-                        <li><i class="fas fa-check"></i> All premium features</li>
-                        <li><i class="fas fa-check"></i> Advanced AI tools access</li>
-                        <li><i class="fas fa-check"></i> Unlimited downloads</li>
-                        <li><i class="fas fa-check"></i> 1-on-1 coaching session</li>
-                        <li><i class="fas fa-check"></i> Exclusive webinars</li>
-                        <li><i class="fas fa-check"></i> 15% discount on learning courses</li>
-                        <li><i class="fas fa-check"></i> Certificate of completion</li>
-                    </ul>
-                    <a href="#" class="btn upgrade-btn" id="premium-plus-plan-btn">Upgrade to Plus</a>
-                </div>
-            </div>
-            
-            <div class="payment-form" id="payment-form" style="display: none;">
-                <h3>Payment Information</h3>
-                
-                <div class="payment-methods">
-                    <div class="payment-method selected" data-method="card">
-                        <i class="fas fa-credit-card"></i>
-                        <div>Credit Card</div>
-                    </div>
-                    <div class="payment-method" data-method="paypal">
-                        <i class="fab fa-paypal"></i>
-                        <div>PayPal</div>
+                <div class="plan-selection">
+                    <h3>Select Your Plan</h3>
+                    <div class="plan-options">
+                        <div class="plan-option" data-plan="premium">
+                            <div class="plan-name">Premium</div>
+                            <div class="plan-price">$9.99</div>
+                            <div class="plan-period">per month</div>
+                        </div>
+                        <div class="plan-option selected" data-plan="premium-plus">
+                            <div class="plan-name">Premium Plus</div>
+                            <div class="plan-price">$19.99</div>
+                            <div class="plan-period">per month</div>
+                        </div>
                     </div>
                 </div>
                 
-                <div class="form-group">
-                    <label for="card-name">Name on Card</label>
-                    <input type="text" id="card-name" placeholder="John Doe">
-                </div>
-                
-                <div class="form-group">
-                    <label for="card-number">Card Number</label>
-                    <input type="text" id="card-number" placeholder="1234 5678 9012 3456">
-                </div>
-                
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="card-expiry">Expiration Date</label>
-                        <input type="text" id="card-expiry" placeholder="MM/YY">
+                <div class="payment-form">
+                    <div class="form-section">
+                        <h3>Billing Information</h3>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="first-name">First Name</label>
+                                <input type="text" id="first-name" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="last-name">Last Name</label>
+                                <input type="text" id="last-name" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="email">Email Address</label>
+                            <input type="email" id="email" required>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label for="card-cvc">CVC</label>
-                        <input type="text" id="card-cvc" placeholder="123">
+                    
+                    <div class="form-section">
+                        <h3>Payment Method</h3>
+                        <div class="card-icons">
+                            <div class="card-icon"><i class="fab fa-cc-visa"></i></div>
+                            <div class="card-icon"><i class="fab fa-cc-mastercard"></i></div>
+                            <div class="card-icon"><i class="fab fa-cc-amex"></i></div>
+                            <div class="card-icon"><i class="fab fa-cc-paypal"></i></div>
+                        </div>
+                        <div class="form-group">
+                            <label for="card-number">Card Number</label>
+                            <input type="text" id="card-number" placeholder="1234 5678 9012 3456" required>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="expiry-date">Expiry Date</label>
+                                <input type="text" id="expiry-date" placeholder="MM/YY" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="cvv">CVV</label>
+                                <input type="text" id="cvv" placeholder="123" required>
+                            </div>
+                        </div>
                     </div>
-                </div>
-                
-                <div class="form-group">
-                    <label for="billing-address">Billing Address</label>
-                    <input type="text" id="billing-address" placeholder="123 Main St">
-                </div>
-                
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="billing-city">City</label>
-                        <input type="text" id="billing-city" placeholder="New York">
+                    
+                    <div class="form-footer">
+                        <div class="secure-badge">
+                            <i class="fas fa-lock"></i> Secure Payment
+                        </div>
+                        <button class="btn submit-btn">Complete Payment</button>
                     </div>
-                    <div class="form-group">
-                        <label for="billing-state">State</label>
-                        <input type="text" id="billing-state" placeholder="NY">
-                    </div>
-                    <div class="form-group">
-                        <label for="billing-zip">ZIP Code</label>
-                        <input type="text" id="billing-zip" placeholder="10001">
-                    </div>
-                </div>
-                
-                <button type="button" id="submit-payment" class="btn">Complete Payment</button>
-                
-                <div class="secure-badge">
-                    <i class="fas fa-lock"></i> Secure payment processing
                 </div>
             </div>
         </div>
@@ -204,161 +316,35 @@
         firebase.initializeApp(firebaseConfig);
         
         document.addEventListener('DOMContentLoaded', function() {
-            // Check if user is logged in
+            // Check authentication state
             firebase.auth().onAuthStateChanged(function(user) {
-                if (user) {
-                    // User is signed in
-                    updateUIWithUserData(user);
-                } else {
+                if (!user) {
                     // User is not signed in, redirect to login
                     window.location.href = 'login.html';
                 }
             });
             
-            // Set up payment method selection
-            const paymentMethods = document.querySelectorAll('.payment-method');
-            paymentMethods.forEach(method => {
-                method.addEventListener('click', function() {
-                    paymentMethods.forEach(m => m.classList.remove('selected'));
+            // Plan selection
+            const planOptions = document.querySelectorAll('.plan-option');
+            planOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    // Remove selected class from all options
+                    planOptions.forEach(opt => opt.classList.remove('selected'));
+                    
+                    // Add selected class to clicked option
                     this.classList.add('selected');
                 });
             });
             
-            // Set up plan selection
-            const basicPlanBtn = document.getElementById('basic-plan-btn');
-            const premiumPlanBtn = document.getElementById('premium-plan-btn');
-            const premiumPlusPlanBtn = document.getElementById('premium-plus-plan-btn');
-            const paymentForm = document.getElementById('payment-form');
-            
-            let selectedPlan = '';
-            
-            if (basicPlanBtn) {
-                basicPlanBtn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    // No payment needed for basic plan
-                    updateUserPlan('Basic');
-                });
-            }
-            
-            if (premiumPlanBtn) {
-                premiumPlanBtn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    selectedPlan = 'Premium';
-                    paymentForm.style.display = 'block';
-                    scrollToPaymentForm();
-                });
-            }
-            
-            if (premiumPlusPlanBtn) {
-                premiumPlusPlanBtn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    selectedPlan = 'Premium Plus';
-                    paymentForm.style.display = 'block';
-                    scrollToPaymentForm();
-                });
-            }
-            
-            // Set up payment submission
-            const submitPaymentBtn = document.getElementById('submit-payment');
-            if (submitPaymentBtn) {
-                submitPaymentBtn.addEventListener('click', function() {
-                    // In a real app, this would process the payment
-                    // For this demo, we'll just update the user's plan
-                    updateUserPlan(selectedPlan);
-                });
-            }
-            
-            // Check URL parameters for pre-selected plan
-            const urlParams = new URLSearchParams(window.location.search);
-            const planParam = urlParams.get('plan');
-            if (planParam === 'plus' && premiumPlusPlanBtn) {
-                selectedPlan = 'Premium Plus';
-                paymentForm.style.display = 'block';
-                setTimeout(scrollToPaymentForm, 500);
-            }
-        });
-        
-        // Update UI with user data
-        function updateUIWithUserData(user) {
-            // Try to get user data from localStorage first (for demo users)
-            let userData = null;
-            const storedUser = localStorage.getItem('user');
-            
-            if (storedUser) {
-                userData = JSON.parse(storedUser);
-            } else if (user) {
-                // Use Firebase user data
-                userData = {
-                    uid: user.uid,
-                    name: user.displayName || 'User',
-                    email: user.email,
-                    plan: 'Basic' // Default plan
-                };
-                
-                // Save to localStorage for demo purposes
-                localStorage.setItem('user', JSON.stringify(userData));
-            }
-            
-            if (userData) {
-                // Update login button
-                const loginButton = document.querySelector('.login-button');
-                if (loginButton) {
-                    loginButton.innerHTML = '<i class="fas fa-user"></i><span> My Account</span>';
-                    loginButton.addEventListener('click', function() {
-                        window.location.href = 'account.html';
-                    });
-                }
-                
-                // Update plan buttons based on current plan
-                const basicPlanBtn = document.getElementById('basic-plan-btn');
-                const premiumPlanBtn = document.getElementById('premium-plan-btn');
-                const premiumPlusPlanBtn = document.getElementById('premium-plus-plan-btn');
-                
-                if (userData.plan === 'Basic' || !userData.plan) {
-                    if (basicPlanBtn) basicPlanBtn.textContent = 'Current Plan';
-                    if (premiumPlanBtn) premiumPlanBtn.textContent = 'Upgrade Now';
-                    if (premiumPlusPlanBtn) premiumPlusPlanBtn.textContent = 'Upgrade to Plus';
-                } else if (userData.plan === 'Premium' || userData.plan === 'premium') {
-                    if (basicPlanBtn) basicPlanBtn.textContent = 'Downgrade';
-                    if (premiumPlanBtn) premiumPlanBtn.textContent = 'Current Plan';
-                    if (premiumPlusPlanBtn) premiumPlusPlanBtn.textContent = 'Upgrade to Plus';
-                } else if (userData.plan === 'Premium Plus') {
-                    if (basicPlanBtn) basicPlanBtn.textContent = 'Downgrade';
-                    if (premiumPlanBtn) premiumPlanBtn.textContent = 'Downgrade';
-                    if (premiumPlusPlanBtn) premiumPlusPlanBtn.textContent = 'Current Plan';
-                }
-            }
-        }
-        
-        // Update user's plan
-        function updateUserPlan(planName) {
-            // Get current user data
-            const userString = localStorage.getItem('user');
-            if (userString) {
-                const userData = JSON.parse(userString);
-                
-                // Update plan
-                userData.plan = planName;
-                
-                // Save updated user data
-                localStorage.setItem('user', JSON.stringify(userData));
-                
-                // Show success message
-                alert(`Your plan has been updated to ${planName}!`);
-                
-                // Redirect to account page
+            // Form submission
+            const submitBtn = document.querySelector('.submit-btn');
+            submitBtn.addEventListener('click', function() {
+                // In a real implementation, this would process the payment
+                // For this demo, we'll just show a success message and redirect
+                alert('Payment successful! Your subscription has been upgraded.');
                 window.location.href = 'account.html';
-            }
-        }
-        
-        // Scroll to payment form
-        function scrollToPaymentForm() {
-            const paymentForm = document.getElementById('payment-form');
-            if (paymentForm) {
-                paymentForm.scrollIntoView({ behavior: 'smooth' });
-            }
-        }
+            });
+        });
     </script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </body>
 </html>

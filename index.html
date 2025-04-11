@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="css/styles.css">
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body>
     <header>
@@ -32,42 +33,254 @@
                 <h1>Master AI Fundamentals</h1>
                 <p>Interactive learning resources to help you understand and apply artificial intelligence concepts</p>
                 <div class="hero-buttons">
-                    <a href="#learning" class="btn">Start Learning</a>
+                    <a href="#free-resources" class="btn">Start Learning</a>
                     <a href="login.html" class="btn btn-outline">Sign In to Access</a>
                 </div>
             </div>
         </div>
     </section>
 
-    <section id="free-resources" class="resources-section">
+    <!-- Flashcard Section -->
+    <section id="free-resources" class="flashcard-section">
         <div class="container">
             <h2>Free Resources</h2>
             <p>Choose the study mode that works best for you</p>
             
             <div class="flashcard-container">
                 <div class="flashcard">
-                    <div class="flashcard-header">
-                        <h3>AI Fundamentals - Key Concepts</h3>
+                    <div class="flashcard-inner">
+                        <div class="flashcard-front">
+                            <h3>AI Fundamentals - Key Concepts</h3>
+                            <h4>Artificial Intelligence (AI)</h4>
+                            <div class="flip-prompt">Click to reveal definition</div>
+                        </div>
+                        <div class="flashcard-back">
+                            <p>Computer systems able to perform tasks that normally require human intelligence, such as visual perception, speech recognition, decision-making, and language translation.</p>
+                            <div class="flip-prompt">Click to return to term</div>
+                        </div>
                     </div>
-                    <div class="flashcard-content">
-                        <h4>Artificial Intelligence (AI)</h4>
-                        <p>Computer systems able to perform tasks that normally require human intelligence, such as visual perception, speech recognition, decision-making, and language translation.</p>
-                    </div>
-                    <div class="flashcard-footer">
-                        <span>Card 1 of 15</span>
-                    </div>
+                </div>
+                
+                <div class="flashcard-navigation">
+                    <button class="flashcard-nav-button prev-card">Previous</button>
+                    <span class="card-counter">Card 1 of 15</span>
+                    <button class="flashcard-nav-button next-card">Next</button>
+                </div>
+                
+                <div class="flashcard-modes">
+                    <button class="mode-button active" data-mode="flip">Flip Cards</button>
+                    <button class="mode-button" data-mode="quiz">Quiz Mode</button>
+                    <button class="mode-button" data-mode="match">Matching Game</button>
                 </div>
             </div>
         </div>
     </section>
 
-    <section id="ai-tools" class="tools-section">
+    <!-- AI Tools Section -->
+    <section id="ai-tools" class="ai-tools-section">
         <div class="container">
             <h2>AI Tools Directory</h2>
             <p>Explore the best AI tools for productivity and content creation</p>
+            
+            <div class="tools-filter">
+                <button class="filter-btn active" data-filter="all">
+                    <i class="fas fa-th-large"></i> All Tools
+                </button>
+                <button class="filter-btn" data-filter="text">
+                    <i class="fas fa-font"></i> Text Generation
+                </button>
+                <button class="filter-btn" data-filter="image">
+                    <i class="fas fa-image"></i> Image Creation
+                </button>
+                <button class="filter-btn" data-filter="video">
+                    <i class="fas fa-video"></i> Video Editing
+                </button>
+                <button class="filter-btn" data-filter="audio">
+                    <i class="fas fa-headphones"></i> Audio Tools
+                </button>
+                <button class="filter-btn" data-filter="productivity">
+                    <i class="fas fa-tasks"></i> Productivity
+                </button>
+            </div>
+            
+            <div class="tools-grid">
+                <!-- Text Generation Tools -->
+                <div class="tool-card" data-category="text">
+                    <div class="tool-icon">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <h3>ChatGPT</h3>
+                    <p>Conversational AI for text generation and problem-solving</p>
+                    <div class="tool-rating">
+                        <span class="stars">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                        </span>
+                        <span class="rating-score">4.9/5</span>
+                    </div>
+                    <div class="tool-tags">
+                        <span class="tag">Text</span>
+                        <span class="tag">Conversation</span>
+                        <span class="tag">Research</span>
+                    </div>
+                    <a href="#" class="btn try-btn">Try Now <span class="discount-badge">Discounts Available</span></a>
+                </div>
+                
+                <div class="tool-card" data-category="text">
+                    <div class="tool-icon">
+                        <i class="fas fa-pen-fancy"></i>
+                    </div>
+                    <h3>Jasper</h3>
+                    <p>AI writing assistant for marketing copy and content creation</p>
+                    <div class="tool-rating">
+                        <span class="stars">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star-half-alt"></i>
+                        </span>
+                        <span class="rating-score">4.7/5</span>
+                    </div>
+                    <div class="tool-tags">
+                        <span class="tag">Writing</span>
+                        <span class="tag">Marketing</span>
+                        <span class="tag">Content</span>
+                    </div>
+                    <a href="#" class="btn try-btn">Try Now <span class="discount-badge">Discounts Available</span></a>
+                </div>
+                
+                <!-- Image Creation Tools -->
+                <div class="tool-card" data-category="image">
+                    <div class="tool-icon">
+                        <i class="fas fa-palette"></i>
+                    </div>
+                    <h3>DALL-E</h3>
+                    <p>AI image generation from textual descriptions</p>
+                    <div class="tool-rating">
+                        <span class="stars">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                        </span>
+                        <span class="rating-score">4.8/5</span>
+                    </div>
+                    <div class="tool-tags">
+                        <span class="tag">Images</span>
+                        <span class="tag">Art</span>
+                        <span class="tag">Design</span>
+                    </div>
+                    <a href="#" class="btn try-btn">Try Now <span class="discount-badge">Discounts Available</span></a>
+                </div>
+                
+                <div class="tool-card" data-category="image">
+                    <div class="tool-icon">
+                        <i class="fas fa-paint-brush"></i>
+                    </div>
+                    <h3>Midjourney</h3>
+                    <p>AI-powered text-to-image generation with artistic styles</p>
+                    <div class="tool-rating">
+                        <span class="stars">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star-half-alt"></i>
+                        </span>
+                        <span class="rating-score">4.6/5</span>
+                    </div>
+                    <div class="tool-tags">
+                        <span class="tag">Art</span>
+                        <span class="tag">Creativity</span>
+                        <span class="tag">Design</span>
+                    </div>
+                    <a href="#" class="btn try-btn">Try Now <span class="discount-badge">Discounts Available</span></a>
+                </div>
+                
+                <!-- Video Editing Tools -->
+                <div class="tool-card" data-category="video">
+                    <div class="tool-icon">
+                        <i class="fas fa-film"></i>
+                    </div>
+                    <h3>Runway</h3>
+                    <p>AI-powered video editing and visual effects</p>
+                    <div class="tool-rating">
+                        <span class="stars">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star-half-alt"></i>
+                        </span>
+                        <span class="rating-score">4.7/5</span>
+                    </div>
+                    <div class="tool-tags">
+                        <span class="tag">Video</span>
+                        <span class="tag">Editing</span>
+                        <span class="tag">Effects</span>
+                    </div>
+                    <a href="#" class="btn try-btn">Try Now <span class="discount-badge">Discounts Available</span></a>
+                </div>
+                
+                <!-- Audio Tools -->
+                <div class="tool-card" data-category="audio">
+                    <div class="tool-icon">
+                        <i class="fas fa-headphones"></i>
+                    </div>
+                    <h3>Descript</h3>
+                    <p>AI-powered audio editing and transcription</p>
+                    <div class="tool-rating">
+                        <span class="stars">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star-half-alt"></i>
+                        </span>
+                        <span class="rating-score">4.6/5</span>
+                    </div>
+                    <div class="tool-tags">
+                        <span class="tag">Audio</span>
+                        <span class="tag">Transcription</span>
+                        <span class="tag">Editing</span>
+                    </div>
+                    <a href="#" class="btn try-btn">Try Now <span class="discount-badge">Discounts Available</span></a>
+                </div>
+                
+                <!-- Productivity Tools -->
+                <div class="tool-card" data-category="productivity">
+                    <div class="tool-icon">
+                        <i class="fas fa-brain"></i>
+                    </div>
+                    <h3>Notion AI</h3>
+                    <p>AI-powered workspace for notes, tasks, and knowledge management</p>
+                    <div class="tool-rating">
+                        <span class="stars">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star-half-alt"></i>
+                        </span>
+                        <span class="rating-score">4.5/5</span>
+                    </div>
+                    <div class="tool-tags">
+                        <span class="tag">Productivity</span>
+                        <span class="tag">Notes</span>
+                        <span class="tag">Organization</span>
+                    </div>
+                    <a href="#" class="btn try-btn">Try Now <span class="discount-badge">Discounts Available</span></a>
+                </div>
+            </div>
         </div>
     </section>
 
+    <!-- Premium Section -->
     <section id="premium" class="premium-section">
         <div class="container">
             <h2>Premium Content</h2>
@@ -83,7 +296,7 @@
                         <li><i class="fas fa-check"></i> Basic AI tools directory</li>
                         <li><i class="fas fa-check"></i> Community forum access</li>
                     </ul>
-                    <a href="#" class="btn current-plan">Current Plan</a>
+                    <a href="#" class="btn" id="basic-plan-btn">Current Plan</a>
                 </div>
                 
                 <div class="premium-plan featured-plan">
@@ -99,7 +312,7 @@
                         <li><i class="fas fa-check"></i> 10% discount on learning courses</li>
                         <li><i class="fas fa-check"></i> Priority support</li>
                     </ul>
-                    <a href="payment.html" class="btn upgrade-btn">Upgrade Now</a>
+                    <a href="#" class="btn upgrade-btn" id="premium-plan-btn">Upgrade Now</a>
                 </div>
                 
                 <div class="premium-plan">
@@ -114,13 +327,14 @@
                         <li><i class="fas fa-check"></i> 15% discount on learning courses</li>
                         <li><i class="fas fa-check"></i> Certificate of completion</li>
                     </ul>
-                    <a href="payment.html?plan=plus" class="btn upgrade-btn">Upgrade to Plus</a>
+                    <a href="#" class="btn upgrade-btn" id="premium-plus-plan-btn">Upgrade to Plus</a>
                 </div>
             </div>
         </div>
     </section>
 
-    <section id="learning-path" class="learning-path-section">
+    <!-- Learning Path Section -->
+    <section id="learning" class="learning-path-section">
         <div class="container">
             <h2>Learning Path</h2>
             <p>Follow our structured learning path to master AI fundamentals</p>
@@ -137,8 +351,12 @@
                         <h3>Introduction to AI</h3>
                         <p>Learn the basic concepts and terminology of artificial intelligence</p>
                         <div class="module-actions">
-                            <a href="#" class="btn btn-sm">Study Guide</a>
-                            <a href="#" class="btn btn-sm">Virtual Course</a>
+                            <a href="#" class="module-button study-guide-button">
+                                <i class="fas fa-book"></i> Study Guide
+                            </a>
+                            <a href="#" class="module-button virtual-course-button">
+                                <i class="fas fa-graduation-cap"></i> Virtual Course
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -149,8 +367,12 @@
                         <h3>Office Productivity</h3>
                         <p>Enhance your workflow with AI-powered tools for documents, spreadsheets, and presentations</p>
                         <div class="module-actions">
-                            <a href="login.html" class="btn btn-sm premium-content">Sign In to Access</a>
-                            <a href="login.html" class="btn btn-sm premium-content">Virtual Course</a>
+                            <a href="#" class="module-button study-guide-button">
+                                <i class="fas fa-book"></i> Study Guide
+                            </a>
+                            <a href="#" class="module-button virtual-course-button">
+                                <i class="fas fa-graduation-cap"></i> Virtual Course
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -161,7 +383,7 @@
                         <h3>Personal Finance</h3>
                         <p>Discover how AI can help with budgeting, investing, and financial planning</p>
                         <div class="module-actions">
-                            <a href="login.html" class="btn btn-sm premium-content">Sign In to Access</a>
+                            <a href="#" class="sign-in-button">Sign In to Access</a>
                         </div>
                     </div>
                 </div>
@@ -172,7 +394,7 @@
                         <h3>Social Media Marketing</h3>
                         <p>Learn to leverage AI for content creation, scheduling, and analytics</p>
                         <div class="module-actions">
-                            <a href="login.html" class="btn btn-sm premium-content">Sign In to Access</a>
+                            <a href="#" class="sign-in-button">Sign In to Access</a>
                         </div>
                     </div>
                 </div>
@@ -183,7 +405,7 @@
                         <h3>Videography</h3>
                         <p>Master AI tools for video editing, generation, and enhancement</p>
                         <div class="module-actions">
-                            <a href="login.html" class="btn btn-sm premium-content">Sign In to Access</a>
+                            <a href="#" class="sign-in-button">Sign In to Access</a>
                         </div>
                     </div>
                 </div>
@@ -194,7 +416,7 @@
                         <h3>eCommerce</h3>
                         <p>Optimize online stores with AI-powered product descriptions, analytics, and customer service</p>
                         <div class="module-actions">
-                            <a href="login.html" class="btn btn-sm premium-content">Sign In to Access</a>
+                            <a href="#" class="sign-in-button">Sign In to Access</a>
                         </div>
                     </div>
                 </div>
@@ -202,6 +424,7 @@
         </div>
     </section>
 
+    <!-- AI Learning Games Section -->
     <section id="games" class="games-section">
         <div class="container">
             <h2>AI Learning Games</h2>
@@ -214,7 +437,7 @@
                     </div>
                     <h3>AI Trivia Challenge</h3>
                     <p>Test your knowledge of AI concepts with this fast-paced trivia game.</p>
-                    <a href="#" class="btn btn-sm">Play Free Games</a>
+                    <a href="#" class="btn">Play Free Games</a>
                 </div>
                 
                 <div class="game-card premium-card">
@@ -224,7 +447,7 @@
                     </div>
                     <h3>Premium Games</h3>
                     <p>Access our full library of interactive AI learning games with a premium subscription.</p>
-                    <a href="login.html" class="btn btn-sm premium-content">Sign In to Access</a>
+                    <a href="#" class="btn">Sign In to Access</a>
                 </div>
             </div>
         </div>
@@ -290,81 +513,7 @@
         
         // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
-        
-        // Check authentication state
-        document.addEventListener('DOMContentLoaded', function() {
-            // Set up login button
-            const loginButton = document.querySelector('.login-button');
-            if (loginButton) {
-                loginButton.addEventListener('click', function() {
-                    window.location.href = 'login.html';
-                });
-            }
-            
-            // Check if user is logged in
-            firebase.auth().onAuthStateChanged(function(user) {
-                if (user) {
-                    // User is signed in
-                    if (loginButton) {
-                        loginButton.innerHTML = '<i class="fas fa-user"></i><span> My Account</span>';
-                        loginButton.addEventListener('click', function() {
-                            window.location.href = 'account.html';
-                        });
-                    }
-                    
-                    // Update premium content access
-                    updatePremiumAccess(user);
-                } else {
-                    // User is signed out
-                    if (loginButton) {
-                        loginButton.innerHTML = '<i class="fas fa-sign-in-alt"></i><span> Sign In</span>';
-                    }
-                    
-                    // Hide premium content
-                    document.querySelectorAll('.premium-content').forEach(el => {
-                        el.classList.add('locked');
-                    });
-                }
-            });
-        });
-        
-        // Update premium content access based on user's subscription
-        function updatePremiumAccess(user) {
-            // For demo purposes, we'll check localStorage for subscription info
-            const userString = localStorage.getItem('user');
-            if (userString) {
-                const userData = JSON.parse(userString);
-                if (userData.plan === 'premium' || userData.plan === 'Premium' || userData.plan === 'Premium Plus') {
-                    // User has premium access
-                    document.querySelectorAll('.premium-content').forEach(el => {
-                        el.classList.remove('locked');
-                        if (el.textContent.includes('Sign In to Access')) {
-                            el.textContent = 'Access Content';
-                        }
-                    });
-                    
-                    // Update current plan indicator
-                    const basicPlan = document.querySelector('.premium-plan:first-child .btn');
-                    const premiumPlan = document.querySelector('.premium-plan:nth-child(2) .btn');
-                    const plusPlan = document.querySelector('.premium-plan:nth-child(3) .btn');
-                    
-                    if (userData.plan === 'Premium' || userData.plan === 'premium') {
-                        basicPlan.classList.remove('current-plan');
-                        basicPlan.textContent = 'Downgrade';
-                        premiumPlan.classList.add('current-plan');
-                        premiumPlan.textContent = 'Current Plan';
-                        plusPlan.textContent = 'Upgrade';
-                    } else if (userData.plan === 'Premium Plus') {
-                        basicPlan.classList.remove('current-plan');
-                        basicPlan.textContent = 'Downgrade';
-                        premiumPlan.textContent = 'Downgrade';
-                        plusPlan.classList.add('current-plan');
-                        plusPlan.textContent = 'Current Plan';
-                    }
-                }
-            }
-        }
     </script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="js/main.js"></script>
 </body>
 </html>

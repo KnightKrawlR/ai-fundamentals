@@ -3,10 +3,235 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Fundamentals - My Account</title>
+    <title>AI Fundamentals - Account</title>
     <link rel="stylesheet" href="css/styles.css">
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        .account-section {
+            padding: 4rem 0;
+        }
+        
+        .account-container {
+            display: flex;
+            gap: 2rem;
+        }
+        
+        .account-sidebar {
+            flex: 1;
+            max-width: 300px;
+        }
+        
+        .account-content {
+            flex: 3;
+        }
+        
+        .user-profile {
+            background-color: var(--card-background);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            padding: 2rem;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .profile-image {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            color: var(--light-text);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            margin: 0 auto 1rem;
+        }
+        
+        .profile-info h3 {
+            margin-bottom: 0.5rem;
+        }
+        
+        .profile-info p {
+            color: #777;
+            margin-bottom: 1rem;
+        }
+        
+        .account-menu {
+            background-color: var(--card-background);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+        
+        .menu-item {
+            padding: 1rem 1.5rem;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        
+        .menu-item:last-child {
+            border-bottom: none;
+        }
+        
+        .menu-item i {
+            margin-right: 1rem;
+            color: var(--primary-color);
+        }
+        
+        .menu-item.active, .menu-item:hover {
+            background-color: #f5f5f7;
+        }
+        
+        .account-panel {
+            background-color: var(--card-background);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            padding: 2rem;
+        }
+        
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .panel-title {
+            font-size: 1.5rem;
+            color: var(--primary-color);
+        }
+        
+        .subscription-info {
+            margin-bottom: 2rem;
+        }
+        
+        .subscription-plan {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #f5f5f7;
+            padding: 1.5rem;
+            border-radius: var(--border-radius);
+            margin-bottom: 1rem;
+        }
+        
+        .plan-details h4 {
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+        
+        .plan-price {
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+        
+        .billing-info {
+            margin-bottom: 2rem;
+        }
+        
+        .payment-method {
+            display: flex;
+            align-items: center;
+            background-color: #f5f5f7;
+            padding: 1rem;
+            border-radius: var(--border-radius);
+            margin-bottom: 1rem;
+        }
+        
+        .payment-icon {
+            font-size: 1.5rem;
+            margin-right: 1rem;
+        }
+        
+        .payment-details {
+            flex-grow: 1;
+        }
+        
+        .payment-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .action-btn {
+            background-color: transparent;
+            border: none;
+            color: var(--primary-color);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        
+        .action-btn:hover {
+            color: var(--accent-color);
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            font-size: 1rem;
+        }
+        
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+        }
+        
+        .progress-section {
+            margin-top: 2rem;
+        }
+        
+        .progress-item {
+            margin-bottom: 1.5rem;
+        }
+        
+        .progress-title {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+        
+        .progress-bar {
+            height: 8px;
+            background-color: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background-color: var(--primary-color);
+            border-radius: 4px;
+        }
+        
+        @media (max-width: 768px) {
+            .account-container {
+                flex-direction: column;
+            }
+            
+            .account-sidebar {
+                max-width: 100%;
+            }
+        }
+    </style>
 </head>
 <body>
     <header>
@@ -22,7 +247,7 @@
                     <li><a href="index.html#premium">Premium</a></li>
                 </ul>
             </nav>
-            <button class="login-button"><i class="fas fa-user"></i><span> My Account</span></button>
+            <button class="login-button"><i class="fas fa-user"></i><span> Account</span></button>
         </div>
     </header>
 
@@ -37,175 +262,216 @@
                         <div class="profile-info">
                             <h3 id="user-name">User Name</h3>
                             <p id="user-email">user@example.com</p>
+                            <button class="btn btn-outline">Edit Profile</button>
                         </div>
                     </div>
-                    <div class="account-nav">
-                        <ul>
-                            <li><a href="#profile" class="active">Profile</a></li>
-                            <li><a href="#subscription">Subscription</a></li>
-                            <li><a href="#progress">Learning Progress</a></li>
-                            <li><a href="#settings">Settings</a></li>
-                            <li><a href="#" id="logout-button">Sign Out</a></li>
-                        </ul>
+                    
+                    <div class="account-menu">
+                        <div class="menu-item active" data-panel="dashboard">
+                            <i class="fas fa-tachometer-alt"></i>
+                            <span>Dashboard</span>
+                        </div>
+                        <div class="menu-item" data-panel="subscription">
+                            <i class="fas fa-credit-card"></i>
+                            <span>Subscription</span>
+                        </div>
+                        <div class="menu-item" data-panel="progress">
+                            <i class="fas fa-chart-line"></i>
+                            <span>Learning Progress</span>
+                        </div>
+                        <div class="menu-item" data-panel="settings">
+                            <i class="fas fa-cog"></i>
+                            <span>Account Settings</span>
+                        </div>
+                        <div class="menu-item" id="logout-button">
+                            <i class="fas fa-sign-out-alt"></i>
+                            <span>Logout</span>
+                        </div>
                     </div>
                 </div>
                 
                 <div class="account-content">
-                    <div id="profile" class="account-tab active">
-                        <h2>My Profile</h2>
-                        <div class="profile-details">
-                            <div class="form-group">
-                                <label for="display-name">Display Name</label>
-                                <input type="text" id="display-name" value="User Name">
-                            </div>
-                            <div class="form-group">
-                                <label for="profile-email">Email</label>
-                                <input type="email" id="profile-email" value="user@example.com" disabled>
-                            </div>
-                            <div class="form-group">
-                                <label for="bio">Bio</label>
-                                <textarea id="bio" rows="4" placeholder="Tell us about yourself..."></textarea>
-                            </div>
-                            <div class="form-actions">
-                                <button class="btn">Save Changes</button>
-                            </div>
+                    <div class="account-panel" id="dashboard-panel">
+                        <div class="panel-header">
+                            <h2 class="panel-title">Dashboard</h2>
                         </div>
-                    </div>
-                    
-                    <div id="subscription" class="account-tab">
-                        <h2>My Subscription</h2>
-                        <div class="subscription-details">
-                            <div class="current-plan">
-                                <h3>Current Plan: <span id="plan-name">Basic</span></h3>
-                                <p id="plan-description">Free access to basic features.</p>
-                                <div id="premium-features" class="premium-features" style="display: none;">
-                                    <h4>Your Premium Features:</h4>
-                                    <ul>
-                                        <li><i class="fas fa-check"></i> 500+ advanced AI flashcards</li>
-                                        <li><i class="fas fa-check"></i> Unlimited study sessions</li>
-                                        <li><i class="fas fa-check"></i> Progress tracking</li>
-                                        <li><i class="fas fa-check"></i> Downloadable resources</li>
-                                        <li><i class="fas fa-check"></i> Priority support</li>
-                                    </ul>
+                        
+                        <div class="subscription-info">
+                            <h3>Your Subscription</h3>
+                            <div class="subscription-plan">
+                                <div class="plan-details">
+                                    <h4>Basic Plan</h4>
+                                    <p>Free</p>
                                 </div>
-                            </div>
-                            <div class="upgrade-options">
-                                <h3>Upgrade Your Plan</h3>
-                                <p>Get access to premium features and content.</p>
-                                <a href="payment.html" class="btn">View Upgrade Options</a>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div id="progress" class="account-tab">
-                        <h2>Learning Progress</h2>
-                        <div class="progress-overview">
-                            <div class="progress-stat">
-                                <h3>25%</h3>
-                                <p>Course Completion</p>
-                            </div>
-                            <div class="progress-stat">
-                                <h3>2/6</h3>
-                                <p>Modules Completed</p>
-                            </div>
-                            <div class="progress-stat">
-                                <h3>15</h3>
-                                <p>Flashcards Mastered</p>
+                                <a href="index.html#premium" class="btn">Upgrade Now</a>
                             </div>
                         </div>
                         
-                        <div class="module-progress">
-                            <h3>Module Progress</h3>
-                            <div class="progress-list">
-                                <div class="progress-item completed">
-                                    <div class="progress-header">
-                                        <h4>Introduction to AI</h4>
-                                        <span class="progress-percent">100%</span>
-                                    </div>
-                                    <div class="progress-bar">
-                                        <div class="progress-fill" style="width: 100%;"></div>
-                                    </div>
+                        <div class="progress-section">
+                            <h3>Learning Progress</h3>
+                            <div class="progress-item">
+                                <div class="progress-title">
+                                    <span>Introduction to AI</span>
+                                    <span>100%</span>
                                 </div>
-                                
-                                <div class="progress-item in-progress">
-                                    <div class="progress-header">
-                                        <h4>Office Productivity</h4>
-                                        <span class="progress-percent">50%</span>
-                                    </div>
-                                    <div class="progress-bar">
-                                        <div class="progress-fill" style="width: 50%;"></div>
-                                    </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 100%;"></div>
                                 </div>
-                                
-                                <div class="progress-item">
-                                    <div class="progress-header">
-                                        <h4>Personal Finance</h4>
-                                        <span class="progress-percent">0%</span>
-                                    </div>
-                                    <div class="progress-bar">
-                                        <div class="progress-fill" style="width: 0%;"></div>
-                                    </div>
+                            </div>
+                            <div class="progress-item">
+                                <div class="progress-title">
+                                    <span>Office Productivity</span>
+                                    <span>75%</span>
                                 </div>
-                                
-                                <div class="progress-item locked">
-                                    <div class="progress-header">
-                                        <h4>Social Media Marketing</h4>
-                                        <span class="progress-badge">Premium</span>
-                                    </div>
-                                    <div class="progress-bar">
-                                        <div class="progress-fill" style="width: 0%;"></div>
-                                    </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 75%;"></div>
+                                </div>
+                            </div>
+                            <div class="progress-item">
+                                <div class="progress-title">
+                                    <span>Overall Progress</span>
+                                    <span>25%</span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 25%;"></div>
                                 </div>
                             </div>
                         </div>
                     </div>
                     
-                    <div id="settings" class="account-tab">
-                        <h2>Account Settings</h2>
-                        <div class="settings-options">
-                            <div class="settings-group">
-                                <h3>Notification Preferences</h3>
-                                <div class="form-group">
-                                    <label class="checkbox-label">
-                                        <input type="checkbox" checked> Email notifications
-                                    </label>
+                    <div class="account-panel" id="subscription-panel" style="display: none;">
+                        <div class="panel-header">
+                            <h2 class="panel-title">Subscription</h2>
+                        </div>
+                        
+                        <div class="subscription-info">
+                            <h3>Current Plan</h3>
+                            <div class="subscription-plan">
+                                <div class="plan-details">
+                                    <h4>Basic Plan</h4>
+                                    <p>Free</p>
                                 </div>
-                                <div class="form-group">
-                                    <label class="checkbox-label">
-                                        <input type="checkbox" checked> Learning reminders
-                                    </label>
-                                </div>
-                                <div class="form-group">
-                                    <label class="checkbox-label">
-                                        <input type="checkbox" checked> New content alerts
-                                    </label>
-                                </div>
-                            </div>
-                            
-                            <div class="settings-group">
-                                <h3>Privacy Settings</h3>
-                                <div class="form-group">
-                                    <label class="checkbox-label">
-                                        <input type="checkbox" checked> Show my progress to others
-                                    </label>
-                                </div>
-                                <div class="form-group">
-                                    <label class="checkbox-label">
-                                        <input type="checkbox"> Share my activity on social media
-                                    </label>
-                                </div>
-                            </div>
-                            
-                            <div class="settings-group">
-                                <h3>Password</h3>
-                                <button class="btn btn-outline">Change Password</button>
-                            </div>
-                            
-                            <div class="settings-group">
-                                <h3>Danger Zone</h3>
-                                <button class="btn btn-danger">Delete Account</button>
+                                <a href="index.html#premium" class="btn">Upgrade Now</a>
                             </div>
                         </div>
+                        
+                        <div class="billing-info">
+                            <h3>Payment Methods</h3>
+                            <div class="payment-method">
+                                <div class="payment-icon">
+                                    <i class="far fa-credit-card"></i>
+                                </div>
+                                <div class="payment-details">
+                                    <h4>No payment method added</h4>
+                                    <p>Add a payment method to upgrade your plan</p>
+                                </div>
+                                <div class="payment-actions">
+                                    <button class="btn">Add Payment Method</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="account-panel" id="progress-panel" style="display: none;">
+                        <div class="panel-header">
+                            <h2 class="panel-title">Learning Progress</h2>
+                        </div>
+                        
+                        <div class="progress-section">
+                            <h3>Course Progress</h3>
+                            <div class="progress-item">
+                                <div class="progress-title">
+                                    <span>Introduction to AI</span>
+                                    <span>100%</span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 100%;"></div>
+                                </div>
+                            </div>
+                            <div class="progress-item">
+                                <div class="progress-title">
+                                    <span>Office Productivity</span>
+                                    <span>75%</span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 75%;"></div>
+                                </div>
+                            </div>
+                            <div class="progress-item">
+                                <div class="progress-title">
+                                    <span>Personal Finance</span>
+                                    <span>0%</span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 0%;"></div>
+                                </div>
+                            </div>
+                            <div class="progress-item">
+                                <div class="progress-title">
+                                    <span>Social Media Marketing</span>
+                                    <span>0%</span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 0%;"></div>
+                                </div>
+                            </div>
+                            <div class="progress-item">
+                                <div class="progress-title">
+                                    <span>Videography</span>
+                                    <span>0%</span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 0%;"></div>
+                                </div>
+                            </div>
+                            <div class="progress-item">
+                                <div class="progress-title">
+                                    <span>eCommerce</span>
+                                    <span>0%</span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 0%;"></div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="progress-section">
+                            <h3>Overall Progress</h3>
+                            <div class="progress-item">
+                                <div class="progress-title">
+                                    <span>AI Fundamentals</span>
+                                    <span>25%</span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 25%;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="account-panel" id="settings-panel" style="display: none;">
+                        <div class="panel-header">
+                            <h2 class="panel-title">Account Settings</h2>
+                        </div>
+                        
+                        <form id="profile-form">
+                            <div class="form-group">
+                                <label for="profile-name">Name</label>
+                                <input type="text" id="profile-name" placeholder="Your name">
+                            </div>
+                            <div class="form-group">
+                                <label for="profile-email">Email</label>
+                                <input type="email" id="profile-email" placeholder="Your email" disabled>
+                            </div>
+                            <div class="form-group">
+                                <label for="profile-password">Password</label>
+                                <input type="password" id="profile-password" placeholder="••••••••">
+                            </div>
+                            <div class="form-actions">
+                                <button type="button" class="btn btn-outline">Cancel</button>
+                                <button type="submit" class="btn">Save Changes</button>
+                            </div>
+                        </form>
                     </div>
                 </div>
             </div>
@@ -274,117 +540,120 @@
         firebase.initializeApp(firebaseConfig);
         
         document.addEventListener('DOMContentLoaded', function() {
-            // Check if user is logged in
-            firebase.auth().onAuthStateChanged(function(user) {
-                if (user) {
-                    // User is signed in
-                    updateUIWithUserData(user);
-                } else {
-                    // User is not signed in, redirect to login
-                    window.location.href = 'login.html';
+            // Check if demo mode
+            const isDemoMode = new URLSearchParams(window.location.search).get('demo') === 'true';
+            
+            if (isDemoMode) {
+                // Set demo user data
+                document.getElementById('user-name').textContent = 'Demo User';
+                document.getElementById('user-email').textContent = 'demo@example.com';
+                document.getElementById('profile-name').value = 'Demo User';
+                document.getElementById('profile-email').value = 'demo@example.com';
+            } else {
+                // Check authentication state
+                firebase.auth().onAuthStateChanged(function(user) {
+                    if (user) {
+                        // User is signed in
+                        document.getElementById('user-name').textContent = user.displayName || 'User';
+                        document.getElementById('user-email').textContent = user.email;
+                        document.getElementById('profile-name').value = user.displayName || '';
+                        document.getElementById('profile-email').value = user.email;
+                    } else {
+                        // User is not signed in, redirect to login
+                        window.location.href = 'login.html';
+                    }
+                });
+            }
+            
+            // Account menu navigation
+            const menuItems = document.querySelectorAll('.menu-item');
+            const panels = document.querySelectorAll('.account-panel');
+            
+            menuItems.forEach(item => {
+                if (item.id !== 'logout-button') {
+                    item.addEventListener('click', function() {
+                        // Remove active class from all menu items
+                        menuItems.forEach(mi => mi.classList.remove('active'));
+                        
+                        // Add active class to clicked menu item
+                        this.classList.add('active');
+                        
+                        // Hide all panels
+                        panels.forEach(panel => panel.style.display = 'none');
+                        
+                        // Show the selected panel
+                        const panelId = this.getAttribute('data-panel') + '-panel';
+                        document.getElementById(panelId).style.display = 'block';
+                    });
                 }
             });
             
-            // Set up logout button
+            // Logout functionality
             const logoutButton = document.getElementById('logout-button');
-            if (logoutButton) {
-                logoutButton.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    
+            logoutButton.addEventListener('click', function() {
+                if (isDemoMode) {
+                    // In demo mode, just redirect to login
+                    window.location.href = 'login.html';
+                } else {
                     // Sign out from Firebase
                     firebase.auth().signOut()
                         .then(() => {
-                            // Clear local storage
-                            localStorage.removeItem('user');
-                            
-                            // Redirect to home page
-                            window.location.href = 'index.html';
+                            // Sign-out successful
+                            window.location.href = 'login.html';
                         })
                         .catch((error) => {
-                            console.error('Error signing out:', error);
+                            // An error happened
+                            console.error('Logout error:', error);
+                            alert('Error signing out: ' + error.message);
                         });
-                });
-            }
-            
-            // Set up tab navigation
-            const tabLinks = document.querySelectorAll('.account-nav a');
-            const tabContents = document.querySelectorAll('.account-tab');
-            
-            tabLinks.forEach(link => {
-                link.addEventListener('click', function(e) {
-                    if (this.getAttribute('id') !== 'logout-button') {
-                        e.preventDefault();
-                        
-                        // Remove active class from all tabs
-                        tabLinks.forEach(l => l.classList.remove('active'));
-                        tabContents.forEach(c => c.classList.remove('active'));
-                        
-                        // Add active class to clicked tab
-                        this.classList.add('active');
-                        
-                        // Show corresponding tab content
-                        const tabId = this.getAttribute('href').substring(1);
-                        document.getElementById(tabId).classList.add('active');
-                    }
-                });
+                }
             });
-        });
-        
-        // Update UI with user data
-        function updateUIWithUserData(user) {
-            // Try to get user data from localStorage first (for demo users)
-            let userData = null;
-            const storedUser = localStorage.getItem('user');
             
-            if (storedUser) {
-                userData = JSON.parse(storedUser);
-            } else if (user) {
-                // Use Firebase user data
-                userData = {
-                    uid: user.uid,
-                    name: user.displayName || 'User',
-                    email: user.email,
-                    plan: 'Basic' // Default plan
-                };
+            // Profile form submission
+            const profileForm = document.getElementById('profile-form');
+            profileForm.addEventListener('submit', function(e) {
+                e.preventDefault();
                 
-                // Save to localStorage for demo purposes
-                localStorage.setItem('user', JSON.stringify(userData));
-            }
-            
-            if (userData) {
-                // Update profile information
-                document.getElementById('user-name').textContent = userData.name;
-                document.getElementById('user-email').textContent = userData.email;
-                document.getElementById('display-name').value = userData.name;
-                document.getElementById('profile-email').value = userData.email;
+                if (isDemoMode) {
+                    alert('Profile updated successfully (Demo Mode)');
+                    return;
+                }
                 
-                // Update subscription information
-                const planName = document.getElementById('plan-name');
-                const planDescription = document.getElementById('plan-description');
-                const premiumFeatures = document.getElementById('premium-features');
-                
-                if (userData.plan === 'Premium' || userData.plan === 'premium') {
-                    planName.textContent = 'Premium';
-                    planDescription.textContent = 'You have access to all premium features.';
-                    premiumFeatures.style.display = 'block';
+                const user = firebase.auth().currentUser;
+                if (user) {
+                    const newName = document.getElementById('profile-name').value;
+                    const newPassword = document.getElementById('profile-password').value;
                     
-                    // Update locked content
-                    document.querySelectorAll('.locked').forEach(el => {
-                        el.classList.remove('locked');
-                    });
-                } else if (userData.plan === 'Premium Plus') {
-                    planName.textContent = 'Premium Plus';
-                    planDescription.textContent = 'You have access to all premium plus features.';
-                    premiumFeatures.style.display = 'block';
-                    
-                    // Update locked content
-                    document.querySelectorAll('.locked').forEach(el => {
-                        el.classList.remove('locked');
+                    // Update display name
+                    user.updateProfile({
+                        displayName: newName
+                    }).then(() => {
+                        // Update successful
+                        document.getElementById('user-name').textContent = newName;
+                        
+                        // Update password if provided
+                        if (newPassword) {
+                            user.updatePassword(newPassword)
+                                .then(() => {
+                                    // Password update successful
+                                    alert('Profile and password updated successfully');
+                                })
+                                .catch((error) => {
+                                    // Password update error
+                                    console.error('Password update error:', error);
+                                    alert('Error updating password: ' + error.message);
+                                });
+                        } else {
+                            alert('Profile updated successfully');
+                        }
+                    }).catch((error) => {
+                        // Profile update error
+                        console.error('Profile update error:', error);
+                        alert('Error updating profile: ' + error.message);
                     });
                 }
-            }
-        }
+            });
+        });
     </script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </body>
 </html>
