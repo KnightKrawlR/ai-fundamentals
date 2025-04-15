@@ -4,14 +4,16 @@
 }
 
 .sign-in-title,
-.payment-title {
+.payment-title,
+.account-title {
     color: white !important;
     font-size: 2.5rem;
     margin-bottom: 1rem;
 }
 
 .sign-in-subtitle,
-.payment-subtitle {
+.payment-subtitle,
+.account-subtitle {
     color: white !important;
     font-size: 1.1rem;
     margin-bottom: 2rem;
