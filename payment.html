@@ -9,6 +9,8 @@
     <link rel="stylesheet" href="css/white-text.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <script src="https://js.stripe.com/v3/"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <style>
         .payment-container {
             max-width: 600px;
@@ -81,6 +83,62 @@
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
+        
+        /* Dropdown menu styles for user menu */
+        .user-menu {
+            position: relative;
+            display: inline-block;
+        }
+        .user-menu-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            background-color: white;
+            min-width: 200px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-radius: 4px;
+            padding: 8px 0;
+            z-index: 1000;
+        }
+        .user-menu:hover .user-menu-content {
+            display: block;
+        }
+        .user-menu-item {
+            display: block;
+            padding: 8px 16px;
+            color: #333;
+            text-decoration: none;
+            transition: background-color 0.3s;
+        }
+        .user-menu-item:hover {
+            background-color: #f5f5f5;
+        }
+        .user-menu-divider {
+            height: 1px;
+            background-color: #eee;
+            margin: 8px 0;
+        }
+        .user-profile-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            color: white;
+        }
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: #6c5ce7;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 500;
+        }
     </style>
 </head>
 <body>
@@ -94,13 +152,33 @@
                 <ul>
                     <li><a href="/#free-resources">Learning</a></li>
                     <li><a href="/#ai-tools">AI Tools</a></li>
-                    <li><a href="/#premium" class="active">Premium</a></li>
+                    <li><a href="/#premium">Premium</a></li>
                 </ul>
             </nav>
-            <button class="sign-in-btn">
-                <i class="fas fa-sign-in-alt"></i>
-                <span>Sign In</span>
-            </button>
+            <div id="auth-container">
+                <a href="login.html" class="sign-in-btn" id="sign-in-btn">
+                    <i class="fas fa-sign-in-alt"></i>
+                    <span>Sign In</span>
+                </a>
+                <div class="user-menu" id="user-menu" style="display: none;">
+                    <button class="user-profile-btn">
+                        <div class="user-avatar" id="user-avatar"></div>
+                        <span id="user-email"></span>
+                    </button>
+                    <div class="user-menu-content">
+                        <a href="/account.html" class="user-menu-item">
+                            <i class="fas fa-user"></i> My Account
+                        </a>
+                        <a href="/settings.html" class="user-menu-item">
+                            <i class="fas fa-cog"></i> Settings
+                        </a>
+                        <div class="user-menu-divider"></div>
+                        <a href="#" class="user-menu-item" id="sign-out-btn">
+                            <i class="fas fa-sign-out-alt"></i> Sign Out
+                        </a>
+                    </div>
+                </div>
+            </div>
         </div>
     </header>
 
@@ -210,5 +288,46 @@
     </footer>
 
     <script src="js/stripe-integration.js"></script>
+    <script>
+        // Firebase config and initialization
+        const firebaseConfig = {
+            apiKey: "AIzaSyDjMisQkMgdA6qNg7gnXDumhNOOWOD-Y00",
+            authDomain: "ai-fundamentals-ad37d.firebaseapp.com",
+            projectId: "ai-fundamentals-ad37d",
+            storageBucket: "ai-fundamentals-ad37d.appspot.com",
+            messagingSenderId: "668115447112",
+            appId: "1:668115447112:web:c0772e9f8c6a498737977d",
+            measurementId: "G-2D5V39EQ3T"
+        };
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        document.addEventListener('DOMContentLoaded', function() {
+            firebase.auth().onAuthStateChanged((user) => {
+                const signInBtn = document.getElementById('sign-in-btn');
+                const userMenu = document.getElementById('user-menu');
+                const userAvatar = document.getElementById('user-avatar');
+                const userEmail = document.getElementById('user-email');
+                if (user) {
+                    signInBtn.style.display = 'none';
+                    userMenu.style.display = 'block';
+                    userEmail.textContent = user.email;
+                    userAvatar.textContent = user.email[0].toUpperCase();
+                } else {
+                    signInBtn.style.display = 'flex';
+                    userMenu.style.display = 'none';
+                }
+            });
+            const signOutBtn = document.getElementById('sign-out-btn');
+            if (signOutBtn) {
+                signOutBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    firebase.auth().signOut().then(() => {
+                        window.location.href = '/';
+                    });
+                });
+            }
+        });
+    </script>
 </body>
 </html>
