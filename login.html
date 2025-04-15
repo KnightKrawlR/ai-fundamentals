@@ -374,11 +374,15 @@
         // Auth state observer
         firebase.auth().onAuthStateChanged((user) => {
             if (user) {
+                // Get redirect URL from query parameters
+                const urlParams = new URLSearchParams(window.location.search);
+                const redirectUrl = urlParams.get('redirect') || '/';
+                
                 // Store the last sign-in time
                 localStorage.setItem('lastSignIn', new Date().toISOString());
                 
-                // Redirect to home page
-                window.location.href = '/';
+                // Redirect to the appropriate page
+                window.location.href = redirectUrl;
             }
         });
     </script>
