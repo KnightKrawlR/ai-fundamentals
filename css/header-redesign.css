@@ -1,0 +1,58 @@
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.logo i {
+    font-size: 24px;
+    color: white;
+}
+
+.logo h1 {
+    color: white;
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+nav ul li a {
+    color: white;
+    text-decoration: none;
+    position: relative;
+}
+
+nav ul li a:hover::after,
+nav ul li a.active::after {
+    content: '';
+    position: absolute;
+    bottom: -5px;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background-color: white;
+}
+
+.sign-in-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: white;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+.sign-in-btn i {
+    font-size: 20px;
+}
+
+@media (max-width: 768px) {
+    .sign-in-btn span {
+        display: none;
+    }
+    
+    .sign-in-btn i {
+        font-size: 24px;
+    }
+} 
