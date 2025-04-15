@@ -1,6 +1,37 @@
 // auth-integration.js
 // Handles Google OAuth authentication and user management
 
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
+import { 
+    getAuth, 
+    signInWithPopup, 
+    GoogleAuthProvider,
+    signInWithEmailAndPassword,
+    onAuthStateChanged,
+    signOut 
+} from "firebase/auth";
+
+// Your web app's Firebase configuration
+const firebaseConfig = {
+    apiKey: "AIzaSyDjMisQkMgdA6qNg7gnXDumhNOOWOD-Y00",
+    authDomain: "ai-fundamentals-ad37d.firebaseapp.com",
+    projectId: "ai-fundamentals-ad37d",
+    storageBucket: "ai-fundamentals-ad37d.firebasestorage.app",
+    messagingSenderId: "668115447112",
+    appId: "1:668115447112:web:c0772e9f8c6a498737977d",
+    measurementId: "G-2D5V39EQ3T"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
+const auth = getAuth(app);
+
+// Google Auth Provider
+const googleProvider = new GoogleAuthProvider();
+
 // Configuration for Google OAuth
 const googleAuthConfig = {
   clientId: 'YOUR_GOOGLE_CLIENT_ID', // Replace with your actual client ID in production
@@ -295,6 +326,45 @@ function getCookie(name) {
 function deleteCookie(name) {
   document.cookie = name + '=; Max-Age=-99999999; path=/';
 }
+
+// Authentication functions
+export const signInWithGoogle = async () => {
+    try {
+        const result = await signInWithPopup(auth, googleProvider);
+        return result.user;
+    } catch (error) {
+        throw error;
+    }
+};
+
+export const signInWithEmail = async (email, password) => {
+    try {
+        const result = await signInWithEmailAndPassword(auth, email, password);
+        return result.user;
+    } catch (error) {
+        throw error;
+    }
+};
+
+export const handleSignOut = async () => {
+    try {
+        await signOut(auth);
+    } catch (error) {
+        throw error;
+    }
+};
+
+// Auth state observer
+export const initAuthStateObserver = (callback) => {
+    return onAuthStateChanged(auth, (user) => {
+        callback(user);
+    });
+};
+
+// Get current user
+export const getCurrentUser = () => {
+    return auth.currentUser;
+};
 
 // Export functions for use in other scripts
 window.authIntegration = {
