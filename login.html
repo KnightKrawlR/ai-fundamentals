@@ -8,6 +8,9 @@
     <link rel="stylesheet" href="css/header-redesign.css">
     <link rel="stylesheet" href="css/white-text.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Add Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <style>
         .login-container {
             max-width: 400px;
@@ -150,10 +153,10 @@
                     <li><a href="/#premium">Premium</a></li>
                 </ul>
             </nav>
-            <button class="sign-in-btn">
+            <a href="/login" class="sign-in-btn">
                 <i class="fas fa-sign-in-alt"></i>
                 <span>Sign In</span>
-            </button>
+            </a>
         </div>
     </header>
 
@@ -251,50 +254,122 @@
         </div>
     </footer>
 
-    <!-- Firebase SDK -->
-    <script type="module">
-        import { 
-            signInWithGoogle, 
-            signInWithEmail, 
-            initAuthStateObserver 
-        } from './js/auth-integration.js';
+    <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBaVHmkqZ6xwXX5aX5aX5aX5aX5aX5aX5a",
+            authDomain: "ai-fundamentals-xxxxx.firebaseapp.com",
+            projectId: "ai-fundamentals-xxxxx",
+            storageBucket: "ai-fundamentals-xxxxx.appspot.com",
+            messagingSenderId: "xxxxxxxxxxxxx",
+            appId: "1:xxxxxxxxxxxxx:web:xxxxxxxxxxxxxxxxxxxxx"
+        };
 
-        // Get elements
-        const googleBtn = document.getElementById('google-signin');
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+
+        // Get DOM elements
         const loginForm = document.getElementById('login-form');
+        const googleSignInBtn = document.getElementById('google-signin');
         const errorMessage = document.getElementById('error-message');
+        const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
 
-        // Google Sign In
-        googleBtn.addEventListener('click', async () => {
-            try {
-                await signInWithGoogle();
-                // Successful sign-in will be handled by auth state observer
-            } catch (error) {
-                errorMessage.style.display = 'block';
-                errorMessage.textContent = error.message;
-            }
-        });
+        // Helper function to show error messages
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.style.display = 'block';
+        }
+
+        // Helper function to hide error messages
+        function hideError() {
+            errorMessage.style.display = 'none';
+        }
+
+        // Helper function to set loading state
+        function setLoading(isLoading) {
+            const loginButton = loginForm.querySelector('button[type="submit"]');
+            googleSignInBtn.disabled = isLoading;
+            loginButton.disabled = isLoading;
+            loginButton.textContent = isLoading ? 'Signing in...' : 'Sign In';
+        }
 
         // Email/Password Sign In
         loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
+            hideError();
+
+            const email = emailInput.value.trim();
+            const password = passwordInput.value;
+
+            // Basic form validation
+            if (!email || !password) {
+                showError('Please fill in all fields');
+                return;
+            }
+
+            if (!email.includes('@')) {
+                showError('Please enter a valid email address');
+                return;
+            }
+
+            setLoading(true);
 
             try {
-                await signInWithEmail(email, password);
-                // Successful sign-in will be handled by auth state observer
+                await firebase.auth().signInWithEmailAndPassword(email, password);
+                // Successful login will be handled by the auth state observer
             } catch (error) {
-                errorMessage.style.display = 'block';
-                errorMessage.textContent = error.message;
+                console.error('Login error:', error);
+                switch (error.code) {
+                    case 'auth/user-not-found':
+                        showError('No account found with this email');
+                        break;
+                    case 'auth/wrong-password':
+                        showError('Incorrect password');
+                        break;
+                    case 'auth/invalid-email':
+                        showError('Invalid email format');
+                        break;
+                    case 'auth/too-many-requests':
+                        showError('Too many failed attempts. Please try again later');
+                        break;
+                    default:
+                        showError('An error occurred. Please try again');
+                }
+            } finally {
+                setLoading(false);
+            }
+        });
+
+        // Google Sign In
+        googleSignInBtn.addEventListener('click', async () => {
+            hideError();
+            setLoading(true);
+
+            try {
+                const provider = new firebase.auth.GoogleAuthProvider();
+                await firebase.auth().signInWithPopup(provider);
+                // Successful login will be handled by the auth state observer
+            } catch (error) {
+                console.error('Google sign-in error:', error);
+                if (error.code === 'auth/popup-closed-by-user') {
+                    showError('Sign-in cancelled');
+                } else {
+                    showError('Could not sign in with Google. Please try again');
+                }
+            } finally {
+                setLoading(false);
             }
         });
 
         // Auth state observer
-        initAuthStateObserver((user) => {
+        firebase.auth().onAuthStateChanged((user) => {
             if (user) {
-                // User is signed in, redirect to dashboard
-                window.location.href = '/dashboard';
+                // Store the last sign-in time
+                localStorage.setItem('lastSignIn', new Date().toISOString());
+                
+                // Redirect to home page
+                window.location.href = '/';
             }
         });
     </script>
