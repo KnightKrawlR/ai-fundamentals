@@ -458,7 +458,7 @@
     </footer>
 
     <script>
-        // Initialize Firebase
+        // Firebase config and initialization
         const firebaseConfig = {
             apiKey: "AIzaSyDjMisQkMgdA6qNg7gnXDumhNOOWOD-Y00",
             authDomain: "ai-fundamentals-ad37d.firebaseapp.com",
@@ -468,68 +468,33 @@
             appId: "1:668115447112:web:c0772e9f8c6a498737977d",
             measurementId: "G-2D5V39EQ3T"
         };
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
-
-        // Auth state observer
-        firebase.auth().onAuthStateChanged(async (user) => {
-            if (!user) {
-                // Not signed in, redirect to login
-                window.location.href = '/login.html?redirect=account.html';
-                return;
-            }
-            // Show user info in header
-            document.getElementById('user-email').textContent = user.email;
-            document.getElementById('user-avatar').textContent = user.email[0].toUpperCase();
-
-            // Show user info in account header
-            document.getElementById('user-name').textContent = user.displayName || 'User';
-            document.getElementById('user-email').textContent = user.email;
-
-            // Fetch user profile/subscription from Firestore
-            try {
-                const userDoc = await db.collection('users').doc(user.uid).get();
-                if (userDoc.exists) {
-                    const data = userDoc.data();
-                    // Display name
-                    if (data.displayName) {
-                        document.getElementById('user-name').textContent = data.displayName;
-                        document.getElementById('display-name').value = data.displayName;
-                    }
-                    // Email (should match Auth)
-                    if (data.email) {
-                        document.getElementById('user-email').textContent = data.email;
-                        document.getElementById('account-email').value = data.email;
-                    }
-                    // Subscription info
-                    if (data.subscription) {
-                        const subscription = data.subscription;
-                        if (subscription.plan === 'price_monthly') {
-                            document.getElementById('plan-name').textContent = 'Premium Plan';
-                            document.getElementById('billing-cycle').textContent = 'Monthly';
-                            document.getElementById('payment-amount').textContent = '$9.99';
-                        } else if (subscription.plan === 'price_lifetime') {
-                            document.getElementById('plan-name').textContent = 'Lifetime Plan';
-                            document.getElementById('billing-cycle').textContent = 'One-time payment';
-                            document.getElementById('payment-amount').textContent = '$199';
-                            // Hide next payment for lifetime plan
-                            const nextPaymentElement = document.getElementById('next-payment').parentElement;
-                            if (nextPaymentElement) {
-                                nextPaymentElement.style.display = 'none';
-                            }
-                        }
-                        // Next payment date for monthly
-                        if (subscription.plan === 'price_monthly' && subscription.startDate) {
-                            const startDate = new Date(subscription.startDate);
-                            const nextPaymentDate = new Date(startDate);
-                            nextPaymentDate.setMonth(nextPaymentDate.getMonth() + 1);
-                            const options = { year: 'numeric', month: 'long', day: 'numeric' };
-                            document.getElementById('next-payment').textContent = nextPaymentDate.toLocaleDateString('en-US', options);
-                        }
-                    }
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        document.addEventListener('DOMContentLoaded', function() {
+            firebase.auth().onAuthStateChanged((user) => {
+                const signInBtn = document.getElementById('sign-in-btn');
+                const userMenu = document.getElementById('user-menu');
+                const userAvatar = document.getElementById('user-avatar');
+                const userEmail = document.getElementById('user-email');
+                if (user) {
+                    signInBtn.style.display = 'none';
+                    userMenu.style.display = 'block';
+                    userEmail.textContent = user.email;
+                    userAvatar.textContent = user.email[0].toUpperCase();
+                } else {
+                    signInBtn.style.display = 'flex';
+                    userMenu.style.display = 'none';
                 }
-            } catch (err) {
-                console.error('Error fetching user profile:', err);
+            });
+            const signOutBtn = document.getElementById('sign-out-btn');
+            if (signOutBtn) {
+                signOutBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    firebase.auth().signOut().then(() => {
+                        window.location.href = '/';
+                    });
+                });
             }
         });
 
@@ -598,39 +563,6 @@
                     alert('Account settings updated successfully!');
                 });
             }
-        });
-
-        // Firebase config and initialization
-        const firebaseConfig = {
-            apiKey: "AIzaSyDjMisQkMgdA6qNg7gnXDumhNOOWOD-Y00",
-            authDomain: "ai-fundamentals-ad37d.firebaseapp.com",
-            projectId: "ai-fundamentals-ad37d",
-            storageBucket: "ai-fundamentals-ad37d.appspot.com",
-            messagingSenderId: "668115447112",
-            appId: "1:668115447112:web:c0772e9f8c6a498737977d",
-            measurementId: "G-2D5V39EQ3T"
-        };
-        firebase.initializeApp(firebaseConfig);
-        firebase.auth().onAuthStateChanged((user) => {
-            const signInBtn = document.getElementById('sign-in-btn');
-            const userMenu = document.getElementById('user-menu');
-            const userAvatar = document.getElementById('user-avatar');
-            const userEmail = document.getElementById('user-email');
-            if (user) {
-                signInBtn.style.display = 'none';
-                userMenu.style.display = 'block';
-                userEmail.textContent = user.email;
-                userAvatar.textContent = user.email[0].toUpperCase();
-            } else {
-                signInBtn.style.display = 'flex';
-                userMenu.style.display = 'none';
-            }
-        });
-        document.getElementById('sign-out-btn').addEventListener('click', (e) => {
-            e.preventDefault();
-            firebase.auth().signOut().then(() => {
-                window.location.href = '/';
-            });
         });
     </script>
 </body>
