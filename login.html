@@ -257,12 +257,13 @@
     <script>
         // Firebase configuration
         const firebaseConfig = {
-            apiKey: "AIzaSyBaVHmkqZ6xwXX5aX5aX5aX5aX5aX5aX5a",
-            authDomain: "ai-fundamentals-xxxxx.firebaseapp.com",
-            projectId: "ai-fundamentals-xxxxx",
-            storageBucket: "ai-fundamentals-xxxxx.appspot.com",
-            messagingSenderId: "xxxxxxxxxxxxx",
-            appId: "1:xxxxxxxxxxxxx:web:xxxxxxxxxxxxxxxxxxxxx"
+            apiKey: "AIzaSyDjMisQkMgdA6qNg7gnXDumhNOOWOD-Y00",
+            authDomain: "ai-fundamentals-ad37d.firebaseapp.com",
+            projectId: "ai-fundamentals-ad37d",
+            storageBucket: "ai-fundamentals-ad37d.appspot.com",
+            messagingSenderId: "668115447112",
+            appId: "1:668115447112:web:c0772e9f8c6a498737977d",
+            measurementId: "G-2D5V39EQ3T"
         };
 
         // Initialize Firebase
@@ -294,6 +295,34 @@
             loginButton.textContent = isLoading ? 'Signing in...' : 'Sign In';
         }
 
+        // Google Sign In
+        googleSignInBtn.addEventListener('click', async () => {
+            hideError();
+            setLoading(true);
+
+            try {
+                const provider = new firebase.auth.GoogleAuthProvider();
+                provider.addScope('email');
+                const result = await firebase.auth().signInWithPopup(provider);
+                
+                if (result.user) {
+                    // Successful login will be handled by the auth state observer
+                    window.location.href = '/';
+                }
+            } catch (error) {
+                console.error('Google sign-in error:', error);
+                if (error.code === 'auth/popup-closed-by-user') {
+                    showError('Sign-in cancelled');
+                } else if (error.code === 'auth/unauthorized-domain') {
+                    showError('This domain is not authorized for Google sign-in');
+                } else {
+                    showError('Could not sign in with Google. Please try again');
+                }
+            } finally {
+                setLoading(false);
+            }
+        });
+
         // Email/Password Sign In
         loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -318,6 +347,7 @@
             try {
                 await firebase.auth().signInWithEmailAndPassword(email, password);
                 // Successful login will be handled by the auth state observer
+                window.location.href = '/';
             } catch (error) {
                 console.error('Login error:', error);
                 switch (error.code) {
@@ -335,27 +365,6 @@
                         break;
                     default:
                         showError('An error occurred. Please try again');
-                }
-            } finally {
-                setLoading(false);
-            }
-        });
-
-        // Google Sign In
-        googleSignInBtn.addEventListener('click', async () => {
-            hideError();
-            setLoading(true);
-
-            try {
-                const provider = new firebase.auth.GoogleAuthProvider();
-                await firebase.auth().signInWithPopup(provider);
-                // Successful login will be handled by the auth state observer
-            } catch (error) {
-                console.error('Google sign-in error:', error);
-                if (error.code === 'auth/popup-closed-by-user') {
-                    showError('Sign-in cancelled');
-                } else {
-                    showError('Could not sign in with Google. Please try again');
                 }
             } finally {
                 setLoading(false);
