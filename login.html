@@ -3,8 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Fundamentals - Login</title>
+    <title>Sign In - AI Fundamentals</title>
     <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/header-redesign.css">
+    <link rel="stylesheet" href="css/white-text.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         .login-container {
@@ -97,69 +99,72 @@
 <body>
     <header>
         <div class="container">
-            <h1>AI Fundamentals</h1>
+            <a href="/" class="logo">
+                <i class="fas fa-brain"></i>
+                <h1>AI Fundamentals</h1>
+            </a>
             <nav>
                 <ul>
-                    <li><a href="index.html">Learning</a></li>
-                    <li><a href="index.html#ai-tools">AI Tools</a></li>
-                    <li><a href="index.html#premium">Premium</a></li>
+                    <li><a href="/#free-resources">Learning</a></li>
+                    <li><a href="/#ai-tools">AI Tools</a></li>
+                    <li><a href="/#premium">Premium</a></li>
                 </ul>
             </nav>
+            <button class="sign-in-btn">
+                <i class="fas fa-sign-in-alt"></i>
+                <span>Sign In</span>
+            </button>
         </div>
     </header>
 
     <section class="hero-section">
         <div class="container">
-            <div class="hero-content">
-                <h2>Sign In</h2>
-                <p>Access your account and premium content</p>
-            </div>
-        </div>
-    </section>
-
-    <section>
-        <div class="container">
+            <h2 class="sign-in-title">Sign In</h2>
+            <p class="sign-in-subtitle">Access your account and premium content</p>
+            
             <div class="login-container">
-                <h2>Welcome Back</h2>
-                <p>Sign in to access your AI Fundamentals account</p>
-                
-                <div class="login-options">
-                    <div class="login-option google-login" id="google-signin-button">
-                        <i class="fab fa-google"></i>
-                        <span>Sign in with Google</span>
+                <div class="login-box">
+                    <div class="social-login">
+                        <button class="google-login">
+                            <img src="assets/google-icon.svg" alt="Google">
+                            Sign in with Google
+                        </button>
                     </div>
-                    
-                    <div class="login-option demo-login" id="demo-login-button">
+
+                    <div class="divider">
+                        <span>or</span>
+                    </div>
+
+                    <button class="demo-login">
                         <i class="fas fa-user"></i>
-                        <span>Demo Login (No Account Required)</span>
-                    </div>
-                </div>
-                
-                <div class="login-divider">or</div>
-                
-                <form id="login-form">
-                    <div class="form-group">
-                        <label for="login-email">Email</label>
-                        <input type="email" id="login-email" class="form-control" placeholder="your@email.com" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="login-password">Password</label>
-                        <input type="password" id="login-password" class="form-control" placeholder="••••••••" required>
-                    </div>
-                    
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-                        <label style="display: flex; align-items: center;">
-                            <input type="checkbox" style="margin-right: 0.5rem;"> Remember me
-                        </label>
-                        <a href="#" style="color: var(--primary-color);">Forgot password?</a>
-                    </div>
-                    
-                    <button type="submit" class="btn" style="width: 100%;">Sign In</button>
-                </form>
-                
-                <div style="text-align: center; margin-top: 2rem;">
-                    <p>Don't have an account? <a href="#" style="color: var(--primary-color);">Sign up</a></p>
+                        Demo Login (No Account Required)
+                    </button>
+
+                    <form class="login-form">
+                        <div class="form-group">
+                            <label for="email">Email</label>
+                            <input type="email" id="email" placeholder="your@email.com" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="password">Password</label>
+                            <input type="password" id="password" placeholder="••••••••" required>
+                        </div>
+
+                        <div class="form-options">
+                            <label class="remember-me">
+                                <input type="checkbox" id="remember">
+                                Remember me
+                            </label>
+                            <a href="/forgot-password" class="forgot-password">Forgot password?</a>
+                        </div>
+
+                        <button type="submit" class="login-button">Sign In</button>
+                    </form>
+
+                    <p class="signup-prompt">
+                        Don't have an account? <a href="/signup">Sign up</a>
+                    </p>
                 </div>
             </div>
         </div>
@@ -217,7 +222,7 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // Set up Google Sign-In button
-            const googleButton = document.getElementById('google-signin-button');
+            const googleButton = document.querySelector('.google-login');
             if (googleButton) {
                 googleButton.addEventListener('click', function() {
                     // In a real implementation, this would trigger the Google OAuth flow
@@ -231,7 +236,7 @@
             }
             
             // Set up demo login button
-            const demoButton = document.getElementById('demo-login-button');
+            const demoButton = document.querySelector('.demo-login');
             if (demoButton) {
                 demoButton.addEventListener('click', function() {
                     window.authIntegration.simulateGoogleSignIn('demo@aifundamentals.com', 'Demo User');
@@ -239,13 +244,13 @@
             }
             
             // Handle login form submission
-            const loginForm = document.getElementById('login-form');
+            const loginForm = document.querySelector('.login-form');
             if (loginForm) {
                 loginForm.addEventListener('submit', function(event) {
                     event.preventDefault();
                     
-                    const email = document.getElementById('login-email').value;
-                    const password = document.getElementById('login-password').value;
+                    const email = document.getElementById('email').value;
+                    const password = document.getElementById('password').value;
                     
                     // In a real implementation, this would validate credentials with a server
                     // For demo purposes, we'll accept any email/password and use our simulation function
