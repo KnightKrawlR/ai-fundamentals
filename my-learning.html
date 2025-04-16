@@ -114,5 +114,64 @@
 
     <script src="dist/bundle.js"></script>
     <script src="js/auth-integration.js"></script>
+    <script src="js/stripe-integration.js"></script>
+    <script src="js/access-control.js"></script>
+    <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyDjMisQkMgdA6qNg7gnXDumhNOOWOD-Y00",
+            authDomain: "ai-fundamentals-ad37d.firebaseapp.com",
+            projectId: "ai-fundamentals-ad37d",
+            storageBucket: "ai-fundamentals-ad37d.appspot.com",
+            messagingSenderId: "668115447112",
+            appId: "1:668115447112:web:c0772e9f8c6a498737977d",
+            measurementId: "G-2D5V39EQ3T"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+
+        // Auth state observer
+        firebase.auth().onAuthStateChanged((user) => {
+            const signInBtn = document.getElementById('sign-in-btn');
+            const userMenu = document.getElementById('user-menu');
+            const userAvatar = document.getElementById('user-avatar');
+            const userEmail = document.getElementById('user-email');
+            
+            if (user) {
+                // User is signed in
+                signInBtn.style.display = 'none';
+                userMenu.style.display = 'block';
+                
+                // Set user email and avatar
+                userEmail.textContent = user.email;
+                userAvatar.textContent = user.email[0].toUpperCase();
+                
+                // Update premium content visibility
+                document.querySelectorAll('.premium-content').forEach(elem => {
+                    elem.classList.add('unlocked');
+                });
+            } else {
+                // User is signed out
+                signInBtn.style.display = 'flex';
+                userMenu.style.display = 'none';
+                
+                // Update premium content visibility
+                document.querySelectorAll('.premium-content').forEach(elem => {
+                    elem.classList.remove('unlocked');
+                });
+            }
+        });
+
+        // Sign out functionality
+        document.getElementById('sign-out-btn').addEventListener('click', (e) => {
+            e.preventDefault();
+            firebase.auth().signOut().then(() => {
+                window.location.href = '/';
+            }).catch((error) => {
+                console.error('Sign out error:', error);
+            });
+        });
+    </script>
 </body>
 </html>
