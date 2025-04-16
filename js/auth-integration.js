@@ -188,20 +188,25 @@ function signOut() {
 
 // Update UI elements for logged in user
 function updateUIForLoggedInUser(user) {
-  // Update login/logout buttons
-  const loginButtons = document.querySelectorAll('.login-button');
-  const logoutButtons = document.querySelectorAll('.logout-button');
-  const userMenus = document.querySelectorAll('.user-menu');
-  const userNames = document.querySelectorAll('.user-name');
-  
-  loginButtons.forEach(button => button.style.display = 'none');
-  logoutButtons.forEach(button => button.style.display = 'block');
-  userMenus.forEach(menu => menu.style.display = 'flex');
-  
-  // Set user name in UI
-  userNames.forEach(element => {
-    element.textContent = user.name || user.email;
-  });
+  const signInBtn = document.getElementById('sign-in-btn');
+  const userMenu = document.getElementById('user-menu');
+  const userAvatar = document.getElementById('user-avatar');
+  const userEmail = document.getElementById('user-email');
+
+  if (signInBtn) signInBtn.style.display = 'none';
+  if (userMenu) userMenu.style.display = 'block'; // Or 'flex' depending on desired layout
+
+  if (user) {
+    if (userEmail) {
+      userEmail.textContent = user.email;
+    }
+    if (userAvatar) {
+      // Use first letter of email for avatar
+      userAvatar.textContent = user.email ? user.email[0].toUpperCase() : '?'; 
+      // Optional: Add background image if user.picture exists
+      // if (user.picture) { userAvatar.style.backgroundImage = `url(${user.picture})`; userAvatar.textContent = ''; }
+    }
+  }
   
   // Update premium content access
   updatePremiumAccess();
@@ -209,14 +214,11 @@ function updateUIForLoggedInUser(user) {
 
 // Update UI elements for logged out user
 function updateUIForLoggedOutUser() {
-  // Update login/logout buttons
-  const loginButtons = document.querySelectorAll('.login-button');
-  const logoutButtons = document.querySelectorAll('.logout-button');
-  const userMenus = document.querySelectorAll('.user-menu');
-  
-  loginButtons.forEach(button => button.style.display = 'block');
-  logoutButtons.forEach(button => button.style.display = 'none');
-  userMenus.forEach(menu => menu.style.display = 'none');
+  const signInBtn = document.getElementById('sign-in-btn');
+  const userMenu = document.getElementById('user-menu');
+
+  if (signInBtn) signInBtn.style.display = 'flex'; // Or 'block'
+  if (userMenu) userMenu.style.display = 'none';
   
   // Update premium content access
   updatePremiumAccess();
