@@ -129,38 +129,27 @@ body {
 }
 
 .game-container {
-    max-width: 800px;
-    margin: 2rem auto;
-    padding: 2rem;
-    background-color: #ffffff;
-    border-radius: 12px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    @apply max-w-4xl mx-auto p-8 bg-white rounded-xl shadow-lg;
 }
 
 .game-header {
-    text-align: center;
-    margin-bottom: 2rem;
+    @apply text-center mb-8;
 }
 
 .game-header h2 {
-    color: #333;
-    font-size: 1.8rem;
-    margin-bottom: 0.5rem;
+    @apply text-2xl font-bold text-gray-900 mb-2;
 }
 
 .question {
-    margin-bottom: 2rem;
+    @apply mb-8;
 }
 
 .question p {
-    font-size: 1.2rem;
-    color: #444;
-    margin-bottom: 1.5rem;
+    @apply text-lg text-gray-700 mb-6;
 }
 
 .options {
-    display: grid;
-    gap: 1rem;
+    @apply grid gap-4;
 }
 
 .btn {
@@ -180,9 +169,7 @@ body {
 }
 
 .option-btn {
-    background-color: #f5f5f5;
-    color: #333;
-    text-align: left;
+    @apply btn-secondary text-left;
 }
 
 .option-btn:hover {
@@ -204,58 +191,36 @@ body {
 
 /* Progress Tracking */
 .learning-progress {
-    background-color: #f8f9fa;
-    border-radius: 8px;
-    padding: 1.5rem;
-    margin-bottom: 2rem;
+    @apply bg-gray-50 rounded-xl p-6 mb-8;
 }
 
 .progress-text {
-    color: #666;
-    font-size: 0.875rem;
-    display: block;
-    text-align: center;
-    margin-top: 0.5rem;
+    @apply text-sm text-gray-600 text-center mt-2;
 }
 
 .progress-stats {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1rem;
-    margin-top: 1rem;
+    @apply grid grid-cols-3 gap-4 mt-4;
 }
 
 .stat {
-    background-color: white;
-    padding: 1rem;
-    border-radius: 8px;
-    text-align: center;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    @apply bg-white p-4 rounded-lg shadow-sm text-center;
 }
 
-.stat span:first-child {
-    color: #666;
-    font-size: 0.875rem;
-    display: block;
-    margin-bottom: 0.5rem;
+.stat-label {
+    @apply text-sm text-gray-600 mb-2 block;
 }
 
-.stat span:last-child {
-    color: #333;
-    font-weight: 600;
+.stat-value {
+    @apply text-gray-900 font-semibold;
 }
 
 /* Match Game */
 .match-game-container {
-    background-color: white;
-    border-radius: 12px;
-    padding: 2rem;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    @apply bg-white rounded-xl p-8 shadow-lg;
 }
 
 .match-game-header {
-    text-align: center;
-    margin-bottom: 2rem;
+    @apply text-center mb-8;
 }
 
 .match-game-header h2 {
@@ -264,10 +229,8 @@ body {
 }
 
 .match-game-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 1rem;
-    margin-bottom: 2rem;
+    @apply grid grid-cols-4 gap-4 mb-8;
+    @apply sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4;
 }
 
 .match-card {
@@ -331,10 +294,7 @@ body {
 
 /* Test Mode */
 .test-container {
-    background-color: white;
-    border-radius: 12px;
-    padding: 2rem;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    @apply bg-white rounded-xl p-8 shadow-lg;
 }
 
 .test-container h2 {
@@ -349,10 +309,7 @@ body {
 }
 
 .test-question {
-    margin-bottom: 2rem;
-    padding: 1.5rem;
-    background-color: #f8f9fa;
-    border-radius: 8px;
+    @apply mb-8 p-6 bg-gray-50 rounded-xl;
 }
 
 .test-question p {
@@ -362,47 +319,29 @@ body {
 }
 
 .test-options {
-    display: grid;
-    gap: 0.5rem;
+    @apply grid gap-2;
 }
 
 .test-option {
-    width: 100%;
-    padding: 1rem;
-    text-align: left;
-    background-color: white;
-    border: 1px solid #dee2e6;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.test-option:hover {
-    background-color: #f8f9fa;
-    border-color: #4a90e2;
+    @apply w-full p-4 text-left bg-white border border-gray-300 rounded-lg
+           cursor-pointer transition-all duration-200
+           hover:bg-gray-50 hover:border-primary-500;
 }
 
 .test-option.selected {
-    background-color: #e3f2fd;
-    border-color: #4a90e2;
-    color: #1976d2;
+    @apply bg-primary-50 border-primary-500 text-primary-700;
 }
 
 .submit-test {
-    width: 100%;
-    margin-top: 2rem;
+    @apply btn-primary w-full mt-8;
 }
 
 .submit-test:disabled {
-    opacity: 0.7;
-    cursor: not-allowed;
+    @apply opacity-70 cursor-not-allowed;
 }
 
 .test-results {
-    background-color: white;
-    border-radius: 12px;
-    padding: 2rem;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    @apply bg-white rounded-xl p-8 shadow-lg;
 }
 
 .test-results h2 {
@@ -417,24 +356,19 @@ body {
 }
 
 .test-review {
-    display: grid;
-    gap: 1rem;
+    @apply grid gap-4;
 }
 
 .test-review-item {
-    padding: 1rem;
-    border-radius: 8px;
-    background-color: #f8f9fa;
+    @apply p-4 rounded-lg;
 }
 
 .test-review-item.correct {
-    background-color: #d4edda;
-    border-left: 4px solid #28a745;
+    @apply bg-green-50 border-l-4 border-green-500;
 }
 
 .test-review-item.incorrect {
-    background-color: #f8d7da;
-    border-left: 4px solid #dc3545;
+    @apply bg-red-50 border-l-4 border-red-500;
 }
 
 .test-review-item p {
@@ -444,4 +378,51 @@ body {
 .test-review-item p:last-child {
     margin-bottom: 0;
     font-weight: 600;
+}
+
+/* Responsive adjustments */
+@screen sm {
+    .game-container {
+        @apply px-4;
+    }
+}
+
+/* Animation classes */
+.card-flip-enter {
+    @apply transform-gpu rotate-y-0;
+}
+
+.card-flip-enter-active {
+    @apply transform-gpu rotate-y-180 transition-transform duration-300;
+}
+
+.card-flip-exit {
+    @apply transform-gpu rotate-y-180;
+}
+
+.card-flip-exit-active {
+    @apply transform-gpu rotate-y-0 transition-transform duration-300;
+}
+
+/* Accessibility improvements */
+.sr-only {
+    @apply absolute w-px h-px p-0 -m-px overflow-hidden whitespace-nowrap border-0;
+}
+
+/* Focus styles for keyboard navigation */
+.focus-visible:focus {
+    @apply outline-none ring-2 ring-primary-500 ring-offset-2;
+}
+
+/* Loading states */
+.loading {
+    @apply animate-pulse bg-gray-200;
+}
+
+.loading-text {
+    @apply h-4 bg-gray-200 rounded w-3/4;
+}
+
+.loading-card {
+    @apply aspect-[3/2] bg-gray-200 rounded-xl;
 } 
