@@ -4,9 +4,9 @@
   "description": "AI Fundamentals Learning Platform",
   "main": "src/index.tsx",
   "scripts": {
-    "build": "webpack --mode production",
-    "start": "webpack serve --mode development",
-    "dev": "webpack serve --mode development --open"
+    "build": "npx webpack --mode production",
+    "start": "npx webpack serve --mode development",
+    "dev": "npx webpack serve --mode development --open"
   },
   "dependencies": {
     "lucide-react": "^0.488.0",
