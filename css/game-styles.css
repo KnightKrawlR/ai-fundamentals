@@ -425,4 +425,97 @@ body {
 
 .loading-card {
     @apply aspect-[3/2] bg-gray-200 rounded-xl;
+}
+
+.course-header {
+    @apply flex items-center gap-2 mb-4;
+}
+
+.course-dropdown {
+    @apply inline-flex items-center bg-gray-100 px-3 py-1 rounded text-sm font-medium;
+}
+
+.course-dropdown::after {
+    content: "▼";
+    @apply ml-1 text-xs;
+}
+
+/* Progress indicators */
+.progress-indicators {
+    @apply flex items-center gap-2 text-sm mb-4;
+}
+
+.progress-item {
+    @apply inline-flex items-center;
+}
+
+.progress-item:not(:last-child)::after {
+    content: "•";
+    @apply mx-2 text-gray-400;
+}
+
+.progress-count {
+    @apply text-gray-600;
+}
+
+/* Navigation buttons */
+.nav-buttons {
+    @apply flex items-center gap-2 mb-4;
+}
+
+.nav-button {
+    @apply p-2 rounded hover:bg-gray-100;
+}
+
+/* Card counter */
+.card-counter {
+    @apply text-sm text-gray-600 mb-4;
+}
+
+/* Flashcard */
+.flashcard-container {
+    @apply mb-4;
+}
+
+.term-label {
+    @apply text-sm text-gray-600 mb-2;
+}
+
+.term-content {
+    @apply text-lg font-medium;
+}
+
+/* Navigation controls */
+.card-navigation {
+    @apply flex items-center justify-center gap-4 mt-4;
+}
+
+.nav-arrow {
+    @apply border border-gray-300 rounded p-2 hover:bg-gray-50;
+}
+
+/* Mode tabs */
+.mode-tabs {
+    @apply flex gap-2 mb-4;
+}
+
+.mode-tab {
+    @apply px-3 py-1 text-sm font-medium rounded;
+}
+
+.mode-tab.active {
+    @apply bg-gray-200;
+}
+
+.mode-tab.disabled {
+    @apply text-gray-400;
+}
+
+/* Status indicators */
+.status-text {
+    @apply text-sm text-gray-500;
+}
+
+.coming-soon {
+    @apply text-gray-400 italic text-sm;
 } 
