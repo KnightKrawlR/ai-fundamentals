@@ -44,20 +44,23 @@ let currentUser = null;
 
 // Initialize authentication when the page loads
 document.addEventListener('DOMContentLoaded', function() {
-  // Check if user is already logged in
+  console.log("DOM Loaded, running checkAuthStatus...");
   checkAuthStatus();
   
   // Set up login/logout buttons
-  setupAuthButtons();
+  // setupAuthButtons(); // Delay this slightly?
 });
 
 // Check if user is already authenticated
 function checkAuthStatus() {
+  console.log("Checking auth status...");
   // First check localStorage for user data
   const storedUser = localStorage.getItem('user');
   if (storedUser) {
+    console.log("Found user in localStorage");
     currentUser = JSON.parse(storedUser);
     updateUIForLoggedInUser(currentUser);
+    setupAuthButtons(); // Setup buttons after confirming state
     return;
   }
   
@@ -67,9 +70,11 @@ function checkAuthStatus() {
     try {
       const userData = JSON.parse(atob(authCookie));
       if (userData && userData.email) {
+        console.log("Found user in cookie");
         currentUser = userData;
-        localStorage.setItem('user', JSON.stringify(currentUser));
+        localStorage.setItem('user', JSON.stringify(currentUser)); // Store in localStorage too
         updateUIForLoggedInUser(currentUser);
+        setupAuthButtons(); // Setup buttons after confirming state
         return;
       }
     } catch (e) {
@@ -78,7 +83,9 @@ function checkAuthStatus() {
   }
   
   // If no valid auth data found, user is not logged in
+  console.log("No user found, updating UI for logged out");
   updateUIForLoggedOutUser();
+  setupAuthButtons(); // Setup buttons after confirming state
 }
 
 // Set up Google OAuth login
@@ -188,22 +195,35 @@ function signOut() {
 
 // Update UI elements for logged in user
 function updateUIForLoggedInUser(user) {
+  console.log("Updating UI for logged in user:", user?.email);
   const signInBtn = document.getElementById('sign-in-btn');
   const userMenu = document.getElementById('user-menu');
   const userAvatar = document.getElementById('user-avatar');
   const userEmail = document.getElementById('user-email');
 
   // Hide Sign In, Show User Menu container
-  if (signInBtn) signInBtn.style.display = 'none';
-  if (userMenu) userMenu.style.display = 'inline-block'; // Let CSS handle this from now on
+  if (signInBtn) {
+    signInBtn.style.display = 'none';
+  } else {
+    console.warn("#sign-in-btn not found for hiding");
+  }
+  if (userMenu) {
+    userMenu.style.display = 'inline-block'; // Let CSS handle hover visibility
+  } else {
+    console.warn("#user-menu not found for showing");
+  }
 
   // Populate User Info
   if (user) {
     if (userEmail) {
       userEmail.textContent = user.email;
+    } else {
+      console.warn("#user-email not found");
     }
     if (userAvatar) {
       userAvatar.textContent = user.email ? user.email[0].toUpperCase() : '?'; 
+    } else {
+      console.warn("#user-avatar not found");
     }
   }
   
@@ -212,12 +232,21 @@ function updateUIForLoggedInUser(user) {
 
 // Update UI elements for logged out user
 function updateUIForLoggedOutUser() {
+  console.log("Updating UI for logged out user");
   const signInBtn = document.getElementById('sign-in-btn');
   const userMenu = document.getElementById('user-menu');
 
   // Show Sign In, Hide User Menu container
-  if (signInBtn) signInBtn.style.display = 'inline-flex'; // Use inline-flex for the button
-  if (userMenu) userMenu.style.display = 'none';
+  if (signInBtn) {
+    signInBtn.style.display = 'inline-flex'; // Use inline-flex for the button
+  } else {
+    console.warn("#sign-in-btn not found for showing");
+  }
+  if (userMenu) {
+    userMenu.style.display = 'none';
+  } else {
+    console.warn("#user-menu not found for hiding");
+  }
   
   updatePremiumAccess();
 }
@@ -261,23 +290,29 @@ function hasActiveSubscription() {
 
 // Set up login/logout buttons
 function setupAuthButtons() {
-  // Set up login buttons
-  const loginButtons = document.querySelectorAll('.login-button');
-  loginButtons.forEach(button => {
-    button.addEventListener('click', function(event) {
-      event.preventDefault();
-      window.location.href = 'login.html' + (window.location.search || '');
+  console.log("Setting up auth buttons...");
+  // Set up login buttons - Find the correct sign-in button
+  const signInBtn = document.getElementById('sign-in-btn');
+  if (signInBtn) {
+    signInBtn.addEventListener('click', function(event) {
+        event.preventDefault();
+        // Redirect to login, preserving any search params
+        window.location.href = 'login.html' + (window.location.search || ''); 
     });
-  });
+  } else {
+      console.warn("Could not find #sign-in-btn element");
+  }
   
-  // Set up logout buttons
-  const logoutButtons = document.querySelectorAll('.logout-button');
-  logoutButtons.forEach(button => {
-    button.addEventListener('click', function(event) {
+  // Set up logout buttons - Find the correct sign-out button within the dropdown
+  const signOutBtn = document.getElementById('sign-out-btn'); 
+  if (signOutBtn) {
+    signOutBtn.addEventListener('click', function(event) {
       event.preventDefault();
-      signOut();
+      signOut(); // Call the main signOut function
     });
-  });
+  } else {
+      console.warn("Could not find #sign-out-btn element");
+  }
 }
 
 // Helper function to parse JWT token
