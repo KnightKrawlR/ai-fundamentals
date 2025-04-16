@@ -1,0 +1,112 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    @apply antialiased;
+  }
+  body {
+    @apply bg-gray-50 text-gray-900;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply px-4 py-2 rounded-lg font-medium transition-all duration-200;
+  }
+  
+  .btn-primary {
+    @apply btn bg-primary-600 text-white hover:bg-primary-700 
+           focus:ring-2 focus:ring-primary-500 focus:ring-offset-2;
+  }
+
+  .btn-secondary {
+    @apply btn bg-white text-gray-700 border border-gray-300
+           hover:bg-gray-50 focus:ring-2 focus:ring-primary-500;
+  }
+
+  .card {
+    @apply bg-white rounded-xl shadow-lg p-6 transition-transform duration-300
+           hover:shadow-xl hover:-translate-y-1;
+  }
+
+  .input {
+    @apply w-full px-4 py-2 rounded-lg border border-gray-300
+           focus:ring-2 focus:ring-primary-500 focus:border-primary-500
+           placeholder-gray-400;
+  }
+
+  .flashcard {
+    @apply perspective-1000 relative w-full aspect-[3/2];
+  }
+
+  .flashcard-inner {
+    @apply relative w-full h-full transition-transform duration-700 transform-style-3d;
+  }
+
+  .flashcard.flipped .flashcard-inner {
+    @apply rotate-y-180;
+  }
+
+  .flashcard-front,
+  .flashcard-back {
+    @apply absolute w-full h-full backface-hidden rounded-xl p-6
+           flex items-center justify-center text-center;
+  }
+
+  .flashcard-front {
+    @apply bg-white;
+  }
+
+  .flashcard-back {
+    @apply bg-primary-100 rotate-y-180;
+  }
+
+  .progress-bar {
+    @apply w-full h-2 bg-gray-200 rounded-full overflow-hidden;
+  }
+
+  .progress-bar-fill {
+    @apply h-full bg-primary-600 transition-all duration-300 ease-in-out;
+  }
+
+  .match-card {
+    @apply cursor-pointer bg-white rounded-lg shadow-md p-4
+           transition-all duration-300 hover:shadow-lg
+           hover:-translate-y-1 active:scale-95;
+  }
+}
+
+/* Custom animations */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* Custom utilities */
+@layer utilities {
+  .perspective-1000 {
+    perspective: 1000px;
+  }
+  
+  .transform-style-3d {
+    transform-style: preserve-3d;
+  }
+  
+  .backface-hidden {
+    backface-visibility: hidden;
+  }
+  
+  .rotate-y-180 {
+    transform: rotateY(180deg);
+  }
+} 

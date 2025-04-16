@@ -1,3 +1,133 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom styles for 3D card effects */
+.perspective-1000 {
+    perspective: 1000px;
+}
+
+.transform-style-3d {
+    transform-style: preserve-3d;
+}
+
+.backface-hidden {
+    backface-visibility: hidden;
+}
+
+.rotate-y-180 {
+    transform: rotateY(180deg);
+}
+
+/* Font settings */
+body {
+    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+}
+
+/* Custom animations */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideIn {
+    from { transform: translateY(-10px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+/* Custom utilities */
+.animate-fade-in {
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+.animate-slide-in {
+    animation: slideIn 0.3s ease-in-out;
+}
+
+/* Custom components */
+.btn-primary {
+    @apply px-4 py-2 bg-purple-600 text-white rounded-full font-medium hover:bg-purple-700 transition-colors;
+}
+
+.btn-secondary {
+    @apply px-4 py-2 bg-gray-100 text-gray-700 rounded-full font-medium hover:bg-gray-200 transition-colors;
+}
+
+.card {
+    @apply bg-white rounded-xl shadow-lg p-6;
+}
+
+.dropdown {
+    @apply relative w-full;
+}
+
+.dropdown-button {
+    @apply w-full px-4 py-2 text-left bg-white border rounded-lg shadow-sm flex items-center justify-between hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-purple-500;
+}
+
+.dropdown-menu {
+    @apply absolute w-full mt-1 bg-white border rounded-lg shadow-lg z-50 max-h-60 overflow-auto;
+}
+
+.dropdown-item {
+    @apply w-full px-4 py-2 text-left hover:bg-gray-50;
+}
+
+.dropdown-item-selected {
+    @apply bg-purple-50 text-purple-700;
+}
+
+/* Game specific styles */
+.flashcard {
+    @apply relative w-full aspect-[4/3] cursor-pointer;
+}
+
+.flashcard-front {
+    @apply absolute inset-0 flex items-center justify-center bg-purple-600 text-white rounded-xl p-8;
+}
+
+.flashcard-back {
+    @apply absolute inset-0 flex items-center justify-center bg-white border-2 border-purple-600 rounded-xl p-8;
+}
+
+.match-card {
+    @apply aspect-[3/4] cursor-pointer;
+}
+
+.match-card-front {
+    @apply absolute inset-0 flex items-center justify-center bg-purple-600 text-white rounded-lg;
+}
+
+.match-card-back {
+    @apply absolute inset-0 flex items-center justify-center p-4 bg-white border-2 border-purple-600 rounded-lg;
+}
+
+/* Progress bar */
+.progress-bar {
+    @apply h-2 bg-gray-100 rounded-full overflow-hidden;
+}
+
+.progress-fill {
+    @apply h-full bg-purple-600 transition-all duration-300;
+}
+
+/* Responsive design */
+@media (max-width: 640px) {
+    .game-container {
+        @apply px-4;
+    }
+    
+    .match-game-grid {
+        @apply grid-cols-2;
+    }
+}
+
+@media (min-width: 641px) and (max-width: 1024px) {
+    .match-game-grid {
+        @apply grid-cols-3;
+    }
+}
+
 .game-container {
     max-width: 800px;
     margin: 2rem auto;
@@ -72,39 +202,12 @@
     margin-bottom: 2rem;
 }
 
-/* Responsive design */
-@media (max-width: 768px) {
-    .game-container {
-        margin: 1rem;
-        padding: 1rem;
-    }
-
-    .btn {
-        padding: 0.8rem 1.5rem;
-    }
-}
-
 /* Progress Tracking */
 .learning-progress {
     background-color: #f8f9fa;
     border-radius: 8px;
     padding: 1.5rem;
     margin-bottom: 2rem;
-}
-
-.progress-bar {
-    background-color: #e9ecef;
-    border-radius: 999px;
-    height: 8px;
-    margin-bottom: 1rem;
-    position: relative;
-    overflow: hidden;
-}
-
-.progress-fill {
-    background-color: #4a90e2;
-    height: 100%;
-    transition: width 0.3s ease;
 }
 
 .progress-text {
@@ -341,32 +444,4 @@
 .test-review-item p:last-child {
     margin-bottom: 0;
     font-weight: 600;
-}
-
-/* Responsive Design */
-@media (max-width: 768px) {
-    .match-game-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-
-    .progress-stats {
-        grid-template-columns: 1fr;
-    }
-
-    .test-option {
-        padding: 0.75rem;
-    }
-}
-
-@media (max-width: 480px) {
-    .match-game-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 0.5rem;
-    }
-
-    .match-card-front,
-    .match-card-back {
-        font-size: 0.75rem;
-        padding: 0.5rem;
-    }
 } 

@@ -1,7 +1,7 @@
 // Game component definition
 const Game = () => {
     const [selectedPath, setSelectedPath] = React.useState({
-        id: 3, // Personal Finance by default
+        id: 3,
         title: 'Personal Finance',
         description: 'Master financial concepts and tools'
     });
@@ -9,10 +9,10 @@ const Game = () => {
     const [currentMode, setCurrentMode] = React.useState('flashcards');
     const [currentCardIndex, setCurrentCardIndex] = React.useState(0);
     const [isFlipped, setIsFlipped] = React.useState(false);
-    const [isFullscreen, setIsFullscreen] = React.useState(false);
+    const [fullscreen, setFullscreen] = React.useState(false);
     const [matchCards, setMatchCards] = React.useState([]);
-    const [matchedPairs, setMatchedPairs] = React.useState(0);
     const [selectedMatchCard, setSelectedMatchCard] = React.useState(null);
+    const [matchedPairs, setMatchedPairs] = React.useState(0);
     const [testAnswers, setTestAnswers] = React.useState({});
     const [testScore, setTestScore] = React.useState(0);
     const [showTestResults, setShowTestResults] = React.useState(false);
@@ -86,230 +86,25 @@ const Game = () => {
     const currentFlashcards = pathFlashcards[selectedPath.id];
     const totalCards = currentFlashcards.length;
 
-    const nextCard = () => {
-        setIsFlipped(false);
-        setCurrentCardIndex((prev) => (prev + 1) % totalCards);
-    };
-
-    const prevCard = () => {
-        setIsFlipped(false);
-        setCurrentCardIndex((prev) => (prev - 1 + totalCards) % totalCards);
-    };
-
-    const toggleFullscreen = () => {
-        if (!document.fullscreenElement) {
-            document.documentElement.requestFullscreen();
-            setIsFullscreen(true);
-        } else {
-            document.exitFullscreen();
-            setIsFullscreen(false);
-        }
-    };
-
-    // Path selector dropdown
-    const PathSelector = () => {
-        const [isOpen, setIsOpen] = React.useState(false);
-        
-        return React.createElement('div', { 
-            className: 'path-selector',
-            style: { position: 'relative' }
-        },
-            React.createElement('button', {
-                onClick: () => setIsOpen(!isOpen),
-                className: 'btn',
-                style: { 
-                    width: '100%',
-                    textAlign: 'left',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    marginBottom: '1rem'
-                }
-            }, 
-                selectedPath.title,
-                React.createElement('span', null, '▼')
-            ),
-            isOpen && React.createElement('div', {
-                style: {
-                    position: 'absolute',
-                    top: '100%',
-                    left: 0,
-                    right: 0,
-                    backgroundColor: 'white',
-                    border: '1px solid #ddd',
-                    borderRadius: '4px',
-                    zIndex: 1000
-                }
-            },
-                paths.map(path => 
-                    React.createElement('button', {
-                        key: path.id,
-                        onClick: () => {
-                            setSelectedPath(path);
-                            setIsOpen(false);
-                            setCurrentCardIndex(0);
-                            setIsFlipped(false);
-                        },
-                        className: 'btn',
-                        style: {
-                            width: '100%',
-                            textAlign: 'left',
-                            border: 'none',
-                            padding: '0.5rem 1rem',
-                            backgroundColor: path.id === selectedPath.id ? '#f0f0f0' : 'transparent'
-                        }
-                    }, path.title)
-                )
-            )
-        );
-    };
-
-    // Study mode tabs
-    const StudyModeTabs = () => {
-        return React.createElement('div', {
-            style: {
-                display: 'flex',
-                gap: '1rem',
-                marginBottom: '1rem'
-            }
-        },
-            React.createElement('button', {
-                className: `btn ${currentMode === 'flashcards' ? 'active' : ''}`,
-                onClick: () => setCurrentMode('flashcards')
-            }, 'Flashcards'),
-            React.createElement('button', {
-                className: `btn ${currentMode === 'match' ? 'active' : ''}`,
-                onClick: () => setCurrentMode('match')
-            }, 'Match Game'),
-            React.createElement('button', {
-                className: `btn ${currentMode === 'test' ? 'active' : ''}`,
-                onClick: () => setCurrentMode('test')
-            }, 'Test'),
-            React.createElement('button', {
-                className: 'btn',
-                disabled: true,
-                style: { opacity: 0.5 }
-            }, 'Video Lesson (Coming Soon)')
-        );
-    };
-
-    // Flashcard component
-    const Flashcard = () => {
-        const currentCard = currentFlashcards[currentCardIndex];
-        
-        return React.createElement('div', { className: 'flashcard-container' },
-            // Controls bar
-            React.createElement('div', {
-                style: {
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    marginBottom: '1rem'
-                }
-            },
-                // Left controls
-                React.createElement('div', null,
-                    React.createElement('button', { className: 'btn' }, '⚙️'),
-                    React.createElement('button', { className: 'btn' }, '🔊')
-                ),
-                // Card counter
-                React.createElement('div', null,
-                    `Card ${currentCardIndex + 1} of ${totalCards}`
-                ),
-                // Right controls
-                React.createElement('button', {
-                    className: 'btn',
-                    onClick: toggleFullscreen
-                }, '⛶')
-            ),
-            // Card
-            React.createElement('div', {
-                className: `flashcard ${isFlipped ? 'flipped' : ''}`,
-                onClick: () => setIsFlipped(!isFlipped),
-                style: {
-                    backgroundColor: 'white',
-                    padding: '2rem',
-                    borderRadius: '8px',
-                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-                    cursor: 'pointer',
-                    minHeight: '200px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    textAlign: 'center',
-                    transform: isFlipped ? 'rotateY(180deg)' : 'none',
-                    transformStyle: 'preserve-3d',
-                    transition: 'transform 0.6s'
-                }
-            },
-                React.createElement('div', {
-                    style: {
-                        fontSize: '1.5rem',
-                        backfaceVisibility: 'hidden'
-                    }
-                }, isFlipped ? currentCard.definition : currentCard.term)
-            ),
-            // Navigation
-            React.createElement('div', {
-                style: {
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    marginTop: '1rem'
-                }
-            },
-                React.createElement('button', {
-                    className: 'btn',
-                    onClick: prevCard
-                }, '←'),
-                React.createElement('button', {
-                    className: 'btn',
-                    onClick: nextCard
-                }, '→')
-            )
-        );
-    };
-
-    // Progress tracking
-    const updateProgress = (type, value) => {
-        setProgress(prev => {
-            const newProgress = {
-                ...prev,
-                [type]: value,
-                overallProgress: Math.round(
-                    ((prev.flashcardsCompleted / totalCards) * 0.4 +
-                    (prev.matchGamesWon / 5) * 0.3 +
-                    (prev.testsCompleted / 3) * 0.3) * 100
-                )
-            };
-            
-            // Save to localStorage
-            localStorage.setItem(`progress_${selectedPath.id}`, JSON.stringify(newProgress));
-            return newProgress;
-        });
-    };
-
-    // Load progress on path change
     React.useEffect(() => {
-        const savedProgress = localStorage.getItem(`progress_${selectedPath.id}`);
-        if (savedProgress) {
-            setProgress(JSON.parse(savedProgress));
-        } else {
-            setProgress({
-                flashcardsCompleted: 0,
-                matchGamesWon: 0,
-                testsCompleted: 0,
-                overallProgress: 0
-            });
+        setCurrentCardIndex(0);
+        setIsFlipped(false);
+        if (currentMode === 'match') {
+            initializeMatchGame();
         }
     }, [selectedPath.id]);
 
-    // Match Game Implementation
+    React.useEffect(() => {
+        if (currentMode === 'match') {
+            initializeMatchGame();
+        }
+    }, [currentMode]);
+
     const initializeMatchGame = () => {
-        const currentCards = currentFlashcards.slice(0, 8); // Take 8 cards for 16 total matches
+        const currentCards = currentFlashcards.slice(0, 8);
         const matchGameCards = [];
         
         currentCards.forEach((card, index) => {
-            // Add term card
             matchGameCards.push({
                 id: `term_${index}`,
                 content: card.term,
@@ -318,7 +113,6 @@ const Game = () => {
                 isFlipped: false
             });
             
-            // Add definition card
             matchGameCards.push({
                 id: `def_${index}`,
                 content: card.definition,
@@ -421,141 +215,304 @@ const Game = () => {
         updateProgress('testsCompleted', progress.testsCompleted + 1);
     };
 
-    // Render functions
-    const renderMatchGame = () => {
-        if (matchCards.length === 0) {
-            return React.createElement('div', { className: 'match-game-start' },
-                React.createElement('h2', null, 'Memory Match Game'),
-                React.createElement('p', null, 'Match terms with their correct definitions'),
-                React.createElement('button', {
-                    className: 'btn',
-                    onClick: initializeMatchGame
-                }, 'Start Game')
-            );
-        }
-
-        return React.createElement('div', { className: 'match-game-container' },
-            React.createElement('div', { className: 'match-game-header' },
-                React.createElement('h2', null, 'Memory Match Game'),
-                React.createElement('p', null, `Pairs Matched: ${matchedPairs} / 8`)
-            ),
-            React.createElement('div', { className: 'match-game-grid' },
-                matchCards.map(card =>
-                    React.createElement('div', {
-                        key: card.id,
-                        className: `match-card ${card.isFlipped ? 'flipped' : ''} ${card.isMatched ? 'matched' : ''}`,
-                        onClick: () => handleMatchCardClick(card)
-                    },
-                        React.createElement('div', { className: 'match-card-inner' },
-                            React.createElement('div', { className: 'match-card-front' }),
-                            React.createElement('div', { className: 'match-card-back' },
-                                card.content
-                            )
-                        )
-                    )
+    // Progress tracking
+    const updateProgress = (type, value) => {
+        setProgress(prev => {
+            const newProgress = {
+                ...prev,
+                [type]: value,
+                overallProgress: Math.round(
+                    ((prev.flashcardsCompleted / totalCards) * 0.4 +
+                    (prev.matchGamesWon / 5) * 0.3 +
+                    (prev.testsCompleted / 3) * 0.3) * 100
                 )
+            };
+            
+            // Save to localStorage
+            localStorage.setItem(`progress_${selectedPath.id}`, JSON.stringify(newProgress));
+            return newProgress;
+        });
+    };
+
+    // Load progress on path change
+    React.useEffect(() => {
+        const savedProgress = localStorage.getItem(`progress_${selectedPath.id}`);
+        if (savedProgress) {
+            setProgress(JSON.parse(savedProgress));
+        } else {
+            setProgress({
+                flashcardsCompleted: 0,
+                matchGamesWon: 0,
+                testsCompleted: 0,
+                overallProgress: 0
+            });
+        }
+    }, [selectedPath.id]);
+
+    // Path selector dropdown
+    const PathSelector = () => {
+        const [isOpen, setIsOpen] = React.useState(false);
+        
+        return React.createElement('div', { 
+            className: 'relative w-full'
+        },
+            React.createElement('button', {
+                onClick: () => setIsOpen(!isOpen),
+                className: 'w-full px-4 py-2 text-left bg-white border rounded-lg shadow-sm flex items-center justify-between hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-purple-500',
+                style: { 
+                    fontFamily: 'Inter, system-ui, sans-serif'
+                }
+            }, 
+                React.createElement('span', { className: 'text-gray-900 font-medium' }, selectedPath.title),
+                React.createElement('span', { className: 'text-gray-500' }, '▼')
             ),
-            matchedPairs === 8 && React.createElement('div', { className: 'match-game-complete' },
-                React.createElement('h3', null, 'Congratulations!'),
-                React.createElement('p', null, 'You\'ve matched all pairs!'),
-                React.createElement('button', {
-                    className: 'btn',
-                    onClick: initializeMatchGame
-                }, 'Play Again')
+            isOpen && React.createElement('div', {
+                className: 'absolute w-full mt-1 bg-white border rounded-lg shadow-lg z-50 max-h-60 overflow-auto'
+            },
+                paths.map(path => 
+                    React.createElement('button', {
+                        key: path.id,
+                        onClick: () => {
+                            setSelectedPath(path);
+                            setIsOpen(false);
+                            setCurrentCardIndex(0);
+                            setIsFlipped(false);
+                        },
+                        className: `w-full px-4 py-2 text-left hover:bg-gray-50 ${path.id === selectedPath.id ? 'bg-purple-50 text-purple-700' : 'text-gray-900'}`,
+                        style: { fontFamily: 'Inter, system-ui, sans-serif' }
+                    }, path.title)
+                )
             )
         );
     };
 
-    const renderTest = () => {
-        const questions = currentFlashcards.slice(0, 10); // Take 10 questions for the test
-
-        if (showTestResults) {
-            return React.createElement('div', { className: 'test-results' },
-                React.createElement('h2', null, 'Test Results'),
-                React.createElement('p', null, `Score: ${testScore} / 10`),
-                React.createElement('div', { className: 'test-review' },
-                    questions.map((question, index) =>
-                        React.createElement('div', {
-                            key: index,
-                            className: `test-review-item ${testAnswers[index] === question.term ? 'correct' : 'incorrect'}`
-                        },
-                            React.createElement('p', null, `Question ${index + 1}: ${question.definition}`),
-                            React.createElement('p', null, `Your answer: ${testAnswers[index] || 'Not answered'}`),
-                            React.createElement('p', null, `Correct answer: ${question.term}`)
-                        )
-                    )
-                ),
+    // Study mode tabs
+    const StudyModeTabs = () => {
+        return React.createElement('div', {
+            className: 'flex gap-2 mb-6'
+        },
+            [
+                { id: 'flashcards', label: 'Flashcards' },
+                { id: 'match', label: 'Match Game' },
+                { id: 'test', label: 'Test' }
+            ].map(mode => 
                 React.createElement('button', {
-                    className: 'btn',
-                    onClick: initializeTest
-                }, 'Try Again')
-            );
-        }
-
-        return React.createElement('div', { className: 'test-container' },
-            React.createElement('h2', null, 'Knowledge Test'),
-            React.createElement('p', null, 'Match each definition with its correct term'),
-            questions.map((question, index) =>
-                React.createElement('div', {
-                    key: index,
-                    className: 'test-question'
-                },
-                    React.createElement('p', null, `${index + 1}. ${question.definition}`),
-                    React.createElement('div', { className: 'test-options' },
-                        questions.map(option =>
-                            React.createElement('button', {
-                                key: option.term,
-                                className: `test-option ${testAnswers[index] === option.term ? 'selected' : ''}`,
-                                onClick: () => handleTestAnswer(index, option.term)
-                            }, option.term)
-                        )
-                    )
-                )
+                    key: mode.id,
+                    onClick: () => setCurrentMode(mode.id),
+                    className: `px-4 py-2 rounded-full font-medium transition-colors ${
+                        currentMode === mode.id
+                            ? 'bg-purple-600 text-white'
+                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`,
+                    style: { fontFamily: 'Inter, system-ui, sans-serif' }
+                }, mode.label)
             ),
             React.createElement('button', {
-                className: 'btn submit-test',
-                onClick: submitTest,
-                disabled: Object.keys(testAnswers).length < questions.length
-            }, 'Submit Test')
+                className: 'px-4 py-2 rounded-full font-medium transition-colors bg-gray-100 text-gray-400 cursor-not-allowed flex items-center gap-2',
+                disabled: true,
+                style: { fontFamily: 'Inter, system-ui, sans-serif' }
+            },
+                'Video Lesson',
+                React.createElement('span', {
+                    className: 'text-xs bg-purple-100 text-purple-600 px-2 py-1 rounded-full'
+                }, 'Coming Soon')
+            )
         );
     };
 
     // Progress display
     const renderProgress = () => {
-        return React.createElement('div', { className: 'learning-progress' },
-            React.createElement('div', { className: 'progress-bar' },
+        return React.createElement('div', {
+            className: 'mb-6 text-sm text-gray-500',
+            style: { fontFamily: 'Inter, system-ui, sans-serif' }
+        },
+            React.createElement('div', { className: 'flex gap-2' },
+                React.createElement('span', null, `Flashcards${progress.flashcardsCompleted}/${totalCards}`),
+                React.createElement('span', null, '•'),
+                React.createElement('span', null, `Match Games${progress.matchGamesWon}/5`),
+                React.createElement('span', null, '•'),
+                React.createElement('span', null, `Tests${progress.testsCompleted}/3`)
+            )
+        );
+    };
+
+    // Flashcard component
+    const Flashcard = () => {
+        const currentCard = currentFlashcards[currentCardIndex];
+        
+        return React.createElement('div', { className: 'relative' },
+            // Controls bar
+            React.createElement('div', {
+                className: 'flex items-center justify-between mb-4'
+            },
+                // Left controls
+                React.createElement('div', { className: 'flex gap-2' },
+                    React.createElement('button', { 
+                        className: 'p-2 text-gray-600 hover:bg-gray-100 rounded-full transition-colors'
+                    }, '⚙️'),
+                    React.createElement('button', { 
+                        className: 'p-2 text-gray-600 hover:bg-gray-100 rounded-full transition-colors'
+                    }, '🔊')
+                ),
+                // Card counter
+                React.createElement('div', { 
+                    className: 'text-sm text-gray-500',
+                    style: { fontFamily: 'Inter, system-ui, sans-serif' }
+                }, `Card ${currentCardIndex + 1} of ${totalCards}`),
+                // Fullscreen button
+                React.createElement('button', {
+                    className: 'p-2 text-gray-600 hover:bg-gray-100 rounded-full transition-colors',
+                    onClick: () => {
+                        if (!document.fullscreenElement) {
+                            document.documentElement.requestFullscreen();
+                        } else {
+                            document.exitFullscreen();
+                        }
+                    }
+                }, '⛶')
+            ),
+            // Card
+            React.createElement('div', {
+                className: `relative w-full aspect-[4/3] cursor-pointer perspective-1000`,
+                onClick: () => setIsFlipped(!isFlipped)
+            },
                 React.createElement('div', {
-                    className: 'progress-fill',
-                    style: { width: `${progress.overallProgress}%` }
-                }),
-                React.createElement('span', { className: 'progress-text' },
-                    `${progress.overallProgress}% Complete`
+                    className: `absolute inset-0 transition-transform duration-500 transform-style-3d ${isFlipped ? 'rotate-y-180' : ''}`,
+                    style: {
+                        transformStyle: 'preserve-3d'
+                    }
+                },
+                    // Front
+                    React.createElement('div', {
+                        className: 'absolute inset-0 flex items-center justify-center bg-purple-600 text-white rounded-xl p-8 backface-hidden',
+                        style: { backfaceVisibility: 'hidden' }
+                    },
+                        React.createElement('div', {
+                            className: 'text-center'
+                        },
+                            React.createElement('div', {
+                                className: 'text-sm uppercase tracking-wider mb-2'
+                            }, 'Term'),
+                            React.createElement('div', {
+                                className: 'text-2xl font-medium',
+                                style: { fontFamily: 'Inter, system-ui, sans-serif' }
+                            }, currentCard.term)
+                        )
+                    ),
+                    // Back
+                    React.createElement('div', {
+                        className: 'absolute inset-0 flex items-center justify-center bg-white border-2 border-purple-600 rounded-xl p-8 rotate-y-180 backface-hidden',
+                        style: { backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }
+                    },
+                        React.createElement('div', {
+                            className: 'text-center'
+                        },
+                            React.createElement('div', {
+                                className: 'text-sm uppercase tracking-wider text-purple-600 mb-2'
+                            }, 'Definition'),
+                            React.createElement('div', {
+                                className: 'text-xl text-gray-900',
+                                style: { fontFamily: 'Inter, system-ui, sans-serif' }
+                            }, currentCard.definition)
+                        )
+                    )
                 )
             ),
-            React.createElement('div', { className: 'progress-stats' },
-                React.createElement('div', { className: 'stat' },
-                    React.createElement('span', null, 'Flashcards'),
-                    React.createElement('span', null, `${progress.flashcardsCompleted}/${totalCards}`)
-                ),
-                React.createElement('div', { className: 'stat' },
-                    React.createElement('span', null, 'Match Games'),
-                    React.createElement('span', null, `${progress.matchGamesWon}/5`)
-                ),
-                React.createElement('div', { className: 'stat' },
-                    React.createElement('span', null, 'Tests'),
-                    React.createElement('span', null, `${progress.testsCompleted}/3`)
+            // Navigation
+            React.createElement('div', {
+                className: 'flex justify-between mt-4'
+            },
+                React.createElement('button', {
+                    className: 'p-2 text-gray-600 hover:bg-gray-100 rounded-full transition-colors',
+                    onClick: () => {
+                        setIsFlipped(false);
+                        setCurrentCardIndex((prev) => (prev - 1 + totalCards) % totalCards);
+                    }
+                }, '←'),
+                React.createElement('button', {
+                    className: 'p-2 text-gray-600 hover:bg-gray-100 rounded-full transition-colors',
+                    onClick: () => {
+                        setIsFlipped(false);
+                        setCurrentCardIndex((prev) => (prev + 1) % totalCards);
+                    }
+                }, '→')
+            )
+        );
+    };
+
+    // Match Game Implementation
+    const renderMatchGame = () => {
+        if (matchCards.length === 0) {
+            return React.createElement('div', { 
+                className: 'text-center py-12',
+                style: { fontFamily: 'Inter, system-ui, sans-serif' }
+            },
+                React.createElement('h2', { 
+                    className: 'text-2xl font-bold text-gray-900 mb-4'
+                }, 'Memory Match Game'),
+                React.createElement('p', { 
+                    className: 'text-gray-600 mb-8'
+                }, 'Match terms with their correct definitions'),
+                React.createElement('button', {
+                    className: 'px-6 py-3 bg-purple-600 text-white rounded-full font-medium hover:bg-purple-700 transition-colors',
+                    onClick: initializeMatchGame
+                }, 'Start Game')
+            );
+        }
+
+        return React.createElement('div', { className: 'space-y-6' },
+            React.createElement('div', { className: 'text-center' },
+                React.createElement('h2', { 
+                    className: 'text-2xl font-bold text-gray-900 mb-2',
+                    style: { fontFamily: 'Inter, system-ui, sans-serif' }
+                }, 'Memory Match Game'),
+                React.createElement('p', { 
+                    className: 'text-gray-600',
+                    style: { fontFamily: 'Inter, system-ui, sans-serif' }
+                }, `Pairs Matched: ${matchedPairs} / 8`)
+            ),
+            React.createElement('div', {
+                className: 'grid grid-cols-4 gap-4'
+            },
+                matchCards.map(card =>
+                    React.createElement('div', {
+                        key: card.id,
+                        className: `aspect-[3/4] cursor-pointer perspective-1000 ${card.isMatched ? 'opacity-50' : ''}`,
+                        onClick: () => handleMatchCardClick(card)
+                    },
+                        React.createElement('div', {
+                            className: `relative w-full h-full transition-transform duration-500 transform-style-3d ${card.isFlipped ? 'rotate-y-180' : ''}`,
+                            style: { transformStyle: 'preserve-3d' }
+                        },
+                            React.createElement('div', {
+                                className: 'absolute inset-0 flex items-center justify-center bg-purple-600 text-white rounded-lg backface-hidden',
+                                style: { backfaceVisibility: 'hidden' }
+                            }),
+                            React.createElement('div', {
+                                className: 'absolute inset-0 flex items-center justify-center p-4 bg-white border-2 border-purple-600 rounded-lg rotate-y-180 backface-hidden',
+                                style: { 
+                                    backfaceVisibility: 'hidden',
+                                    transform: 'rotateY(180deg)',
+                                    fontFamily: 'Inter, system-ui, sans-serif'
+                                }
+                            }, card.content)
+                        )
+                    )
                 )
             )
         );
     };
 
-    return React.createElement('div', { className: 'game-container' },
+    return React.createElement('div', { className: 'max-w-4xl mx-auto px-4 py-8' },
         React.createElement(PathSelector),
         renderProgress(),
         React.createElement(StudyModeTabs),
         currentMode === 'flashcards' && React.createElement(Flashcard),
         currentMode === 'match' && renderMatchGame(),
-        currentMode === 'test' && renderTest()
+        currentMode === 'test' && React.createElement('div', { 
+            className: 'text-center py-12 text-gray-500',
+            style: { fontFamily: 'Inter, system-ui, sans-serif' }
+        }, 'Test mode coming soon')
     );
 };
 
