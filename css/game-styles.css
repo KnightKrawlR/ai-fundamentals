@@ -1,0 +1,372 @@
+.game-container {
+    max-width: 800px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.game-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.game-header h2 {
+    color: #333;
+    font-size: 1.8rem;
+    margin-bottom: 0.5rem;
+}
+
+.question {
+    margin-bottom: 2rem;
+}
+
+.question p {
+    font-size: 1.2rem;
+    color: #444;
+    margin-bottom: 1.5rem;
+}
+
+.options {
+    display: grid;
+    gap: 1rem;
+}
+
+.btn {
+    padding: 1rem 2rem;
+    font-size: 1rem;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background-color: #4a90e2;
+    color: white;
+}
+
+.btn:hover {
+    background-color: #357abd;
+    transform: translateY(-2px);
+}
+
+.option-btn {
+    background-color: #f5f5f5;
+    color: #333;
+    text-align: left;
+}
+
+.option-btn:hover {
+    background-color: #e0e0e0;
+}
+
+/* Results screen styles */
+.game-container h2 {
+    text-align: center;
+    color: #333;
+    margin-bottom: 1rem;
+}
+
+.game-container p {
+    text-align: center;
+    font-size: 1.2rem;
+    margin-bottom: 2rem;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .game-container {
+        margin: 1rem;
+        padding: 1rem;
+    }
+
+    .btn {
+        padding: 0.8rem 1.5rem;
+    }
+}
+
+/* Progress Tracking */
+.learning-progress {
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.progress-bar {
+    background-color: #e9ecef;
+    border-radius: 999px;
+    height: 8px;
+    margin-bottom: 1rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.progress-fill {
+    background-color: #4a90e2;
+    height: 100%;
+    transition: width 0.3s ease;
+}
+
+.progress-text {
+    color: #666;
+    font-size: 0.875rem;
+    display: block;
+    text-align: center;
+    margin-top: 0.5rem;
+}
+
+.progress-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.stat {
+    background-color: white;
+    padding: 1rem;
+    border-radius: 8px;
+    text-align: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.stat span:first-child {
+    color: #666;
+    font-size: 0.875rem;
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+.stat span:last-child {
+    color: #333;
+    font-weight: 600;
+}
+
+/* Match Game */
+.match-game-container {
+    background-color: white;
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.match-game-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.match-game-header h2 {
+    color: #333;
+    margin-bottom: 0.5rem;
+}
+
+.match-game-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.match-card {
+    aspect-ratio: 3/4;
+    perspective: 1000px;
+    cursor: pointer;
+}
+
+.match-card-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transform-style: preserve-3d;
+    transition: transform 0.6s;
+}
+
+.match-card.flipped .match-card-inner {
+    transform: rotateY(180deg);
+}
+
+.match-card-front,
+.match-card-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    text-align: center;
+    font-size: 0.875rem;
+}
+
+.match-card-front {
+    background-color: #4a90e2;
+    color: white;
+}
+
+.match-card-back {
+    background-color: white;
+    border: 2px solid #4a90e2;
+    transform: rotateY(180deg);
+}
+
+.match-card.matched .match-card-back {
+    background-color: #d4edda;
+    border-color: #28a745;
+}
+
+.match-game-complete {
+    text-align: center;
+    margin-top: 2rem;
+}
+
+.match-game-complete h3 {
+    color: #28a745;
+    margin-bottom: 1rem;
+}
+
+/* Test Mode */
+.test-container {
+    background-color: white;
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.test-container h2 {
+    text-align: center;
+    margin-bottom: 0.5rem;
+}
+
+.test-container > p {
+    text-align: center;
+    color: #666;
+    margin-bottom: 2rem;
+}
+
+.test-question {
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+}
+
+.test-question p {
+    color: #333;
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+}
+
+.test-options {
+    display: grid;
+    gap: 0.5rem;
+}
+
+.test-option {
+    width: 100%;
+    padding: 1rem;
+    text-align: left;
+    background-color: white;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.test-option:hover {
+    background-color: #f8f9fa;
+    border-color: #4a90e2;
+}
+
+.test-option.selected {
+    background-color: #e3f2fd;
+    border-color: #4a90e2;
+    color: #1976d2;
+}
+
+.submit-test {
+    width: 100%;
+    margin-top: 2rem;
+}
+
+.submit-test:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.test-results {
+    background-color: white;
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.test-results h2 {
+    text-align: center;
+    margin-bottom: 0.5rem;
+}
+
+.test-results > p {
+    text-align: center;
+    font-size: 1.25rem;
+    margin-bottom: 2rem;
+}
+
+.test-review {
+    display: grid;
+    gap: 1rem;
+}
+
+.test-review-item {
+    padding: 1rem;
+    border-radius: 8px;
+    background-color: #f8f9fa;
+}
+
+.test-review-item.correct {
+    background-color: #d4edda;
+    border-left: 4px solid #28a745;
+}
+
+.test-review-item.incorrect {
+    background-color: #f8d7da;
+    border-left: 4px solid #dc3545;
+}
+
+.test-review-item p {
+    margin-bottom: 0.5rem;
+}
+
+.test-review-item p:last-child {
+    margin-bottom: 0;
+    font-weight: 600;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .match-game-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .progress-stats {
+        grid-template-columns: 1fr;
+    }
+
+    .test-option {
+        padding: 0.75rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .match-game-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.5rem;
+    }
+
+    .match-card-front,
+    .match-card-back {
+        font-size: 0.75rem;
+        padding: 0.5rem;
+    }
+} 
