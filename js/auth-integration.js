@@ -193,22 +193,20 @@ function updateUIForLoggedInUser(user) {
   const userAvatar = document.getElementById('user-avatar');
   const userEmail = document.getElementById('user-email');
 
+  // Hide Sign In, Show User Menu container
   if (signInBtn) signInBtn.style.display = 'none';
-  if (userMenu) userMenu.style.display = 'inline-block';
+  if (userMenu) userMenu.style.display = 'inline-block'; // Let CSS handle this from now on
 
+  // Populate User Info
   if (user) {
     if (userEmail) {
       userEmail.textContent = user.email;
     }
     if (userAvatar) {
-      // Use first letter of email for avatar
       userAvatar.textContent = user.email ? user.email[0].toUpperCase() : '?'; 
-      // Optional: Add background image if user.picture exists
-      // if (user.picture) { userAvatar.style.backgroundImage = `url(${user.picture})`; userAvatar.textContent = ''; }
     }
   }
   
-  // Update premium content access
   updatePremiumAccess();
 }
 
@@ -217,10 +215,10 @@ function updateUIForLoggedOutUser() {
   const signInBtn = document.getElementById('sign-in-btn');
   const userMenu = document.getElementById('user-menu');
 
-  if (signInBtn) signInBtn.style.display = 'inline-flex';
+  // Show Sign In, Hide User Menu container
+  if (signInBtn) signInBtn.style.display = 'inline-flex'; // Use inline-flex for the button
   if (userMenu) userMenu.style.display = 'none';
   
-  // Update premium content access
   updatePremiumAccess();
 }
 
