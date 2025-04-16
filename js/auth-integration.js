@@ -1,20 +1,10 @@
 // auth-integration.js
 // Handles Google OAuth authentication and user management
 
-// Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
-import { 
-    getAuth, 
-    signInWithPopup, 
-    GoogleAuthProvider,
-    signInWithEmailAndPassword,
-    onAuthStateChanged,
-    signOut 
-} from "firebase/auth";
-
-// Your web app's Firebase configuration
-const firebaseConfig = {
+// Firebase imports are wrapped in a function to avoid module errors
+const initFirebase = () => {
+  // Firebase configuration
+  const firebaseConfig = {
     apiKey: "AIzaSyDjMisQkMgdA6qNg7gnXDumhNOOWOD-Y00",
     authDomain: "ai-fundamentals-ad37d.firebaseapp.com",
     projectId: "ai-fundamentals-ad37d",
@@ -22,17 +12,13 @@ const firebaseConfig = {
     messagingSenderId: "668115447112",
     appId: "1:668115447112:web:c0772e9f8c6a498737977d",
     measurementId: "G-2D5V39EQ3T"
+  };
+
+  // We'll initialize Firebase when needed
+  return firebaseConfig;
 };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
-const auth = getAuth(app);
-
-// Google Auth Provider
-const googleProvider = new GoogleAuthProvider();
-
-// Configuration for Google OAuth
+// Google Auth Provider configuration
 const googleAuthConfig = {
   clientId: 'YOUR_GOOGLE_CLIENT_ID', // Replace with your actual client ID in production
   scope: 'profile email',
@@ -46,9 +32,6 @@ let currentUser = null;
 document.addEventListener('DOMContentLoaded', function() {
   console.log("DOM Loaded, running checkAuthStatus...");
   checkAuthStatus();
-  
-  // Set up login/logout buttons
-  // setupAuthButtons(); // Delay this slightly?
 });
 
 // Check if user is already authenticated
@@ -178,7 +161,7 @@ function simulateGoogleSignIn(email, name) {
 }
 
 // Handle sign out
-function signOut() {
+function handleSignOut() {
   // Clear user data
   localStorage.removeItem('user');
   currentUser = null;
@@ -203,11 +186,13 @@ function updateUIForLoggedInUser(user) {
 
   // Hide Sign In, Show User Menu container
   if (signInBtn) {
+    console.log("Found sign-in-btn, hiding it");
     signInBtn.style.display = 'none';
   } else {
     console.warn("#sign-in-btn not found for hiding");
   }
   if (userMenu) {
+    console.log("Found user-menu, showing it");
     userMenu.style.display = 'inline-block'; // Let CSS handle hover visibility
   } else {
     console.warn("#user-menu not found for showing");
@@ -238,11 +223,13 @@ function updateUIForLoggedOutUser() {
 
   // Show Sign In, Hide User Menu container
   if (signInBtn) {
+    console.log("Found sign-in-btn, showing it");
     signInBtn.style.display = 'inline-flex'; // Use inline-flex for the button
   } else {
     console.warn("#sign-in-btn not found for showing");
   }
   if (userMenu) {
+    console.log("Found user-menu, hiding it");
     userMenu.style.display = 'none';
   } else {
     console.warn("#user-menu not found for hiding");
@@ -294,6 +281,7 @@ function setupAuthButtons() {
   // Set up login buttons - Find the correct sign-in button
   const signInBtn = document.getElementById('sign-in-btn');
   if (signInBtn) {
+    console.log("Found sign-in-btn, adding click listener");
     signInBtn.addEventListener('click', function(event) {
         event.preventDefault();
         // Redirect to login, preserving any search params
@@ -306,9 +294,10 @@ function setupAuthButtons() {
   // Set up logout buttons - Find the correct sign-out button within the dropdown
   const signOutBtn = document.getElementById('sign-out-btn'); 
   if (signOutBtn) {
+    console.log("Found sign-out-btn, adding click listener");
     signOutBtn.addEventListener('click', function(event) {
       event.preventDefault();
-      signOut(); // Call the main signOut function
+      handleSignOut(); // Call the main signOut function
     });
   } else {
       console.warn("Could not find #sign-out-btn element");
@@ -362,50 +351,11 @@ function deleteCookie(name) {
   document.cookie = name + '=; Max-Age=-99999999; path=/';
 }
 
-// Authentication functions
-export const signInWithGoogle = async () => {
-    try {
-        const result = await signInWithPopup(auth, googleProvider);
-        return result.user;
-    } catch (error) {
-        throw error;
-    }
-};
-
-export const signInWithEmail = async (email, password) => {
-    try {
-        const result = await signInWithEmailAndPassword(auth, email, password);
-        return result.user;
-    } catch (error) {
-        throw error;
-    }
-};
-
-export const handleSignOut = async () => {
-    try {
-        await signOut(auth);
-    } catch (error) {
-        throw error;
-    }
-};
-
-// Auth state observer
-export const initAuthStateObserver = (callback) => {
-    return onAuthStateChanged(auth, (user) => {
-        callback(user);
-    });
-};
-
-// Get current user
-export const getCurrentUser = () => {
-    return auth.currentUser;
-};
-
 // Export functions for use in other scripts
 window.authIntegration = {
   checkAuthStatus: checkAuthStatus,
   simulateGoogleSignIn: simulateGoogleSignIn,
-  signOut: signOut,
+  signOut: handleSignOut,
   hasActiveSubscription: hasActiveSubscription,
   getCurrentUser: function() { return currentUser; }
 };
