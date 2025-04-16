@@ -106,13 +106,106 @@ nav ul li a.active::after {
 }
 
 .user-menu {
+    position: relative;
+    display: inline-block;
+}
+
+#auth-container .user-menu {
+    display: none;
+}
+
+.user-profile-btn {
     display: flex;
     align-items: center;
-    gap: 1rem;
+    gap: 8px;
+    padding: 8px 16px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    color: white;
+}
+
+.user-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: #6c5ce7;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 500;
+}
+
+.user-menu-content {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: 100%;
+    background-color: white;
+    min-width: 200px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    border-radius: 4px;
+    padding: 8px 0;
+    z-index: 1000;
+}
+
+.user-menu:hover .user-menu-content {
+    display: block;
+}
+
+.user-menu-item {
+    display: block;
+    padding: 8px 16px;
+    color: #333;
+    text-decoration: none;
+    transition: background-color 0.3s;
+    white-space: nowrap;
+}
+
+.user-menu-item i {
+    margin-right: 8px;
+    width: 16px;
+    text-align: center;
+}
+
+.user-menu-item:hover {
+    background-color: #f5f5f5;
+}
+
+.user-menu-divider {
+    height: 1px;
+    background-color: #eee;
+    margin: 8px 0;
+}
+
+.sign-in-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background-color: transparent;
+    color: var(--light-text);
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--light-text);
+    border-radius: var(--border-radius);
+    text-decoration: none;
+    font-weight: 500;
+    transition: var(--transition);
+    cursor: pointer;
+}
+
+.sign-in-btn:hover {
+    background-color: var(--light-text);
+    color: var(--primary-color);
+}
+
+#auth-container .sign-in-btn {
+    display: inline-flex;
 }
 
 .user-name {
     font-weight: 500;
+    color: var(--light-text);
 }
 
 .logout-button {

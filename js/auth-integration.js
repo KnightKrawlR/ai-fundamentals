@@ -194,7 +194,7 @@ function updateUIForLoggedInUser(user) {
   const userEmail = document.getElementById('user-email');
 
   if (signInBtn) signInBtn.style.display = 'none';
-  if (userMenu) userMenu.style.display = 'block'; // Or 'flex' depending on desired layout
+  if (userMenu) userMenu.style.display = 'inline-block';
 
   if (user) {
     if (userEmail) {
@@ -217,7 +217,7 @@ function updateUIForLoggedOutUser() {
   const signInBtn = document.getElementById('sign-in-btn');
   const userMenu = document.getElementById('user-menu');
 
-  if (signInBtn) signInBtn.style.display = 'flex'; // Or 'block'
+  if (signInBtn) signInBtn.style.display = 'inline-flex';
   if (userMenu) userMenu.style.display = 'none';
   
   // Update premium content access
