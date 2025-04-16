@@ -93,6 +93,8 @@ nav ul li a.active {
     color: var(--accent-color);
 }
 
+/* Add underline on hover */
+nav ul li a:hover::after,
 nav ul li a.active::after {
     content: '';
     position: absolute;
