@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Games - AI Fundamentals</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/game-styles.css">
+    
+    <!-- Add Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-functions-compat.js"></script>
+    
+    <!-- React and ReactDOM -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <a href="/" class="logo">
+                <i class="fas fa-brain"></i>
+                <h1>AI Fundamentals</h1>
+            </a>
+            <nav>
+                <ul>
+                    <li><a href="/#free-resources">Learning</a></li>
+                    <li><a href="/#ai-tools">AI Tools</a></li>
+                    <li><a href="/#premium">Premium</a></li>
+                </ul>
+            </nav>
+            <div id="auth-container">
+                <a href="login.html" class="sign-in-btn" id="sign-in-btn">
+                    <i class="fas fa-sign-in-alt"></i>
+                    <span>Sign In</span>
+                </a>
+                <div class="user-menu" id="user-menu" style="display: none;">
+                    <button class="user-profile-btn">
+                        <div class="user-avatar" id="user-avatar"></div>
+                        <span id="user-email"></span>
+                    </button>
+                    <div class="user-menu-content">
+                        <a href="/account.html" class="user-menu-item">
+                            <i class="fas fa-user"></i> My Account
+                        </a>
+                        <a href="/my-learning.html" class="user-menu-item">
+                            <i class="fas fa-graduation-cap"></i> My Learning
+                        </a>
+                        <a href="/my-games.html" class="user-menu-item premium-item">
+                            <i class="fas fa-gamepad"></i> My Games
+                        </a>
+                        <a href="/settings.html" class="user-menu-item">
+                            <i class="fas fa-cog"></i> Settings
+                        </a>
+                        <div class="user-menu-divider"></div>
+                        <a href="#" class="user-menu-item" id="sign-out-btn">
+                            <i class="fas fa-sign-out-alt"></i> Sign Out
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <section>
+        <div class="container">
+            <div class="games-container">
+                <!-- React app mount point -->
+                <div id="my-games-root"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-logo">
+                    <h2>AI Fundamentals</h2>
+                    <p>Your journey to AI mastery starts here</p>
+                </div>
+                <div class="footer-links">
+                    <div class="footer-column">
+                        <h3>Resources</h3>
+                        <ul>
+                            <li><a href="#">Flashcards</a></li>
+                            <li><a href="#">Study Guides</a></li>
+                            <li><a href="#">Video Lessons</a></li>
+                            <li><a href="#">Practice Quizzes</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-column">
+                        <h3>Company</h3>
+                        <ul>
+                            <li><a href="#">About Us</a></li>
+                            <li><a href="#">Contact</a></li>
+                            <li><a href="#">Careers</a></li>
+                            <li><a href="#">Blog</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-column">
+                        <h3>Legal</h3>
+                        <ul>
+                            <li><a href="#">Terms of Service</a></li>
+                            <li><a href="#">Privacy Policy</a></li>
+                            <li><a href="#">Cookie Policy</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 AI Fundamentals. All rights reserved.</p>
+                <div class="social-links">
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                    <a href="#"><i class="fab fa-facebook"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                    <a href="#"><i class="fab fa-linkedin"></i></a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Firebase Configuration -->
+    <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyDjMisQkMgdA6qNg7gnXDumhNOOWOD-Y00",
+            authDomain: "ai-fundamentals-ad37d.firebaseapp.com",
+            projectId: "ai-fundamentals-ad37d",
+            storageBucket: "ai-fundamentals-ad37d.appspot.com",
+            messagingSenderId: "668115447112",
+            appId: "1:668115447112:web:c0772e9f8c6a498737977d",
+            measurementId: "G-2D5V39EQ3T"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+
+        // Auth state observer
+        firebase.auth().onAuthStateChanged((user) => {
+            const signInBtn = document.getElementById('sign-in-btn');
+            const userMenu = document.getElementById('user-menu');
+            const userAvatar = document.getElementById('user-avatar');
+            const userEmail = document.getElementById('user-email');
+            
+            if (user) {
+                // User is signed in
+                signInBtn.style.display = 'none';
+                userMenu.style.display = 'block';
+                
+                // Set user email and avatar
+                userEmail.textContent = user.email;
+                userAvatar.textContent = user.email[0].toUpperCase();
+                
+                // Update premium content visibility
+                document.querySelectorAll('.premium-content').forEach(elem => {
+                    elem.classList.add('unlocked');
+                });
+                
+                // Initialize user credits if needed
+                initializeUserCreditsIfNeeded(user.uid);
+            } else {
+                // User is signed out
+                signInBtn.style.display = 'flex';
+                userMenu.style.display = 'none';
+                
+                // Update premium content visibility
+                document.querySelectorAll('.premium-content').forEach(elem => {
+                    elem.classList.remove('unlocked');
+                });
+                
+                // Redirect to login page since this is a premium feature
+                window.location.href = '/login.html?redirect=my-games.html';
+            }
+        });
+
+        // Sign out functionality
+        document.getElementById('sign-out-btn').addEventListener('click', (e) => {
+            e.preventDefault();
+            firebase.auth().signOut().then(() => {
+                window.location.href = '/';
+            }).catch((error) => {
+                console.error('Sign out error:', error);
+            });
+        });
+        
+        // Initialize user credits if needed
+        function initializeUserCreditsIfNeeded(userId) {
+            const db = firebase.firestore();
+            db.collection('users').doc(userId).get().then((doc) => {
+                if (doc.exists && doc.data().credits !== undefined) {
+                    console.log('User already has credits initialized');
+                    return;
+                }
+                
+                // Call the Cloud Function to initialize credits
+                const functions = firebase.functions();
+                const initializeCredits = functions.httpsCallable('initializeUserCredits');
+                
+                initializeCredits().then((result) => {
+                    console.log('Credits initialized:', result.data);
+                }).catch((error) => {
+                    console.error('Error initializing credits:', error);
+                });
+            }).catch((error) => {
+                console.error('Error checking user credits:', error);
+            });
+        }
+    </script>
+
+    <!-- Auth Integration -->
+    <script src="js/auth-integration.js"></script>
+    <script src="js/stripe-integration.js"></script>
+    <script src="js/access-control.js"></script>
+
+    <!-- My Games React Component -->
+    <script src="dist/my-games-bundle.js"></script>
+</body>
+</html>
