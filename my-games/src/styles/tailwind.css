@@ -1,0 +1,18 @@
+/* tailwind.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom animation delays */
+.animation-delay-200 {
+  animation-delay: 0.2s;
+}
+
+.animation-delay-400 {
+  animation-delay: 0.4s;
+}
+
+/* Custom styles for My Games feature */
+.max-w-3\/4 {
+  max-width: 75%;
+}
