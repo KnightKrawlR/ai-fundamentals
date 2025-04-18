@@ -219,25 +219,13 @@
 
     <!-- Load the React app bundle -->
     <script>
-        // Dynamically load the bundle with error handling
-        const script = document.createElement('script') ;
-        
-        // Use absolute path with origin
-        script.src = window.location.origin + "/my-games/dist/my-games-bundle.js";
-        
-        script.onerror = function() {
-          console.error('Failed to load games bundle');
-          const errorDiv = document.createElement('div');
-          errorDiv.style.color = 'red';
-          errorDiv.style.padding = '20px';
-          errorDiv.style.margin = '20px';
-          errorDiv.style.border = '1px solid red';
-          errorDiv.innerHTML = `<h3>Bundle Loading Error</h3>
-            <p>Failed to load: ${window.location.origin}/my-games/dist/my-games-bundle.js</p>
-            <p>Please check if this file exists at the specified path.</p>`;
-          document.body.appendChild(errorDiv);
-        };
-        document.body.appendChild(script);
-      </script>
+        document.addEventListener('DOMContentLoaded', function() {
+          const script = document.createElement('script');
+          script.src = window.location.origin + "/my-games/dist/my-games-bundle.js?v=" + Date.now();
+          script.type = "application/javascript";
+          script.crossOrigin = "anonymous";
+          document.body.appendChild(script);
+        });
+      </script>      
 </body>
 </html>
