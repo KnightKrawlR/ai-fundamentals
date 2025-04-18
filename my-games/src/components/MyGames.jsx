@@ -1,12 +1,8 @@
 // MyGames.jsx - React component for the My Games feature
 import React, { useState, useEffect, useRef } from 'react';
-import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import VertexAIGameEngine from './vertexAI';
 
-// Initialize Firebase Auth
-const auth = getAuth();
-
-const MyGames = () => {
+const MyGames = ({ firebase }) => {
   // State variables
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -32,7 +28,7 @@ const MyGames = () => {
     setGameEngine(engine);
     
     // Listen for auth state changes
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const unsubscribe = firebase.auth().onAuthStateChanged((user) => {
       setUser(user);
       setLoading(false);
     });
@@ -44,7 +40,7 @@ const MyGames = () => {
     return () => {
       unsubscribe();
     };
-  }, []);
+  }, [firebase]);
   
   // Fetch available topics
   const fetchTopics = async () => {
