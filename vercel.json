@@ -4,7 +4,10 @@
     {
       "src": "my-games/package.json",
       "use": "@vercel/static-build",
-      "config": { "distDir": "dist" } 
+      "config": { 
+        "distDir": "dist",
+        "nodeVersion": "18.x"
+      }
     },
     {
       "src": "*.html",
