@@ -17,6 +17,79 @@
     <!-- React and ReactDOM -->
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <style>
+        .game-interface {
+            padding: 2rem 0;
+        }
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+        .credits-display {
+            background: #6c5ce7;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .topic-selection {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .topic-card {
+            background: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+            cursor: pointer;
+        }
+        .topic-card:hover {
+            transform: translateY(-5px);
+        }
+        .difficulty-selector {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .difficulty-btn {
+            padding: 0.5rem 1.5rem;
+            border: 2px solid #6c5ce7;
+            border-radius: 20px;
+            background: transparent;
+            color: #6c5ce7;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .difficulty-btn.active {
+            background: #6c5ce7;
+            color: white;
+        }
+        .input-methods {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .input-method {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .input-method.active {
+            background: #f0f0f0;
+        }
+    </style>
 </head>
 <body>
     <header>
@@ -68,9 +141,54 @@
     <!-- Main Content -->
     <section>
         <div class="container">
-            <div class="games-container">
-                <!-- React app mount point -->
-                <div id="my-games-root"></div>
+            <div class="game-interface">
+                <div class="game-header">
+                    <h2>My Games</h2>
+                    <div class="credits-display">
+                        <i class="fas fa-coins"></i>
+                        <span id="credits-amount">Loading credits...</span>
+                    </div>
+                </div>
+                
+                <div class="topic-selection">
+                    <div class="topic-card" data-topic="introduction-to-ai">
+                        <h3><i class="fas fa-brain"></i> Introduction to AI</h3>
+                        <p>Learn the basic concepts and terminology of artificial intelligence</p>
+                    </div>
+                    <div class="topic-card" data-topic="office-productivity">
+                        <h3><i class="fas fa-laptop"></i> Office Productivity</h3>
+                        <p>Master AI tools for documents, spreadsheets, and presentations</p>
+                    </div>
+                    <div class="topic-card" data-topic="personal-finance">
+                        <h3><i class="fas fa-chart-line"></i> Personal Finance</h3>
+                        <p>Explore AI applications in budgeting and financial planning</p>
+                    </div>
+                </div>
+                
+                <div class="difficulty-selector">
+                    <button class="difficulty-btn" data-difficulty="easy">Easy</button>
+                    <button class="difficulty-btn" data-difficulty="intermediate">Intermediate</button>
+                    <button class="difficulty-btn" data-difficulty="hard">Hard</button>
+                </div>
+                
+                <div class="input-methods">
+                    <div class="input-method" data-method="text">
+                        <i class="fas fa-keyboard"></i>
+                        <span>Text</span>
+                    </div>
+                    <div class="input-method" data-method="voice">
+                        <i class="fas fa-microphone"></i>
+                        <span>Voice</span>
+                    </div>
+                    <div class="input-method" data-method="image">
+                        <i class="fas fa-camera"></i>
+                        <span>Image</span>
+                    </div>
+                </div>
+                
+                <div id="game-area" class="game-area">
+                    <!-- Game content will be dynamically inserted here -->
+                </div>
             </div>
         </div>
     </section>
@@ -137,8 +255,8 @@
             measurementId: "G-2D5V39EQ3T"
         };
 
-        // Initialize Firebase - only initialize auth, firestore, and functions (not hosting)
-        const firebaseApp = firebase.initializeApp(firebaseConfig);
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
 
         // Auth state observer
         firebase.auth().onAuthStateChanged((user) => {
@@ -148,34 +266,59 @@
             const userEmail = document.getElementById('user-email');
             
             if (user) {
-                // User is signed in
                 signInBtn.style.display = 'none';
                 userMenu.style.display = 'block';
-                
-                // Set user email and avatar
                 userEmail.textContent = user.email;
                 userAvatar.textContent = user.email[0].toUpperCase();
                 
-                // Update premium content visibility
-                document.querySelectorAll('.premium-content').forEach(elem => {
-                    elem.classList.add('unlocked');
-                });
-                
-                // Initialize user credits if needed
-                initializeUserCreditsIfNeeded(user.uid);
+                // Fetch and display user credits
+                fetchUserCredits(user.uid);
             } else {
-                // User is signed out
                 signInBtn.style.display = 'flex';
                 userMenu.style.display = 'none';
-                
-                // Update premium content visibility
-                document.querySelectorAll('.premium-content').forEach(elem => {
-                    elem.classList.remove('unlocked');
-                });
-                
-                // Redirect to login page since this is a premium feature
                 window.location.href = '/login.html?redirect=my-games.html';
             }
+        });
+
+        // Fetch user credits
+        function fetchUserCredits(userId) {
+            const db = firebase.firestore();
+            db.collection('users').doc(userId).get().then((doc) => {
+                if (doc.exists) {
+                    const credits = doc.data().credits || 0;
+                    document.getElementById('credits-amount').textContent = `${credits} Credits`;
+                }
+            });
+        }
+
+        // Game interface functionality
+        document.addEventListener('DOMContentLoaded', () => {
+            // Topic selection
+            const topicCards = document.querySelectorAll('.topic-card');
+            topicCards.forEach(card => {
+                card.addEventListener('click', () => {
+                    topicCards.forEach(c => c.classList.remove('active'));
+                    card.classList.add('active');
+                });
+            });
+
+            // Difficulty selection
+            const difficultyBtns = document.querySelectorAll('.difficulty-btn');
+            difficultyBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    difficultyBtns.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                });
+            });
+
+            // Input method selection
+            const inputMethods = document.querySelectorAll('.input-method');
+            inputMethods.forEach(method => {
+                method.addEventListener('click', () => {
+                    inputMethods.forEach(m => m.classList.remove('active'));
+                    method.classList.add('active');
+                });
+            });
         });
 
         // Sign out functionality
@@ -183,41 +326,8 @@
             e.preventDefault();
             firebase.auth().signOut().then(() => {
                 window.location.href = '/';
-            }).catch((error) => {
-                console.error('Sign out error:', error);
             });
         });
-        
-        // Initialize user credits if needed
-        function initializeUserCreditsIfNeeded(userId) {
-            const db = firebase.firestore();
-            db.collection('users').doc(userId).get().then((doc) => {
-                if (doc.exists && doc.data().credits !== undefined) {
-                    console.log('User already has credits initialized');
-                    return;
-                }
-                
-                // Call the Cloud Function to initialize credits
-                const functions = firebase.functions();
-                const initializeCredits = functions.httpsCallable('initializeUserCredits');
-                
-                initializeCredits().then((result) => {
-                    console.log('Credits initialized:', result.data);
-                }).catch((error) => {
-                    console.error('Error initializing credits:', error);
-                });
-            }).catch((error) => {
-                console.error('Error checking user credits:', error);
-            });
-        }
     </script>
-
-    <!-- Auth Integration -->
-    <script src="js/auth-integration.js"></script>
-    <script src="js/stripe-integration.js"></script>
-    <script src="js/access-control.js"></script>
-
-    <!-- My Games React Component - Updated to match webpack output -->
-    <script src="dist/my-games-bundle.js"></script>
 </body>
 </html>
