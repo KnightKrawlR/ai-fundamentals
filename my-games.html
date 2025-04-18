@@ -219,104 +219,12 @@
 
     <!-- Load the React app bundle -->
     <script>
-        // Monitor and log all console errors
-        const originalConsoleError = console.error;
-        console.error = function() {
-          // Log to original console.error
-          originalConsoleError.apply(console, arguments);
-          
-          // Create a record of the error
-          const errorArgs = Array.from(arguments).map(arg => 
-            typeof arg === 'object' ? JSON.stringify(arg) : arg
-          ).join(' ');
-          
-          // Store in sessionStorage for debugging
-          const errors = JSON.parse(sessionStorage.getItem('reactErrors') || '[]');
-          errors.push({
-            timestamp: new Date().toISOString(),
-            error: errorArgs
-          });
-          sessionStorage.setItem('reactErrors', JSON.stringify(errors));
-        };
-        
-        // Add a global error handler
-        window.onerror = function(message, source, lineno, colno, error) {
-          console.error('Global error:', message, 'at', source, lineno, colno, error);
-          return false;
-        };
-        
-        // Add error handling for script loading
-        window.addEventListener('error', function(event) {
-          if (event.target && (event.target.src || event.target.href)) {
-            console.error('Resource loading error:', event.target.src || event.target.href);
-            const errorDiv = document.createElement('div');
-            errorDiv.style.color = 'red';
-            errorDiv.style.padding = '20px';
-            errorDiv.style.margin = '20px';
-            errorDiv.style.border = '1px solid red';
-            errorDiv.innerHTML = `<h3>Resource Loading Error</h3>
-              <p>Failed to load: ${event.target.src || event.target.href}</p>`;
-            document.body.appendChild(errorDiv);
-          }
-        }, true);
-        
-        // Add debug mode toggle
-        document.addEventListener('DOMContentLoaded', function() {
-          const debugDiv = document.createElement('div');
-          debugDiv.style.position = 'fixed';
-          debugDiv.style.bottom = '10px';
-          debugDiv.style.right = '10px';
-          debugDiv.style.zIndex = '9999';
-          debugDiv.style.backgroundColor = 'rgba(0,0,0,0.7)';
-          debugDiv.style.color = 'white';
-          debugDiv.style.padding = '5px 10px';
-          debugDiv.style.borderRadius = '5px';
-          debugDiv.style.fontSize = '12px';
-          debugDiv.style.cursor = 'pointer';
-          debugDiv.textContent = 'Debug: OFF';
-          
-          let debugMode = false;
-          debugDiv.addEventListener('click', function() {
-            debugMode = !debugMode;
-            debugDiv.textContent = debugMode ? 'Debug: ON' : 'Debug: OFF';
-            
-            if (debugMode) {
-              const errors = JSON.parse(sessionStorage.getItem('reactErrors') || '[]');
-              if (errors.length > 0) {
-                console.log('Stored errors:', errors);
-                const errorDisplay = document.createElement('pre');
-                errorDisplay.style.position = 'fixed';
-                errorDisplay.style.top = '50px';
-                errorDisplay.style.right = '10px';
-                errorDisplay.style.maxWidth = '80%';
-                errorDisplay.style.maxHeight = '80%';
-                errorDisplay.style.overflow = 'auto';
-                errorDisplay.style.backgroundColor = 'rgba(0,0,0,0.9)';
-                errorDisplay.style.color = 'white';
-                errorDisplay.style.padding = '10px';
-                errorDisplay.style.borderRadius = '5px';
-                errorDisplay.style.zIndex = '9998';
-                errorDisplay.textContent = JSON.stringify(errors, null, 2);
-                document.body.appendChild(errorDisplay);
-                errorDisplay.id = 'error-display';
-              } else {
-                alert('No errors recorded in this session');
-              }
-            } else {
-              const errorDisplay = document.getElementById('error-display');
-              if (errorDisplay) errorDisplay.remove();
-            }
-          });
-          
-          document.body.appendChild(debugDiv);
-        });
-      </script>
-      
-      <!-- Dynamically load the bundle with error handling -->
-      <script>
         // Dynamically load the bundle with error handling
-        const script = document.createElement('script');
-        script.src = "my-games/dist/my-games-bundle.js";
+        const script = document.createElement('script') ;
+        
+        // Use absolute path with origin
+        script.src = window.location.origin + "/my-games/dist/my-games-bundle.js";
+        
         script.onerror = function() {
           console.error('Failed to load games bundle');
           const errorDiv = document.createElement('div');
@@ -325,7 +233,7 @@
           errorDiv.style.margin = '20px';
           errorDiv.style.border = '1px solid red';
           errorDiv.innerHTML = `<h3>Bundle Loading Error</h3>
-            <p>Failed to load: my-games/dist/my-games-bundle.js</p>
+            <p>Failed to load: ${window.location.origin}/my-games/dist/my-games-bundle.js</p>
             <p>Please check if this file exists at the specified path.</p>`;
           document.body.appendChild(errorDiv);
         };
