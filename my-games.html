@@ -66,11 +66,11 @@
     </header>
 
     <!-- Main Content -->
-    <section>
+    <section class="main-content">
         <div class="container">
-            <div class="games-container">
+            <div class="game-container">
                 <!-- React app mount point -->
-                <div id="my-games-root"></div>
+                <div id="my-games-root" class="min-h-[500px] w-full"></div>
             </div>
         </div>
     </section>
@@ -248,20 +248,32 @@
             document.body.appendChild(errorDiv);
         });
 
-        // Load the bundle
-        const script = document.createElement('script');
-        script.src = "/my-games/my-games-bundle.js";
-        script.onerror = function(e) {
-            console.error('Bundle load error:', e);
-            const errorDiv = document.createElement('div');
-            errorDiv.style.color = 'red';
-            errorDiv.style.padding = '20px';
-            errorDiv.style.margin = '20px';
-            errorDiv.style.border = '1px solid red';
-            errorDiv.innerHTML = '<h3>Bundle Load Error</h3><p>Failed to load the React application. Please check the console for details.</p>';
-            document.body.appendChild(errorDiv);
-        };
-        document.body.appendChild(script);
+        // Wait for Firebase to be initialized
+        function loadReactApp() {
+            if (!window.firebase) {
+                console.error('Firebase not initialized yet, retrying in 100ms...');
+                setTimeout(loadReactApp, 100);
+                return;
+            }
+
+            // Load the bundle
+            const script = document.createElement('script');
+            script.src = "/my-games/my-games-bundle.js";
+            script.onerror = function(e) {
+                console.error('Bundle load error:', e);
+                const errorDiv = document.createElement('div');
+                errorDiv.style.color = 'red';
+                errorDiv.style.padding = '20px';
+                errorDiv.style.margin = '20px';
+                errorDiv.style.border = '1px solid red';
+                errorDiv.innerHTML = '<h3>Bundle Load Error</h3><p>Failed to load the React application. Please check the console for details.</p>';
+                document.body.appendChild(errorDiv);
+            };
+            document.body.appendChild(script);
+        }
+
+        // Start loading the React app
+        loadReactApp();
     </script>
 </body>
 </html>
