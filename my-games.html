@@ -218,11 +218,6 @@
     <script src="js/access-control.js"></script>
 
     <!-- Load the React app bundle -->
-    <script>
-        // Simple fix that won't break your hosting
-        const script = document.createElement('script');
-        script.src = "my-games/dist/my-games-bundle.js?" + new Date().getTime();
-        document.body.appendChild(script);
-      </script>      
+    <script src="/my-games/dist/my-games-bundle.js"></script>
 </body>
 </html>

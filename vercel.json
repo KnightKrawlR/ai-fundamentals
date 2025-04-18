@@ -2,6 +2,14 @@
   "version": 2,
   "builds": [
     {
+      "src": "my-games/package.json",
+      "use": "@vercel/static-build",
+      "config": { 
+        "distDir": "dist",
+        "nodeVersion": "18.x"
+      }
+    },
+    {
       "src": "*.html",
       "use": "@vercel/static"
     },
@@ -18,21 +26,17 @@
       "use": "@vercel/static"
     },
     {
-      "src": "my-games/**",
-      "use": "@vercel/static"
-    },
-    {
       "src": "learning/**",
       "use": "@vercel/static"
     }
   ],
   "routes": [
-    { "src": "/", "dest": "/index.html" },
+    { "src": "/my-games/dist/(.*)", "dest": "/my-games/dist/$1" },
     { "src": "/css/(.*)", "dest": "/css/$1" },
     { "src": "/js/(.*)", "dest": "/js/$1" },
     { "src": "/images/(.*)", "dest": "/images/$1" },
-    { "src": "/my-games/(.*)", "dest": "/my-games/$1" },
-    { "src": "/learning/(.*)", "dest": "/learning/$1" },
-    { "src": "/(.*)\\.html", "dest": "/$1.html" }
+    { "src": "/((?!my-games/dist/).*\\.html$)", "dest": "/$1" },
+    { "src": "/", "dest": "/index.html" },
+    { "src": "/learning/(.*)", "dest": "/learning/$1" }
   ]
 } 
