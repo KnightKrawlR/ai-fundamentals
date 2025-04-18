@@ -191,23 +191,41 @@
         // Initialize user credits if needed
         function initializeUserCreditsIfNeeded(userId) {
             const db = firebase.firestore();
+            
+            // First check if user document exists
             db.collection('users').doc(userId).get().then((doc) => {
-                if (doc.exists && doc.data().credits !== undefined) {
+                if (!doc.exists) {
+                    // Create the user document first with initial data
+                    return db.collection('users').doc(userId).set({
+                        credits: 10, // Initial credits for new users
+                        tier: 'free', // Default subscription tier
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        lastCreditRefresh: firebase.firestore.FieldValue.serverTimestamp(),
+                        dailyCreditsUsed: 0
+                    }).then(() => {
+                        console.log('Created new user profile with initial credits');
+                    });
+                } else if (doc.exists && doc.data().credits !== undefined) {
                     console.log('User already has credits initialized');
-                    return;
+                    return Promise.resolve();
                 }
                 
-                // Call the Cloud Function to initialize credits
-                const functions = firebase.functions();
-                const initializeCredits = functions.httpsCallable('initializeUserCredits');
-                
-                initializeCredits().then((result) => {
+                // If we get here, the document exists but needs credits initialized
+                return firebase.functions().httpsCallable('initializeUserCredits')();
+            }).then((result) => {
+                if (result) {
                     console.log('Credits initialized:', result.data);
-                }).catch((error) => {
-                    console.error('Error initializing credits:', error);
-                });
+                }
             }).catch((error) => {
-                console.error('Error checking user credits:', error);
+                console.error('Error managing user credits:', error);
+                // Create error display for user
+                const errorDiv = document.createElement('div');
+                errorDiv.style.color = 'red';
+                errorDiv.style.padding = '20px';
+                errorDiv.style.margin = '20px';
+                errorDiv.style.border = '1px solid red';
+                errorDiv.innerHTML = '<h3>Error Initializing Credits</h3><p>There was a problem setting up your account. Please try refreshing the page or contact support if the problem persists.</p>';
+                document.body.appendChild(errorDiv);
             });
         }
     </script>
