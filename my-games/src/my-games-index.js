@@ -32,13 +32,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const rootElement = checkElementExists('my-games-root');
     if (!rootElement) return;
     
+    // Make sure Firebase is initialized
+    if (!window.firebase) {
+      throw new Error('Firebase is not initialized. Please check your Firebase configuration.');
+    }
+    
     console.log('Initializing React for games component');
     const root = createRoot(rootElement);
     
+    // Pass Firebase instance to MyGames component
     root.render(
       <React.StrictMode>
         <ErrorBoundary>
-          <MyGames />
+          <MyGames firebase={window.firebase} />
         </ErrorBoundary>
       </React.StrictMode>
     );
