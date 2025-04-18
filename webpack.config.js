@@ -1,15 +1,15 @@
 const path = require('path');
 
 module.exports = {
-  entry: './src/index.tsx',
+  entry: './src/my-games-index.js',  // Changed from './src/index.tsx'
   output: {
     path: path.resolve(__dirname, 'dist'),
-    filename: 'bundle.js',
+    filename: 'my-games-bundle.js',  // Changed to match HTML reference
   },
   module: {
     rules: [
       {
-        test: /\.(ts|tsx)$/,
+        test: /\.(js|jsx|ts|tsx)$/,
         use: 'ts-loader',
         exclude: /node_modules/,
       },
@@ -20,7 +20,7 @@ module.exports = {
     ],
   },
   resolve: {
-    extensions: ['.tsx', '.ts', '.js'],
+    extensions: ['.tsx', '.ts', '.js', '.jsx'],
   },
   devServer: {
     static: {
@@ -29,4 +29,4 @@ module.exports = {
     compress: true,
     port: 3000,
   },
-}; 
+};

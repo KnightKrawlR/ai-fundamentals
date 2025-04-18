@@ -137,8 +137,8 @@
             measurementId: "G-2D5V39EQ3T"
         };
 
-        // Initialize Firebase  
-        firebase.initializeApp(firebaseConfig);
+        // Initialize Firebase - only initialize auth, firestore, and functions (not hosting)
+        const firebaseApp = firebase.initializeApp(firebaseConfig);
 
         // Auth state observer
         firebase.auth().onAuthStateChanged((user) => {
@@ -217,7 +217,7 @@
     <script src="js/stripe-integration.js"></script>
     <script src="js/access-control.js"></script>
 
-    <!-- My Games React Component -->
+    <!-- My Games React Component - Updated to match webpack output -->
     <script src="dist/my-games-bundle.js"></script>
 </body>
 </html>
