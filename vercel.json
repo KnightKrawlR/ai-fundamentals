@@ -1,0 +1,38 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "*.html",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "css/**",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "js/**",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "images/**",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "my-games/**",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "learning/**",
+      "use": "@vercel/static"
+    }
+  ],
+  "routes": [
+    { "src": "/", "dest": "/index.html" },
+    { "src": "/css/(.*)", "dest": "/css/$1" },
+    { "src": "/js/(.*)", "dest": "/js/$1" },
+    { "src": "/images/(.*)", "dest": "/images/$1" },
+    { "src": "/my-games/(.*)", "dest": "/my-games/$1" },
+    { "src": "/learning/(.*)", "dest": "/learning/$1" },
+    { "src": "/(.*)\\.html", "dest": "/$1.html" }
+  ]
+} 
