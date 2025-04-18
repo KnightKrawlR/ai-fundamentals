@@ -5,8 +5,8 @@ module.exports = {
   entry: './src/my-games-index.js',
   output: {
     filename: 'my-games-bundle.js',
-    path: path.resolve(__dirname, 'dist'),
-    publicPath: '/'
+    path: path.resolve(__dirname, '../public/dist'),
+    publicPath: '/dist/'
   },
   mode: 'production',
   devtool: 'source-map',
