@@ -5,8 +5,8 @@
       "src": "my-games/package.json",
       "use": "@vercel/static-build",
       "config": {
-        "distDir": "dist",
-        "buildCommand": "npm install && npm run build"
+        "distDir": "my-games/dist",
+        "buildCommand": "cd my-games && npm install && npm run build"
       }
     },
     {

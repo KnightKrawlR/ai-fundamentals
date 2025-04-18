@@ -218,6 +218,32 @@
     <script src="js/access-control.js"></script>
 
     <!-- Load the React app bundle -->
-    <script src="my-games/dist/my-games-bundle.js"></script>
+    <script>
+        window.addEventListener('error', function(e) {
+            console.error('Script error:', e);
+            const errorDiv = document.createElement('div');
+            errorDiv.style.color = 'red';
+            errorDiv.style.padding = '20px';
+            errorDiv.style.margin = '20px';
+            errorDiv.style.border = '1px solid red';
+            errorDiv.innerHTML = `<h3>Script Load Error</h3><p>${e.message}</p>`;
+            document.body.appendChild(errorDiv);
+        });
+
+        // Load the bundle
+        const script = document.createElement('script');
+        script.src = "/my-games/dist/my-games-bundle.js";
+        script.onerror = function(e) {
+            console.error('Bundle load error:', e);
+            const errorDiv = document.createElement('div');
+            errorDiv.style.color = 'red';
+            errorDiv.style.padding = '20px';
+            errorDiv.style.margin = '20px';
+            errorDiv.style.border = '1px solid red';
+            errorDiv.innerHTML = '<h3>Bundle Load Error</h3><p>Failed to load the React application. Please check the console for details.</p>';
+            document.body.appendChild(errorDiv);
+        };
+        document.body.appendChild(script);
+    </script>
 </body>
 </html>
