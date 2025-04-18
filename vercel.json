@@ -5,8 +5,8 @@
       "src": "my-games/package.json",
       "use": "@vercel/static-build",
       "config": {
-        "distDir": "my-games/dist",
-        "buildCommand": "cd my-games && npm install && npm run build"
+        "distDir": "dist",
+        "buildCommand": "npm install && npm run build"
       }
     },
     {
@@ -31,7 +31,7 @@
     }
   ],
   "routes": [
-    { "src": "/my-games/dist/(.*)", "dest": "my-games/dist/$1" },
+    { "src": "/my-games/dist/(.*)", "dest": "/my-games/dist/$1" },
     { "src": "/css/(.*)", "dest": "/css/$1" },
     { "src": "/js/(.*)", "dest": "/js/$1" },
     { "src": "/images/(.*)", "dest": "/images/$1" },

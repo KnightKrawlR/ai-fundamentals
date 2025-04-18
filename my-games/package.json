@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "My Games feature for AI Fundamentals",
   "main": "src/my-games-index.js",
+  "engines": {
+    "node": "18.x"
+  },
   "scripts": {
     "build": "webpack --mode production",
     "vercel-build": "webpack --mode production",
