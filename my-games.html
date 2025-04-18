@@ -219,13 +219,10 @@
 
     <!-- Load the React app bundle -->
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-          const script = document.createElement('script');
-          script.src = window.location.origin + "/my-games/dist/my-games-bundle.js?v=" + Date.now();
-          script.type = "application/javascript";
-          script.crossOrigin = "anonymous";
-          document.body.appendChild(script);
-        });
+        // Simple fix that won't break your hosting
+        const script = document.createElement('script');
+        script.src = "my-games/dist/my-games-bundle.js?" + new Date().getTime();
+        document.body.appendChild(script);
       </script>      
 </body>
 </html>
