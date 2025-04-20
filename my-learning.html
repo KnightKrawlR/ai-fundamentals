@@ -187,7 +187,18 @@
         });
     </script>
 
+    <!-- Debug script to verify bundle loading -->
+    <script>
+      console.log('About to load mylearning_bundle.js');
+      window.addEventListener('error', function(e) {
+        console.error('Script load error:', e);
+        if (e.target && e.target.src && e.target.src.includes('mylearning_bundle.js')) {
+          document.getElementById('game-root').innerHTML = '<div style="color: red; padding: 20px; border: 1px solid red;"><h3>Bundle Load Error</h3><p>Failed to load the learning component. Please check the console for details.</p></div>';
+        }
+      }, true);
+    </script>
+
     <!-- Study portal component -->
-    <script src="mylearning_bundle.js"></script>
+    <script src="js/mylearning_bundle.js"></script>
 </body>
 </html>
