@@ -198,82 +198,15 @@
                     // Create the user document first with initial data
                     return db.collection('users').doc(userId).set({
                         credits: 10, // Initial credits for new users
-                        tier: 'free', // Default subscription tier
-                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                        lastCreditRefresh: firebase.firestore.FieldValue.serverTimestamp(),
-                        dailyCreditsUsed: 0
-                    }).then(() => {
-                        console.log('Created new user profile with initial credits');
                     });
-                } else if (doc.exists && doc.data().credits !== undefined) {
-                    console.log('User already has credits initialized');
-                    return Promise.resolve();
-                }
-                
-                // If we get here, the document exists but needs credits initialized
-                return firebase.functions().httpsCallable('initializeUserCredits')();
-            }).then((result) => {
-                if (result) {
-                    console.log('Credits initialized:', result.data);
                 }
             }).catch((error) => {
-                console.error('Error managing user credits:', error);
-                // Create error display for user
-                const errorDiv = document.createElement('div');
-                errorDiv.style.color = 'red';
-                errorDiv.style.padding = '20px';
-                errorDiv.style.margin = '20px';
-                errorDiv.style.border = '1px solid red';
-                errorDiv.innerHTML = '<h3>Error Initializing Credits</h3><p>There was a problem setting up your account. Please try refreshing the page or contact support if the problem persists.</p>';
-                document.body.appendChild(errorDiv);
+                console.error('Error checking/initializing user credits:', error);
             });
         }
     </script>
-
-    <!-- Auth Integration -->
-    <script src="js/auth-integration.js"></script>
-    <script src="js/stripe-integration.js"></script>
-    <script src="js/access-control.js"></script>
-
-    <!-- Load the React app bundle -->
-    <script>
-        window.addEventListener('error', function(e) {
-            console.error('Script error:', e);
-            const errorDiv = document.createElement('div');
-            errorDiv.style.color = 'red';
-            errorDiv.style.padding = '20px';
-            errorDiv.style.margin = '20px';
-            errorDiv.style.border = '1px solid red';
-            errorDiv.innerHTML = `<h3>Script Load Error</h3><p>${e.message}</p>`;
-            document.body.appendChild(errorDiv);
-        });
-
-        // Wait for Firebase to be initialized
-        function loadReactApp() {
-            if (!window.firebase) {
-                console.error('Firebase not initialized yet, retrying in 100ms...');
-                setTimeout(loadReactApp, 100);
-                return;
-            }
-
-            // Load the bundle
-            const script = document.createElement('script');
-            script.src = "/my-games/dist/my-games-bundle.js";
-            script.onerror = function(e) {
-                console.error('Bundle load error:', e);
-                const errorDiv = document.createElement('div');
-                errorDiv.style.color = 'red';
-                errorDiv.style.padding = '20px';
-                errorDiv.style.margin = '20px';
-                errorDiv.style.border = '1px solid red';
-                errorDiv.innerHTML = '<h3>Bundle Load Error</h3><p>Failed to load the React application. Please check the console for details.</p>';
-                document.body.appendChild(errorDiv);
-            };
-            document.body.appendChild(script);
-        }
-
-        // Start loading the React app
-        loadReactApp();
-    </script>
+    
+    <!-- React App Bundle -->
+    <script src="my-games/dist/my-games-bundle.js?v=1"></script>
 </body>
 </html>

@@ -23,28 +23,40 @@ const MyGames = ({ firebase }) => {
   
   // Initialize on component mount
   useEffect(() => {
-    // Initialize game engine
-    const engine = new VertexAIGameEngine();
-    setGameEngine(engine);
-    
-    // Listen for auth state changes
-    const unsubscribe = firebase.auth().onAuthStateChanged((user) => {
-      setUser(user);
-      setLoading(false);
-    });
-    
-    // Fetch available topics
-    fetchTopics();
-    
-    // Cleanup on unmount
-    return () => {
-      unsubscribe();
-    };
+    console.log('MyGames component mounted');
+    try {
+      // Initialize game engine
+      console.log('Initializing game engine');
+      const engine = new VertexAIGameEngine();
+      setGameEngine(engine);
+      
+      // Listen for auth state changes
+      console.log('Setting up auth listener');
+      const unsubscribe = firebase.auth().onAuthStateChanged((user) => {
+        console.log('Auth state changed:', user ? 'User logged in' : 'No user');
+        setUser(user);
+        setLoading(false);
+      });
+      
+      // Fetch available topics
+      console.log('Fetching topics');
+      fetchTopics();
+      
+      // Cleanup on unmount
+      return () => {
+        console.log('Cleaning up auth listener');
+        unsubscribe();
+      };
+    } catch (error) {
+      console.error('Error in initialization:', error);
+      setError(error.message);
+    }
   }, [firebase]);
   
   // Fetch available topics
   const fetchTopics = async () => {
     try {
+      console.log('Fetching topics list');
       // This would typically be a Firestore query
       // For now, we'll use hardcoded topics based on your learning paths
       const topicsList = [
@@ -56,6 +68,7 @@ const MyGames = ({ firebase }) => {
         { id: 'ecommerce', name: 'eCommerce', description: 'Optimize eCommerce operations and sales with AI.' }
       ];
       
+      console.log('Setting topics:', topicsList);
       setTopics(topicsList);
       setSelectedTopic(topicsList[0]);
     } catch (error) {
@@ -278,276 +291,124 @@ const MyGames = ({ firebase }) => {
   
   // Render loading state
   if (loading && !currentGame) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
-      </div>
-    );
+    return <div className="flex items-center justify-center min-h-[500px]">
+      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-600"></div>
+    </div>;
   }
   
-  // Render login prompt if not authenticated
-  if (!user) {
-    return (
-      <div className="text-center py-12">
-        <h2 className="text-2xl font-bold text-gray-800 mb-4">Sign In to Play</h2>
-        <p className="text-gray-600 mb-6">Please sign in to access the AI Games feature.</p>
-        <button 
-          className="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 transition-colors"
-          onClick={() => window.location.href = '/login.html'}
-        >
-          Sign In
-        </button>
+  // Render error state
+  if (error) {
+    return <div className="flex items-center justify-center min-h-[500px]">
+      <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+        <strong className="font-bold">Error: </strong>
+        <span className="block sm:inline">{error}</span>
       </div>
-    );
+    </div>;
   }
   
+  // Render main content
   return (
-    <div className="container mx-auto px-4 py-8">
-      {/* Header */}
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-800">My Games</h1>
-        <div className="flex items-center">
-          <div className="bg-purple-100 text-purple-800 rounded-full px-4 py-1 font-semibold mr-4">
-            Credits: {credits}
-          </div>
-          {!currentGame ? (
-            <button 
-              className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors"
-              onClick={startNewGame}
-            >
-              New Game
-            </button>
-          ) : (
-            <button 
-              className="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors"
-              onClick={saveGameProgress}
-            >
-              Save Progress
-            </button>
-          )}
+    <div className="flex flex-col space-y-4">
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-bold text-gray-900">My Games</h1>
+        <div className="flex items-center space-x-2">
+          <span className="text-sm text-gray-600">Credits: {credits}</span>
+          <select
+            value={difficulty}
+            onChange={(e) => setDifficulty(e.target.value)}
+            className="ml-2 px-3 py-1 border rounded-md"
+          >
+            <option value="easy">Easy</option>
+            <option value="intermediate">Intermediate</option>
+            <option value="hard">Hard</option>
+          </select>
         </div>
       </div>
-      
-      {/* Error message */}
-      {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">
-          <p>{error}</p>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {topics.map((topic) => (
+          <div
+            key={topic.id}
+            className={`p-4 border rounded-lg cursor-pointer transition-colors ${
+              selectedTopic?.id === topic.id
+                ? 'bg-primary-100 border-primary-500'
+                : 'hover:bg-gray-50'
+            }`}
+            onClick={() => setSelectedTopic(topic)}
+          >
+            <h3 className="font-semibold">{topic.name}</h3>
+            <p className="text-sm text-gray-600">{topic.description}</p>
+          </div>
+        ))}
+      </div>
+
+      {selectedTopic && (
+        <div className="mt-4">
+          <button
+            onClick={startNewGame}
+            className="px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 transition-colors"
+            disabled={loading}
+          >
+            {loading ? 'Starting...' : 'Start New Game'}
+          </button>
         </div>
       )}
-      
-      {/* Topic selection */}
-      <div className="mb-8">
-        <h2 className="text-xl font-semibold text-gray-700 mb-4">Choose a Topic</h2>
-        <div className="flex flex-wrap">
-          {topics.map(topic => (
-            <div 
-              key={topic.id}
-              className={`px-4 py-2 rounded-full mr-2 mb-2 cursor-pointer transition-colors ${
-                selectedTopic && selectedTopic.id === topic.id 
-                  ? 'bg-purple-600 text-white' 
-                  : 'bg-purple-100 text-purple-800 hover:bg-purple-200'
-              }`}
-              onClick={() => changeTopic(topic)}
-            >
-              {topic.name}
-            </div>
-          ))}
-        </div>
-      </div>
-      
-      {/* Difficulty selection */}
-      <div className="mb-8">
-        <h2 className="text-xl font-semibold text-gray-700 mb-4">Difficulty Level</h2>
-        <div className="flex">
-          <button 
-            className={`px-4 py-2 rounded-lg mr-2 ${
-              difficulty === 'easy' 
-                ? 'bg-green-600 text-white' 
-                : 'bg-green-100 text-green-800 hover:bg-green-200'
-            }`}
-            onClick={() => changeDifficulty('easy')}
-          >
-            Easy
-          </button>
-          <button 
-            className={`px-4 py-2 rounded-lg mr-2 ${
-              difficulty === 'intermediate' 
-                ? 'bg-blue-600 text-white' 
-                : 'bg-blue-100 text-blue-800 hover:bg-blue-200'
-            }`}
-            onClick={() => changeDifficulty('intermediate')}
-          >
-            Intermediate
-          </button>
-          <button 
-            className={`px-4 py-2 rounded-lg ${
-              difficulty === 'hard' 
-                ? 'bg-red-600 text-white' 
-                : 'bg-red-100 text-red-800 hover:bg-red-200'
-            }`}
-            onClick={() => changeDifficulty('hard')}
-          >
-            Hard
-          </button>
-        </div>
-      </div>
-      
-      {/* Game interface */}
-      {currentGame ? (
-        <div className="bg-white rounded-lg shadow-lg p-6">
-          <div className="flex justify-between items-center mb-4">
-            <div>
-              <h2 className="text-xl font-bold text-gray-800">{selectedTopic.name}</h2>
-              <div className="flex items-center mt-1">
-                <span className={`text-xs font-semibold px-2 py-1 rounded-full ${
-                  difficulty === 'easy' ? 'bg-green-100 text-green-800' :
-                  difficulty === 'intermediate' ? 'bg-blue-100 text-blue-800' :
-                  'bg-red-100 text-red-800'
-                }`}>
-                  {difficulty.charAt(0).toUpperCase() + difficulty.slice(1)}
-                </span>
-                <span className="text-sm text-gray-500 ml-2">
-                  {inputType === 'text' ? '1 credit per message' : 
-                   inputType === 'image' ? '2 credits per message' : 
-                   '1.5 credits per message'}
-                </span>
-              </div>
-            </div>
-          </div>
-          
-          {/* Chat container */}
-          <div 
+
+      {currentGame && (
+        <div className="mt-4 border rounded-lg p-4">
+          <div
             ref={chatContainerRef}
-            className="bg-gray-50 rounded-lg p-4 mb-4 h-96 overflow-y-auto"
+            className="h-96 overflow-y-auto space-y-4 mb-4"
           >
             {messages.map((message, index) => (
-              <div 
+              <div
                 key={index}
-                className={`mb-4 ${
-                  message.role === 'user' ? 'text-right' : 
-                  message.role === 'system' ? 'text-center' : ''
+                className={`flex ${
+                  message.role === 'user' ? 'justify-end' : 'justify-start'
                 }`}
               >
-                {message.role === 'system' ? (
-                  <div className="bg-gray-200 text-gray-800 inline-block px-4 py-2 rounded-lg">
-                    {message.content}
-                  </div>
-                ) : (
-                  <div 
-                    className={`inline-block px-4 py-2 rounded-lg max-w-3/4 ${
-                      message.role === 'user' 
-                        ? 'bg-purple-100 text-purple-800' 
-                        : 'bg-white border border-gray-200 text-gray-800'
-                    }`}
-                  >
-                    {message.content}
-                  </div>
-                )}
+                <div
+                  className={`max-w-3/4 p-3 rounded-lg ${
+                    message.role === 'user'
+                      ? 'bg-primary-100 text-gray-900'
+                      : 'bg-gray-100 text-gray-900'
+                  }`}
+                >
+                  {message.content}
+                </div>
               </div>
             ))}
-            
-            {loading && (
-              <div className="flex justify-center items-center py-4">
-                <div className="animate-bounce mr-2">●</div>
-                <div className="animate-bounce animation-delay-200 mr-2">●</div>
-                <div className="animate-bounce animation-delay-400">●</div>
-              </div>
-            )}
           </div>
-          
-          {/* Input area */}
-          <div className="flex flex-col">
-            <div className="flex mb-2">
-              <button 
-                className={`mr-2 px-3 py-1 rounded-lg ${
-                  inputType === 'text' 
-                    ? 'bg-purple-600 text-white' 
-                    : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
-                }`}
-                onClick={() => setInputType('text')}
-              >
-                Text
-              </button>
-              <button 
-                className={`mr-2 px-3 py-1 rounded-lg ${
-                  inputType === 'image' 
-                    ? 'bg-purple-600 text-white' 
-                    : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
-                }`}
-                onClick={() => handleInputTypeChange('image')}
-              >
-                Image
-              </button>
-              <button 
-                className={`px-3 py-1 rounded-lg ${
-                  inputType === 'audio' 
-                    ? 'bg-purple-600 text-white' 
-                    : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
-                }`}
-                onClick={() => handleInputTypeChange('audio')}
-              >
-                Audio
-              </button>
-              <input 
-                type="file" 
-                id="image-upload" 
-                accept="image/*" 
-                className="hidden" 
-                onChange={handleImageUpload} 
-              />
-            </div>
-            
-            <div className="flex items-center">
-              <div className="flex-grow">
-                <input 
-                  type="text"
-                  value={userInput}
-                  onChange={(e) => setUserInput(e.target.value)}
-                  placeholder={
-                    inputType === 'text' ? "Type your message..." :
-                    inputType === 'image' ? "Describe your image..." :
-                    "Say something about your audio..."
-                  }
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
-                />
-              </div>
-              <button 
-                className="bg-purple-600 text-white p-2 rounded-lg ml-2 hover:bg-purple-700 transition-colors"
-                onClick={sendMessage}
-                disabled={loading}
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
-                </svg>
-              </button>
-            </div>
-            
-            {imageData && (
-              <div className="mt-2 p-2 bg-gray-100 rounded-lg">
-                <p className="text-sm text-gray-600">Image selected. Click send to upload.</p>
-              </div>
-            )}
-            
-            {audioData && (
-              <div className="mt-2 p-2 bg-gray-100 rounded-lg">
-                <p className="text-sm text-gray-600">Audio recorded. Click send to upload.</p>
-              </div>
-            )}
+
+          <div className="flex items-center space-x-2">
+            <input
+              type="text"
+              value={userInput}
+              onChange={(e) => setUserInput(e.target.value)}
+              onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
+              className="flex-1 px-4 py-2 border rounded-md"
+              placeholder="Type your message..."
+            />
+            <button
+              onClick={() => handleInputTypeChange('image')}
+              className="p-2 text-gray-600 hover:text-primary-600"
+            >
+              <i className="fas fa-image"></i>
+            </button>
+            <button
+              onClick={() => handleInputTypeChange('audio')}
+              className="p-2 text-gray-600 hover:text-primary-600"
+            >
+              <i className="fas fa-microphone"></i>
+            </button>
+            <button
+              onClick={sendMessage}
+              disabled={loading}
+              className="px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 transition-colors"
+            >
+              {loading ? 'Sending...' : 'Send'}
+            </button>
           </div>
-        </div>
-      ) : (
-        <div className="bg-white rounded-lg shadow-lg p-6 text-center">
-          <h2 className="text-xl font-bold text-gray-800 mb-4">Ready to Play?</h2>
-          <p className="text-gray-600 mb-6">
-            Select a topic and difficulty level, then click "New Game" to start learning AI skills through interactive gameplay.
-          </p>
-          <button 
-            className="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 transition-colors"
-            onClick={startNewGame}
-          >
-            Start New Game
-          </button>
         </div>
       )}
     </div>

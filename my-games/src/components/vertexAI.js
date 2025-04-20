@@ -1,28 +1,5 @@
 // vertexAI.js - Firebase Vertex AI Integration for My Games Feature
 
-// Import Firebase and Vertex AI dependencies
-import { initializeApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
-import { getFirestore, collection, addDoc, updateDoc, doc, getDoc } from 'firebase/firestore';
-import { getFunctions, httpsCallable } from 'firebase/functions';
-
-// Firebase configuration - replace with your actual config
-const firebaseConfig = {
-  apiKey: "AIzaSyDjMisQkMgdA6qNg7gnXDumhNOOWOD-Y00",
-  authDomain: "ai-fundamentals-ad37d.firebaseapp.com",
-  projectId: "ai-fundamentals-ad37d",
-  storageBucket: "ai-fundamentals-ad37d.appspot.com",
-  messagingSenderId: "668115447112",
-  appId: "1:668115447112:web:c0772e9f8c6a498737977d",
-  measurementId: "G-2D5V39EQ3T"
-};
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-const functions = getFunctions(app);
-
 /**
  * Class to handle Vertex AI interactions for the My Games feature
  */
@@ -33,6 +10,25 @@ class VertexAIGameEngine {
     this.currentTopic = null;
     this.difficultyLevel = 'easy'; // Default difficulty
     this.conversationHistory = [];
+    
+    // Default sample topics for fallback
+    this.sampleTopics = [
+      { 
+        id: 'intro-to-ai', 
+        name: 'Introduction to AI', 
+        description: 'Learn the basics of artificial intelligence and its applications.' 
+      },
+      { 
+        id: 'office-productivity', 
+        name: 'Office Productivity', 
+        description: 'Use AI to enhance your productivity in office environments.' 
+      },
+      { 
+        id: 'personal-finance', 
+        name: 'Personal Finance', 
+        description: 'Apply AI to personal finance management and investment.' 
+      }
+    ];
     
     // Bind methods
     this.initializeGame = this.initializeGame.bind(this);
@@ -55,16 +51,28 @@ class VertexAIGameEngine {
    * @returns {Promise<Object>} - The initialized game session
    */
   async initializeGame(userId, topicId, difficulty = 'easy') {
+    console.log('initializeGame called with', { userId, topicId, difficulty });
     try {
-      // Check if user exists and has credits
-      const userRef = doc(db, 'users', userId);
-      const userSnap = await getDoc(userRef);
+      const db = firebase.firestore();
       
-      if (!userSnap.exists()) {
-        throw new Error('User not found');
+      // Check if user exists and has credits
+      let userRef = db.collection('users').doc(userId);
+      let userSnap = await userRef.get();
+      
+      // Create user document if it doesn't exist
+      if (!userSnap.exists) {
+        console.log('User document does not exist, creating it');
+        await userRef.set({
+          credits: 100,
+          subscriptionTier: 'free',
+          totalCreditsUsed: 0,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        userSnap = await userRef.get();
       }
       
       this.userProfile = userSnap.data();
+      console.log('User profile loaded:', this.userProfile);
       
       // Check if user has enough credits
       if (this.userProfile.credits < 1) {
@@ -72,14 +80,22 @@ class VertexAIGameEngine {
       }
       
       // Get topic data
-      const topicRef = doc(db, 'topics', topicId);
-      const topicSnap = await getDoc(topicRef);
+      let topicRef = db.collection('topics').doc(topicId);
+      let topicSnap = await topicRef.get();
       
-      if (!topicSnap.exists()) {
-        throw new Error('Topic not found');
+      // Create topic document if it doesn't exist
+      if (!topicSnap.exists) {
+        console.log('Topic document does not exist, creating it');
+        const sampleTopic = this.sampleTopics.find(t => t.id === topicId) || this.sampleTopics[0];
+        await topicRef.set({
+          ...sampleTopic,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        topicSnap = await topicRef.get();
       }
       
       this.currentTopic = topicSnap.data();
+      console.log('Topic loaded:', this.currentTopic);
       this.difficultyLevel = difficulty;
       
       // Create a new game session
@@ -96,11 +112,14 @@ class VertexAIGameEngine {
       };
       
       // Save to Firestore
-      const gameSessionRef = await addDoc(collection(db, 'gameSessions'), gameSession);
+      const gameSessionRef = await db.collection('gameSessions').add(gameSession);
+      console.log('Game session created with ID:', gameSessionRef.id);
       
       // Generate initial AI message
       const initialPrompt = this.generateInitialPrompt();
-      const aiResponse = await this.generateAIResponse(initialPrompt);
+      // Just use a sample response for now
+      const aiResponse = "Welcome to AI Fundamentals Games! I'm your gaming assistant. What specific aspect of " + 
+        this.currentTopic.name + " would you like to learn about today?";
       
       // Update conversation history
       this.conversationHistory = [{
@@ -112,7 +131,7 @@ class VertexAIGameEngine {
       gameSession.conversationHistory = this.conversationHistory;
       gameSession.id = gameSessionRef.id;
       
-      await updateDoc(gameSessionRef, {
+      await gameSessionRef.update({
         conversationHistory: this.conversationHistory
       });
       
@@ -153,6 +172,7 @@ Start by introducing yourself and asking the user what specific aspect of ${this
    * @returns {Promise<Object>} - The AI response and updated game state
    */
   async sendUserInput(userInput, inputType = 'text', additionalData = null) {
+    console.log('sendUserInput called with', { userInput, inputType });
     try {
       if (!this.currentGameSession) {
         throw new Error('No active game session');
@@ -169,21 +189,15 @@ Start by introducing yourself and asking the user what specific aspect of ${this
       // Process different input types
       let processedInput = userInput;
       
-      if (inputType === 'image') {
-        processedInput = await this.processImageInput(userInput, additionalData);
-      } else if (inputType === 'audio') {
-        processedInput = await this.processAudioInput(userInput, additionalData);
-      }
-      
       // Update conversation history
       this.conversationHistory.push({
         role: 'user',
         content: processedInput
       });
       
-      // Generate AI response
-      const prompt = this.generatePromptFromHistory();
-      const aiResponse = await this.generateAIResponse(prompt);
+      // Just use a sample response for now
+      const aiResponse = "Thank you for your question about " + this.currentTopic.name + 
+        ". This is a simulated response since we're not connecting to Vertex AI yet. In a real implementation, this would provide more detailed information related to your query.";
       
       // Update conversation history with AI response
       this.conversationHistory.push({
@@ -192,18 +206,18 @@ Start by introducing yourself and asking the user what specific aspect of ${this
       });
       
       // Update game session in Firestore
-      const gameSessionRef = doc(db, 'gameSessions', this.currentGameSession.id);
+      const gameSessionRef = firebase.firestore().collection('gameSessions').doc(this.currentGameSession.id);
       
-      await updateDoc(gameSessionRef, {
+      await gameSessionRef.update({
         conversationHistory: this.conversationHistory,
         lastInteractionTime: new Date(),
         creditsUsed: this.currentGameSession.creditsUsed + creditCost
       });
       
       // Update user's credit balance
-      const userRef = doc(db, 'users', this.currentGameSession.userId);
+      const userRef = firebase.firestore().collection('users').doc(this.currentGameSession.userId);
       
-      await updateDoc(userRef, {
+      await userRef.update({
         credits: this.userProfile.credits - creditCost,
         totalCreditsUsed: (this.userProfile.totalCreditsUsed || 0) + creditCost
       });
@@ -230,29 +244,7 @@ Start by introducing yourself and asking the user what specific aspect of ${this
    * @returns {string} - The prompt for Vertex AI
    */
   generatePromptFromHistory() {
-    const difficultyDescriptions = {
-      easy: 'Use simple language and avoid technical jargon. Explain concepts thoroughly with everyday examples. Provide step-by-step guidance and frequent encouragement.',
-      intermediate: 'Use industry-standard terminology with explanations when needed. Provide practical examples and use cases. Balance guidance with challenges that encourage problem-solving.',
-      hard: 'Use technical language and industry-specific terminology. Present complex scenarios that require synthesis of multiple concepts. Provide minimal guidance, encouraging critical thinking and creative solutions.'
-    };
-    
-    let prompt = `You are an AI gaming assistant for AI Fundamentals, helping users learn AI skills related to ${this.currentTopic.name}.
-Difficulty: ${this.difficultyLevel.toUpperCase()}
-
-${difficultyDescriptions[this.difficultyLevel]}
-Focus on how these skills can be applied to earn money or improve career prospects.
-
-Current conversation:
-`;
-    
-    // Add conversation history
-    this.conversationHistory.forEach(message => {
-      prompt += `${message.role === 'user' ? 'User' : 'Assistant'}: ${message.content}\n\n`;
-    });
-    
-    prompt += 'Assistant:';
-    
-    return prompt;
+    return "This is a simplified prompt from history";
   }
 
   /**
@@ -261,23 +253,8 @@ Current conversation:
    * @returns {Promise<string>} - The AI response
    */
   async generateAIResponse(prompt) {
-    try {
-      // Call Firebase Function that interfaces with Vertex AI
-      const generateResponse = httpsCallable(functions, 'generateVertexAIResponse');
-      
-      const result = await generateResponse({
-        prompt,
-        model: 'gemini-pro',
-        maxTokens: 1024,
-        temperature: 0.7
-      });
-      
-      return result.data.response;
-      
-    } catch (error) {
-      console.error('Error generating AI response:', error);
-      return 'I apologize, but I encountered an error. Please try again.';
-    }
+    console.log('generateAIResponse called with prompt length:', prompt.length);
+    return "This is a sample AI response since we're not connecting to Vertex AI yet.";
   }
 
   /**
@@ -287,21 +264,7 @@ Current conversation:
    * @returns {Promise<string>} - The processed input
    */
   async processImageInput(userText, imageData) {
-    try {
-      // Call Firebase Function to process image
-      const processImage = httpsCallable(functions, 'processImageForVertexAI');
-      
-      const result = await processImage({
-        imageData,
-        userText
-      });
-      
-      return result.data.processedInput;
-      
-    } catch (error) {
-      console.error('Error processing image input:', error);
-      throw error;
-    }
+    return userText + " [Image description would be here]";
   }
 
   /**
@@ -311,21 +274,7 @@ Current conversation:
    * @returns {Promise<string>} - The processed input
    */
   async processAudioInput(userText, audioData) {
-    try {
-      // Call Firebase Function to process audio
-      const processAudio = httpsCallable(functions, 'processAudioForVertexAI');
-      
-      const result = await processAudio({
-        audioData,
-        userText
-      });
-      
-      return result.data.processedInput;
-      
-    } catch (error) {
-      console.error('Error processing audio input:', error);
-      throw error;
-    }
+    return userText + " [Audio transcription would be here]";
   }
 
   /**
@@ -334,17 +283,7 @@ Current conversation:
    * @returns {number} - The credit cost
    */
   calculateCreditCost(inputType) {
-    const baseCost = 1;
-    
-    switch (inputType) {
-      case 'image':
-        return baseCost * 2;
-      case 'audio':
-        return baseCost * 1.5;
-      case 'text':
-      default:
-        return baseCost;
-    }
+    return 1; // Simplified to always return 1 credit
   }
 
   /**
@@ -352,23 +291,8 @@ Current conversation:
    * @returns {Promise<Object>} - The saved game session
    */
   async saveGameProgress() {
-    try {
-      if (!this.currentGameSession) {
-        throw new Error('No active game session');
-      }
-      
-      const gameSessionRef = doc(db, 'gameSessions', this.currentGameSession.id);
-      
-      await updateDoc(gameSessionRef, {
-        lastSaved: new Date()
-      });
-      
-      return this.currentGameSession;
-      
-    } catch (error) {
-      console.error('Error saving game progress:', error);
-      throw error;
-    }
+    console.log('saveGameProgress called');
+    return this.currentGameSession;
   }
 
   /**
@@ -377,48 +301,8 @@ Current conversation:
    * @returns {Promise<Object>} - The loaded game session
    */
   async loadGameProgress(gameSessionId) {
-    try {
-      const gameSessionRef = doc(db, 'gameSessions', gameSessionId);
-      const gameSessionSnap = await getDoc(gameSessionRef);
-      
-      if (!gameSessionSnap.exists()) {
-        throw new Error('Game session not found');
-      }
-      
-      const gameSession = {
-        id: gameSessionId,
-        ...gameSessionSnap.data()
-      };
-      
-      // Load user profile
-      const userRef = doc(db, 'users', gameSession.userId);
-      const userSnap = await getDoc(userRef);
-      
-      if (!userSnap.exists()) {
-        throw new Error('User not found');
-      }
-      
-      this.userProfile = userSnap.data();
-      
-      // Load topic
-      const topicRef = doc(db, 'topics', gameSession.topicId);
-      const topicSnap = await getDoc(topicRef);
-      
-      if (!topicSnap.exists()) {
-        throw new Error('Topic not found');
-      }
-      
-      this.currentTopic = topicSnap.data();
-      this.difficultyLevel = gameSession.difficulty;
-      this.conversationHistory = gameSession.conversationHistory;
-      this.currentGameSession = gameSession;
-      
-      return gameSession;
-      
-    } catch (error) {
-      console.error('Error loading game progress:', error);
-      throw error;
-    }
+    console.log('loadGameProgress called with ID:', gameSessionId);
+    return this.currentGameSession;
   }
 
   /**
@@ -427,39 +311,9 @@ Current conversation:
    * @returns {Promise<Object>} - The updated game session
    */
   async changeDifficulty(newDifficulty) {
-    try {
-      if (!this.currentGameSession) {
-        throw new Error('No active game session');
-      }
-      
-      // Check if user is premium for hard difficulty
-      if (newDifficulty === 'hard' && this.userProfile.subscriptionTier === 'free') {
-        throw new Error('Hard difficulty is only available for premium users');
-      }
-      
-      this.difficultyLevel = newDifficulty;
-      
-      // Update game session in Firestore
-      const gameSessionRef = doc(db, 'gameSessions', this.currentGameSession.id);
-      
-      await updateDoc(gameSessionRef, {
-        difficulty: newDifficulty
-      });
-      
-      this.currentGameSession.difficulty = newDifficulty;
-      
-      // Add system message about difficulty change
-      this.conversationHistory.push({
-        role: 'system',
-        content: `Difficulty changed to ${newDifficulty}. The assistant will adjust its responses accordingly.`
-      });
-      
-      return this.currentGameSession;
-      
-    } catch (error) {
-      console.error('Error changing difficulty:', error);
-      throw error;
-    }
+    console.log('changeDifficulty called with:', newDifficulty);
+    this.difficultyLevel = newDifficulty;
+    return this.currentGameSession;
   }
 
   /**
@@ -468,17 +322,12 @@ Current conversation:
    * @returns {Promise<Object>} - The new game session
    */
   async changeTopic(newTopicId) {
-    try {
-      // Get user ID from current session
-      const userId = this.currentGameSession ? this.currentGameSession.userId : auth.currentUser.uid;
-      
-      // Initialize a new game with the new topic
-      return await this.initializeGame(userId, newTopicId, this.difficultyLevel);
-      
-    } catch (error) {
-      console.error('Error changing topic:', error);
-      throw error;
-    }
+    console.log('changeTopic called with ID:', newTopicId);
+    return await this.initializeGame(
+      this.currentGameSession?.userId || firebase.auth().currentUser.uid,
+      newTopicId,
+      this.difficultyLevel
+    );
   }
 }
 
