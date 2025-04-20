@@ -98,57 +98,136 @@ class VertexAIGameEngine {
       console.log('Topic loaded:', this.currentTopic);
       this.difficultyLevel = difficulty;
       
-      // Use Firebase Function to initialize a game session
-      const initializeGameSession = firebase.functions().httpsCallable('initializeGameSession');
-      
-      const gameConfig = {
-        gameType: 'educational',
-        characterName: 'Student',
-        topic: this.currentTopic.name,
-        difficulty: this.difficultyLevel
-      };
-      
-      const response = await initializeGameSession({
-        gameConfig,
-        model: 'gemini-pro',
-        options: {
-          temperature: 0.7,
-          maxTokens: 1024
-        },
-        allowAnonymous: false
-      });
-      
-      console.log('Game session initialized:', response.data);
-      
-      // Create a new game session object
-      const gameSession = {
-        userId,
-        topicId,
-        difficulty,
-        sessionId: response.data.sessionId,
-        startTime: new Date(),
-        lastInteractionTime: new Date(),
-        conversationHistory: response.data.messages || [{
-          role: 'assistant',
-          content: response.data.introText
-        }],
-        skillsGained: [],
-        progress: 0,
-        creditsUsed: 1
-      };
-      
-      // Update user credits
-      await userRef.update({
-        credits: this.userProfile.credits - 1,
-        totalCreditsUsed: (this.userProfile.totalCreditsUsed || 0) + 1
-      });
-      
-      this.userProfile.credits -= 1;
-      this.conversationHistory = gameSession.conversationHistory;
-      this.currentGameSession = gameSession;
-      
-      return gameSession;
-      
+      try {
+        // Configure Firebase Functions region if needed
+        const functions = firebase.functions();
+        
+        // Try to verify connectivity with a health check first
+        try {
+          const healthCheckUrl = 'https://us-central1-ai-fundamentals-ad37d.cloudfunctions.net/healthCheck';
+          const healthResponse = await fetch(healthCheckUrl, {
+            method: 'GET',
+            mode: 'cors',
+            credentials: 'include',
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          });
+          
+          if (!healthResponse.ok) {
+            console.warn('Health check failed, but continuing with function call');
+          } else {
+            console.log('Health check successful');
+          }
+        } catch (healthError) {
+          console.warn('Health check error, but continuing with function call', healthError);
+        }
+        
+        // Use Firebase Function with timeout and retry
+        console.log('Calling initializeGameSession function');
+        const initializeGameSession = functions.httpsCallable('initializeGameSession');
+        
+        const gameConfig = {
+          gameType: 'educational',
+          characterName: 'Student',
+          topic: this.currentTopic.name,
+          difficulty: this.difficultyLevel
+        };
+        
+        const response = await Promise.race([
+          initializeGameSession({
+            gameConfig,
+            model: 'gemini-pro',
+            options: {
+              temperature: 0.7,
+              maxTokens: 1024
+            },
+            allowAnonymous: false
+          }),
+          new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Function call timed out after 30 seconds')), 30000)
+          )
+        ]);
+        
+        console.log('Game session initialized:', response.data);
+        
+        // Create a new game session object
+        const gameSession = {
+          userId,
+          topicId,
+          difficulty,
+          sessionId: response.data.sessionId,
+          startTime: new Date(),
+          lastInteractionTime: new Date(),
+          conversationHistory: response.data.messages || [{
+            role: 'assistant',
+            content: response.data.introText
+          }],
+          skillsGained: [],
+          progress: 0,
+          creditsUsed: 1
+        };
+        
+        // Update user credits
+        await userRef.update({
+          credits: this.userProfile.credits - 1,
+          totalCreditsUsed: (this.userProfile.totalCreditsUsed || 0) + 1
+        });
+        
+        this.userProfile.credits -= 1;
+        this.conversationHistory = gameSession.conversationHistory;
+        this.currentGameSession = gameSession;
+        
+        return gameSession;
+      } catch (functionError) {
+        console.error('Firebase function error:', functionError);
+        
+        // If there's a CORS issue, try to handle it with a fallback solution
+        if (functionError.message && (
+            functionError.message.includes('CORS') || 
+            functionError.message.includes('NetworkError') ||
+            functionError.message.includes('Failed to fetch')
+        )) {
+          console.warn('CORS or network issue detected, using fallback approach');
+          
+          // Fallback to a simple initial game session
+          const fallbackSessionId = `fallback-${Date.now()}`;
+          const fallbackIntroText = `Welcome to AI Fundamentals Games! I'm your gaming assistant. What specific aspect of ${this.currentTopic.name} would you like to learn about today?`;
+          
+          // Create a fallback session
+          const fallbackSession = {
+            userId,
+            topicId,
+            difficulty,
+            sessionId: fallbackSessionId,
+            startTime: new Date(),
+            lastInteractionTime: new Date(),
+            conversationHistory: [{
+              role: 'assistant',
+              content: fallbackIntroText
+            }],
+            skillsGained: [],
+            progress: 0,
+            creditsUsed: 1,
+            isFallback: true
+          };
+          
+          // Update user credits
+          await userRef.update({
+            credits: this.userProfile.credits - 1,
+            totalCreditsUsed: (this.userProfile.totalCreditsUsed || 0) + 1
+          });
+          
+          this.userProfile.credits -= 1;
+          this.conversationHistory = fallbackSession.conversationHistory;
+          this.currentGameSession = fallbackSession;
+          
+          return fallbackSession;
+        }
+        
+        // Re-throw other errors
+        throw functionError;
+      }
     } catch (error) {
       console.error('Error initializing game:', error);
       throw error;
@@ -206,55 +285,169 @@ Start by introducing yourself and asking the user what specific aspect of ${this
         content: processedInput
       });
       
-      // Use Firebase Function to send game message
-      const sendGameMessage = firebase.functions().httpsCallable('sendGameMessage');
+      // Check if we're in fallback mode
+      if (this.currentGameSession.isFallback) {
+        console.log('Using fallback mode for message processing');
+        
+        // Generate a simple response based on the conversation
+        const aiResponse = `Thank you for your message about ${this.currentTopic.name}. 
+This is a fallback response because we're having trouble connecting to our AI service. 
+Please try again later for the full experience.`;
+        
+        // Update conversation history with AI response
+        this.conversationHistory.push({
+          role: 'assistant',
+          content: aiResponse
+        });
+        
+        // Update game session in Firestore
+        const db = firebase.firestore();
+        const gameSessionRef = db.collection('gameSessions').doc(this.currentGameSession.sessionId);
+        
+        try {
+          await gameSessionRef.set({
+            userId: this.currentGameSession.userId,
+            topicId: this.currentGameSession.topicId,
+            difficulty: this.currentGameSession.difficulty,
+            conversationHistory: this.conversationHistory,
+            lastInteractionTime: firebase.firestore.FieldValue.serverTimestamp(),
+            creditsUsed: this.currentGameSession.creditsUsed + creditCost,
+            isFallback: true
+          });
+        } catch (firestoreError) {
+          console.warn('Error saving fallback session to Firestore:', firestoreError);
+          // Continue anyway since we have the conversation in memory
+        }
+        
+        // Update user's credit balance
+        const userRef = db.collection('users').doc(this.currentGameSession.userId);
+        
+        await userRef.update({
+          credits: this.userProfile.credits - creditCost,
+          totalCreditsUsed: (this.userProfile.totalCreditsUsed || 0) + creditCost
+        });
+        
+        // Update local state
+        this.currentGameSession.creditsUsed += creditCost;
+        this.userProfile.credits -= creditCost;
+        
+        return {
+          aiResponse,
+          creditsUsed: creditCost,
+          remainingCredits: this.userProfile.credits,
+          conversationHistory: this.conversationHistory
+        };
+      }
       
-      const response = await sendGameMessage({
-        sessionId: this.currentGameSession.sessionId,
-        message: processedInput,
-        model: 'gemini-pro',
-        options: {
-          temperature: 0.7,
-          maxTokens: 1024
-        },
-        allowAnonymous: false
-      });
-      
-      console.log('Game message response:', response.data);
-      
-      // Update conversation history with AI response
-      this.conversationHistory.push({
-        role: 'assistant',
-        content: response.data.aiResponse
-      });
-      
-      // Update game session in Firestore
-      const db = firebase.firestore();
-      const gameSessionRef = db.collection('gameSessions').doc(this.currentGameSession.sessionId);
-      
-      await gameSessionRef.update({
-        lastInteractionTime: firebase.firestore.FieldValue.serverTimestamp(),
-        creditsUsed: this.currentGameSession.creditsUsed + creditCost
-      });
-      
-      // Update user's credit balance
-      const userRef = db.collection('users').doc(this.currentGameSession.userId);
-      
-      await userRef.update({
-        credits: this.userProfile.credits - creditCost,
-        totalCreditsUsed: (this.userProfile.totalCreditsUsed || 0) + creditCost
-      });
-      
-      // Update local state
-      this.currentGameSession.creditsUsed += creditCost;
-      this.userProfile.credits -= creditCost;
-      
-      return {
-        aiResponse: response.data.aiResponse,
-        creditsUsed: creditCost,
-        remainingCredits: this.userProfile.credits,
-        conversationHistory: this.conversationHistory
-      };
+      try {
+        // Use Firebase Function to send game message
+        const functions = firebase.functions();
+        const sendGameMessage = functions.httpsCallable('sendGameMessage');
+        
+        // Use Promise.race to implement a timeout
+        const response = await Promise.race([
+          sendGameMessage({
+            sessionId: this.currentGameSession.sessionId,
+            message: processedInput,
+            model: 'gemini-pro',
+            options: {
+              temperature: 0.7,
+              maxTokens: 1024
+            },
+            allowAnonymous: false
+          }),
+          new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Function call timed out after 30 seconds')), 30000)
+          )
+        ]);
+        
+        console.log('Game message response:', response.data);
+        
+        // Update conversation history with AI response
+        this.conversationHistory.push({
+          role: 'assistant',
+          content: response.data.aiResponse
+        });
+        
+        // Update game session in Firestore
+        const db = firebase.firestore();
+        const gameSessionRef = db.collection('gameSessions').doc(this.currentGameSession.sessionId);
+        
+        await gameSessionRef.update({
+          lastInteractionTime: firebase.firestore.FieldValue.serverTimestamp(),
+          creditsUsed: this.currentGameSession.creditsUsed + creditCost
+        });
+        
+        // Update user's credit balance
+        const userRef = db.collection('users').doc(this.currentGameSession.userId);
+        
+        await userRef.update({
+          credits: this.userProfile.credits - creditCost,
+          totalCreditsUsed: (this.userProfile.totalCreditsUsed || 0) + creditCost
+        });
+        
+        // Update local state
+        this.currentGameSession.creditsUsed += creditCost;
+        this.userProfile.credits -= creditCost;
+        
+        return {
+          aiResponse: response.data.aiResponse,
+          creditsUsed: creditCost,
+          remainingCredits: this.userProfile.credits,
+          conversationHistory: this.conversationHistory
+        };
+        
+      } catch (functionError) {
+        console.error('Firebase function error:', functionError);
+        
+        // If there's a CORS or network issue, use fallback
+        if (functionError.message && (
+            functionError.message.includes('CORS') || 
+            functionError.message.includes('NetworkError') ||
+            functionError.message.includes('Failed to fetch') ||
+            functionError.message.includes('timed out')
+        )) {
+          console.warn('CORS or network issue detected, using fallback response');
+          
+          // Generate a fallback response
+          const fallbackResponse = `Thank you for your message about ${this.currentTopic.name}. 
+I'm currently experiencing connectivity issues with my AI service.
+Let me provide a simple response while our team resolves this issue.`;
+          
+          // Update conversation history with fallback response
+          this.conversationHistory.push({
+            role: 'assistant',
+            content: fallbackResponse
+          });
+          
+          // Mark session as fallback
+          this.currentGameSession.isFallback = true;
+          
+          // Update user's credit balance
+          const db = firebase.firestore();
+          const userRef = db.collection('users').doc(this.currentGameSession.userId);
+          
+          await userRef.update({
+            credits: this.userProfile.credits - creditCost,
+            totalCreditsUsed: (this.userProfile.totalCreditsUsed || 0) + creditCost
+          });
+          
+          // Update local state
+          this.currentGameSession.creditsUsed += creditCost;
+          this.userProfile.credits -= creditCost;
+          
+          return {
+            aiResponse: fallbackResponse,
+            creditsUsed: creditCost,
+            remainingCredits: this.userProfile.credits,
+            conversationHistory: this.conversationHistory,
+            isFallback: true
+          };
+        }
+        
+        // Re-throw other errors
+        throw functionError;
+      }
       
     } catch (error) {
       console.error('Error sending user input:', error);

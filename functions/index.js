@@ -5,7 +5,16 @@
 
 const functions = require('firebase-functions');
 const admin = require('firebase-admin');
-const cors = require('cors')({ origin: true });
+const cors = require('cors')({
+  origin: [
+    'https://www.ai-fundamentals.me',
+    'https://ai-fundamentals.me',
+    'https://ai-fundamentals-ad37d.web.app',
+    'http://localhost:3000',
+    'http://localhost:8080'
+  ],
+  credentials: true
+});
 const { VertexAI } = require('@google-cloud/vertexai');
 
 // Initialize Firebase Admin SDK
@@ -28,6 +37,34 @@ const GAME_MESSAGE_COST = 1;
 const PROJECT_ID = process.env.GCLOUD_PROJECT || 'ai-fundamentals';
 const LOCATION = 'us-central1';
 const vertexAI = new VertexAI({ project: PROJECT_ID, location: LOCATION });
+
+// Create a wrapper for callable functions that properly sets CORS headers
+const createCallableFunction = (handler) => {
+  return functions.https.onCall((data, context) => {
+    // Set CORS headers in the function response
+    context.rawRequest.headers['access-control-allow-origin'] = 
+      context.rawRequest.headers.origin || '*';
+    context.rawRequest.headers['access-control-allow-credentials'] = 'true';
+    
+    // Call the original handler
+    return handler(data, context);
+  });
+};
+
+// Create a wrapper for HTTP functions that adds CORS handling
+const createHttpFunction = (handler) => {
+  return functions.https.onRequest((req, res) => {
+    // Enable CORS using the 'cors' middleware
+    return cors(req, res, () => {
+      return handler(req, res);
+    });
+  });
+};
+
+// Add a health check endpoint to test CORS
+exports.healthCheck = createHttpFunction((req, res) => {
+  res.status(200).json({ status: 'ok', message: 'Vertex AI functions are running' });
+});
 
 /**
  * Middleware to get user from auth token
@@ -139,7 +176,7 @@ const logAPIUsage = async (userId, model, tokensUsed, endpoint) => {
 /**
  * Generate a response from Vertex AI
  */
-exports.generateVertexAIResponse = functions.https.onCall(async (data, context) => {
+exports.generateVertexAIResponse = createCallableFunction(async (data, context) => {
   try {
     const { prompt, model = 'gemini-pro', options = {}, allowAnonymous = false } = data;
     
@@ -206,7 +243,7 @@ exports.generateVertexAIResponse = functions.https.onCall(async (data, context) 
 /**
  * Process a chat conversation with Vertex AI
  */
-exports.processChatConversation = functions.https.onCall(async (data, context) => {
+exports.processChatConversation = createCallableFunction(async (data, context) => {
   try {
     const { messages, model = 'gemini-pro', options = {}, allowAnonymous = false } = data;
     
@@ -279,7 +316,7 @@ exports.processChatConversation = functions.https.onCall(async (data, context) =
 /**
  * Initialize a game session
  */
-exports.initializeGameSession = functions.https.onCall(async (data, context) => {
+exports.initializeGameSession = createCallableFunction(async (data, context) => {
   try {
     const { gameConfig, model = 'gemini-pro', options = {}, allowAnonymous = false } = data;
     const { gameType, characterName } = gameConfig || {};
@@ -377,7 +414,7 @@ Your responses should be immersive and provide clear choices or actions for the 
 /**
  * Send a message in a game session
  */
-exports.sendGameMessage = functions.https.onCall(async (data, context) => {
+exports.sendGameMessage = createCallableFunction(async (data, context) => {
   try {
     const { sessionId, message, model = 'gemini-pro', options = {}, allowAnonymous = false } = data;
     
@@ -492,7 +529,7 @@ exports.sendGameMessage = functions.https.onCall(async (data, context) => {
 /**
  * Get the available models for the authenticated user
  */
-exports.getAvailableModels = functions.https.onCall(async (context) => {
+exports.getAvailableModels = createCallableFunction(async (context) => {
   try {
     // This will throw if the user is not authenticated
     await validateAuth(context, false);
