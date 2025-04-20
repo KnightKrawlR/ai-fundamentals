@@ -1,0 +1,337 @@
+/* Additional styles for My Learning component */
+
+/* Fix 3D card effects */
+.perspective-1000 {
+    perspective: 1000px !important;
+}
+
+.transform-style-3d {
+    transform-style: preserve-3d !important;
+}
+
+.backface-hidden {
+    backface-visibility: hidden !important;
+}
+
+.rotate-y-180 {
+    transform: rotateY(180deg) !important;
+}
+
+/* Tailwind utility classes that might be missing */
+.flex {
+    display: flex !important;
+}
+
+.items-center {
+    align-items: center !important;
+}
+
+.justify-center {
+    justify-content: center !important;
+}
+
+.justify-between {
+    justify-content: space-between !important;
+}
+
+.text-center {
+    text-align: center !important;
+}
+
+.text-white {
+    color: white !important;
+}
+
+.text-gray-900 {
+    color: #1a202c !important;
+}
+
+.text-gray-500 {
+    color: #6b7280 !important;
+}
+
+.text-gray-600 {
+    color: #4b5563 !important;
+}
+
+.text-purple-600 {
+    color: #7c3aed !important;
+}
+
+.bg-purple-600 {
+    background-color: #7c3aed !important;
+}
+
+.bg-white {
+    background-color: white !important;
+}
+
+.bg-gray-100 {
+    background-color: #f3f4f6 !important;
+}
+
+.rounded-xl {
+    border-radius: 0.75rem !important;
+}
+
+.rounded-full {
+    border-radius: 9999px !important;
+}
+
+.rounded-lg {
+    border-radius: 0.5rem !important;
+}
+
+.border-2 {
+    border-width: 2px !important;
+}
+
+.border-purple-600 {
+    border-color: #7c3aed !important;
+}
+
+.p-8 {
+    padding: 2rem !important;
+}
+
+.p-2 {
+    padding: 0.5rem !important;
+}
+
+.px-4 {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+}
+
+.py-2 {
+    padding-top: 0.5rem !important;
+    padding-bottom: 0.5rem !important;
+}
+
+.py-3 {
+    padding-top: 0.75rem !important;
+    padding-bottom: 0.75rem !important;
+}
+
+.px-6 {
+    padding-left: 1.5rem !important;
+    padding-right: 1.5rem !important;
+}
+
+.mb-2 {
+    margin-bottom: 0.5rem !important;
+}
+
+.mb-4 {
+    margin-bottom: 1rem !important;
+}
+
+.mb-6 {
+    margin-bottom: 1.5rem !important;
+}
+
+.mb-8 {
+    margin-bottom: 2rem !important;
+}
+
+.mt-4 {
+    margin-top: 1rem !important;
+}
+
+.grid {
+    display: grid !important;
+}
+
+.grid-cols-4 {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+}
+
+.gap-4 {
+    gap: 1rem !important;
+}
+
+.gap-2 {
+    gap: 0.5rem !important;
+}
+
+.aspect-\[4\/3\] {
+    aspect-ratio: 4/3 !important;
+}
+
+.aspect-\[3\/4\] {
+    aspect-ratio: 3/4 !important;
+}
+
+.absolute {
+    position: absolute !important;
+}
+
+.relative {
+    position: relative !important;
+}
+
+.inset-0 {
+    top: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    left: 0 !important;
+}
+
+.cursor-pointer {
+    cursor: pointer !important;
+}
+
+.hidden {
+    display: none !important;
+}
+
+.hover\:bg-gray-100:hover {
+    background-color: #f3f4f6 !important;
+}
+
+.hover\:bg-gray-200:hover {
+    background-color: #e5e7eb !important;
+}
+
+.hover\:bg-gray-50:hover {
+    background-color: #f9fafb !important;
+}
+
+.hover\:bg-purple-700:hover {
+    background-color: #6d28d9 !important;
+}
+
+.transition-colors {
+    transition-property: background-color, border-color, color, fill, stroke !important;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1) !important;
+    transition-duration: 150ms !important;
+}
+
+.transition-transform {
+    transition-property: transform !important;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1) !important;
+    transition-duration: 150ms !important;
+}
+
+.duration-500 {
+    transition-duration: 500ms !important;
+}
+
+.w-full {
+    width: 100% !important;
+}
+
+.h-full {
+    height: 100% !important;
+}
+
+.max-w-4xl {
+    max-width: 56rem !important;
+}
+
+.mx-auto {
+    margin-left: auto !important;
+    margin-right: auto !important;
+}
+
+.font-medium {
+    font-weight: 500 !important;
+}
+
+.font-bold {
+    font-weight: 700 !important;
+}
+
+.text-sm {
+    font-size: 0.875rem !important;
+    line-height: 1.25rem !important;
+}
+
+.text-xs {
+    font-size: 0.75rem !important;
+    line-height: 1rem !important;
+}
+
+.text-2xl {
+    font-size: 1.5rem !important;
+    line-height: 2rem !important;
+}
+
+.text-xl {
+    font-size: 1.25rem !important;
+    line-height: 1.75rem !important;
+}
+
+.uppercase {
+    text-transform: uppercase !important;
+}
+
+.tracking-wider {
+    letter-spacing: 0.05em !important;
+}
+
+.z-10 {
+    z-index: 10 !important;
+}
+
+.space-y-4 > * + * {
+    margin-top: 1rem !important;
+}
+
+.space-y-6 > * + * {
+    margin-top: 1.5rem !important;
+}
+
+/* Custom styles for the topic dropdown */
+.topic-dropdown {
+    position: relative;
+}
+
+.topic-dropdown-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 10;
+    max-height: 15rem;
+    overflow-y: auto;
+    background-color: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+/* Fix for the flashcard to ensure 3D effect works */
+.flashcard-container {
+    perspective: 1000px;
+}
+
+.flashcard-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transition: transform 0.6s;
+    transform-style: preserve-3d;
+}
+
+.flashcard-front,
+.flashcard-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.flashcard-front {
+    background-color: #7c3aed;
+    color: white;
+}
+
+.flashcard-back {
+    background-color: white;
+    border: 2px solid #7c3aed;
+    transform: rotateY(180deg);
+} 
