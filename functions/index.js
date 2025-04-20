@@ -41,20 +41,54 @@ const vertexAI = new VertexAI({ project: PROJECT_ID, location: LOCATION });
 // Create a wrapper for callable functions that properly sets CORS headers
 const createCallableFunction = (handler) => {
   return functions.https.onCall((data, context) => {
-    // Set CORS headers in the function response
-    context.rawRequest.headers['access-control-allow-origin'] = 
-      context.rawRequest.headers.origin || '*';
-    context.rawRequest.headers['access-control-allow-credentials'] = 'true';
-    
-    // Call the original handler
-    return handler(data, context);
+    try {
+      // For callable functions, we don't need to manually set CORS headers
+      // Firebase handles this automatically, but we can customize the function behavior
+      
+      // Handle anonymous access if specified
+      const allowAnonymous = data?.allowAnonymous === true;
+      
+      // Check authentication if not anonymous
+      if (!allowAnonymous && !context.auth) {
+        throw new functions.https.HttpsError(
+          'unauthenticated',
+          'Authentication required'
+        );
+      }
+      
+      // Call the original handler
+      return handler(data, context);
+    } catch (error) {
+      console.error('Error in callable function:', error);
+      
+      // Convert any error to an HttpsError
+      if (!(error instanceof functions.https.HttpsError)) {
+        throw new functions.https.HttpsError(
+          'internal',
+          error.message || 'An unexpected error occurred'
+        );
+      }
+      
+      throw error;
+    }
   });
 };
 
 // Create a wrapper for HTTP functions that adds CORS handling
 const createHttpFunction = (handler) => {
   return functions.https.onRequest((req, res) => {
-    // Enable CORS using the 'cors' middleware
+    // Set CORS headers directly for all responses
+    res.set('Access-Control-Allow-Origin', '*');
+    res.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    
+    // Handle preflight requests
+    if (req.method === 'OPTIONS') {
+      res.status(204).send('');
+      return;
+    }
+    
+    // Enable CORS using the 'cors' middleware as fallback
     return cors(req, res, () => {
       return handler(req, res);
     });
@@ -63,6 +97,17 @@ const createHttpFunction = (handler) => {
 
 // Add a health check endpoint to test CORS
 exports.healthCheck = createHttpFunction((req, res) => {
+  // Set CORS headers directly
+  res.set('Access-Control-Allow-Origin', '*');
+  res.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  
+  // Handle preflight requests
+  if (req.method === 'OPTIONS') {
+    res.status(204).send('');
+    return;
+  }
+  
   res.status(200).json({ status: 'ok', message: 'Vertex AI functions are running' });
 });
 

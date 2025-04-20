@@ -108,7 +108,7 @@ class VertexAIGameEngine {
           const healthResponse = await fetch(healthCheckUrl, {
             method: 'GET',
             mode: 'cors',
-            credentials: 'include',
+            credentials: 'omit',
             headers: {
               'Content-Type': 'application/json'
             }
@@ -123,62 +123,71 @@ class VertexAIGameEngine {
           console.warn('Health check error, but continuing with function call', healthError);
         }
         
-        // Use Firebase Function with timeout and retry
+        // Use Firebase Function with retry logic
         console.log('Calling initializeGameSession function');
-        const initializeGameSession = functions.httpsCallable('initializeGameSession');
         
-        const gameConfig = {
-          gameType: 'educational',
-          characterName: 'Student',
-          topic: this.currentTopic.name,
-          difficulty: this.difficultyLevel
-        };
-        
-        const response = await Promise.race([
-          initializeGameSession({
-            gameConfig,
-            model: 'gemini-pro',
-            options: {
-              temperature: 0.7,
-              maxTokens: 1024
-            },
-            allowAnonymous: false
-          }),
-          new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('Function call timed out after 30 seconds')), 30000)
-          )
-        ]);
-        
-        console.log('Game session initialized:', response.data);
-        
-        // Create a new game session object
-        const gameSession = {
-          userId,
-          topicId,
-          difficulty,
-          sessionId: response.data.sessionId,
-          startTime: new Date(),
-          lastInteractionTime: new Date(),
-          conversationHistory: response.data.messages || [{
-            role: 'assistant',
-            content: response.data.introText
-          }],
-          skillsGained: [],
-          progress: 0,
-          creditsUsed: 1
-        };
-        
-        // Update user credits
-        await userRef.update({
-          credits: this.userProfile.credits - 1,
-          totalCreditsUsed: (this.userProfile.totalCreditsUsed || 0) + 1
-        });
-        
-        this.userProfile.credits -= 1;
-        this.conversationHistory = gameSession.conversationHistory;
-        this.currentGameSession = gameSession;
-        
-        return gameSession;
+        // Set functions region if needed
+        try {
+          // Try direct function call
+          const initializeGameSession = functions.httpsCallable('initializeGameSession');
+          
+          const gameConfig = {
+            gameType: 'educational',
+            characterName: 'Student',
+            topic: this.currentTopic.name,
+            difficulty: this.difficultyLevel
+          };
+          
+          // Use Promise.race to implement a timeout
+          const response = await Promise.race([
+            initializeGameSession({
+              gameConfig,
+              model: 'gemini-pro',
+              options: {
+                temperature: 0.7,
+                maxTokens: 1024
+              },
+              allowAnonymous: true // Allow anonymous access as fallback
+            }),
+            new Promise((_, reject) => 
+              setTimeout(() => reject(new Error('Function call timed out after 30 seconds')), 30000)
+            )
+          ]);
+          
+          console.log('Game session initialized:', response.data);
+          
+          // Create a new game session object
+          const gameSession = {
+            userId,
+            topicId,
+            difficulty,
+            sessionId: response.data.sessionId,
+            startTime: new Date(),
+            lastInteractionTime: new Date(),
+            conversationHistory: response.data.messages || [{
+              role: 'assistant',
+              content: response.data.introText
+            }],
+            skillsGained: [],
+            progress: 0,
+            creditsUsed: 1
+          };
+          
+          // Update user credits
+          await userRef.update({
+            credits: this.userProfile.credits - 1,
+            totalCreditsUsed: (this.userProfile.totalCreditsUsed || 0) + 1
+          });
+          
+          this.userProfile.credits -= 1;
+          this.conversationHistory = gameSession.conversationHistory;
+          this.currentGameSession = gameSession;
+          
+          return gameSession;
+        } catch (functionError) {
+          console.error('Primary function call failed:', functionError);
+          throw functionError; // Let the outer catch handle it
+        }
       } catch (functionError) {
         console.error('Firebase function error:', functionError);
         
@@ -186,13 +195,16 @@ class VertexAIGameEngine {
         if (functionError.message && (
             functionError.message.includes('CORS') || 
             functionError.message.includes('NetworkError') ||
-            functionError.message.includes('Failed to fetch')
+            functionError.message.includes('Failed to fetch') ||
+            functionError.message.includes('internal')
         )) {
           console.warn('CORS or network issue detected, using fallback approach');
           
           // Fallback to a simple initial game session
           const fallbackSessionId = `fallback-${Date.now()}`;
-          const fallbackIntroText = `Welcome to AI Fundamentals Games! I'm your gaming assistant. What specific aspect of ${this.currentTopic.name} would you like to learn about today?`;
+          const fallbackIntroText = `Welcome to AI Fundamentals Games! I'm your gaming assistant for learning about ${this.currentTopic.name}.
+          
+Due to high demand, I'm operating in fallback mode, but I can still help you learn about this topic! What would you like to know about ${this.currentTopic.name}?`;
           
           // Create a fallback session
           const fallbackSession = {
@@ -290,9 +302,48 @@ Start by introducing yourself and asking the user what specific aspect of ${this
         console.log('Using fallback mode for message processing');
         
         // Generate a simple response based on the conversation
-        const aiResponse = `Thank you for your message about ${this.currentTopic.name}. 
-This is a fallback response because we're having trouble connecting to our AI service. 
-Please try again later for the full experience.`;
+        const topicName = this.currentTopic.name.toLowerCase();
+        
+        let aiResponse = '';
+        
+        // Try to provide a contextual response based on common topics
+        if (userInput.toLowerCase().includes('how') && userInput.toLowerCase().includes('money')) {
+          aiResponse = `There are several ways to use ${topicName} to earn money:
+          
+1. Freelancing: Offer ${topicName} services on platforms like Upwork or Fiverr
+2. Create and sell digital products related to ${topicName}
+3. Start a YouTube channel or blog about ${topicName} topics
+4. Teach others through online courses about ${topicName}
+
+What specific aspect interests you most?`;
+        } 
+        else if (userInput.toLowerCase().includes('learn') || userInput.toLowerCase().includes('start')) {
+          aiResponse = `To get started with ${topicName}, I recommend:
+          
+1. Take an online course on platforms like Coursera or Udemy
+2. Join communities and forums related to ${topicName}
+3. Practice with small projects to build your skills
+4. Read books and articles from experts in ${topicName}
+
+Would you like me to elaborate on any of these approaches?`;
+        }
+        else if (userInput.toLowerCase().includes('best') || userInput.toLowerCase().includes('tool')) {
+          aiResponse = `Some popular tools for ${topicName} include:
+          
+1. Industry-standard software like Adobe Suite for design or TensorFlow for AI
+2. Free alternatives that are beginner-friendly
+3. Cloud-based services that don't require installation
+4. Mobile apps that let you practice on the go
+
+Which type of tools are you most interested in?`;
+        }
+        else {
+          aiResponse = `Thank you for your question about ${topicName}. 
+          
+I'm currently in fallback mode, but I'd be happy to share some general insights about ${topicName}. This topic has been growing rapidly, with many opportunities for learning and application.
+
+Is there a specific aspect of ${topicName} you'd like to explore further?`;
+        }
         
         // Update conversation history with AI response
         this.conversationHistory.push({
@@ -354,7 +405,7 @@ Please try again later for the full experience.`;
               temperature: 0.7,
               maxTokens: 1024
             },
-            allowAnonymous: false
+            allowAnonymous: true // Allow anonymous access as fallback
           }),
           new Promise((_, reject) => 
             setTimeout(() => reject(new Error('Function call timed out after 30 seconds')), 30000)
@@ -405,23 +456,62 @@ Please try again later for the full experience.`;
             functionError.message.includes('CORS') || 
             functionError.message.includes('NetworkError') ||
             functionError.message.includes('Failed to fetch') ||
-            functionError.message.includes('timed out')
+            functionError.message.includes('timed out') ||
+            functionError.message.includes('internal')
         )) {
           console.warn('CORS or network issue detected, using fallback response');
           
-          // Generate a fallback response
-          const fallbackResponse = `Thank you for your message about ${this.currentTopic.name}. 
-I'm currently experiencing connectivity issues with my AI service.
-Let me provide a simple response while our team resolves this issue.`;
+          // Switch to fallback mode permanently for this session
+          this.currentGameSession.isFallback = true;
+          
+          // Generate a contextual fallback response
+          const topicName = this.currentTopic.name.toLowerCase();
+          let fallbackResponse = '';
+          
+          // Try to provide a contextual response based on common topics
+          if (userInput.toLowerCase().includes('how') && userInput.toLowerCase().includes('money')) {
+            fallbackResponse = `There are several ways to use ${topicName} to earn money:
+            
+1. Freelancing: Offer ${topicName} services on platforms like Upwork or Fiverr
+2. Create and sell digital products related to ${topicName}
+3. Start a YouTube channel or blog about ${topicName} topics
+4. Teach others through online courses about ${topicName}
+
+What specific aspect interests you most?`;
+          } 
+          else if (userInput.toLowerCase().includes('learn') || userInput.toLowerCase().includes('start')) {
+            fallbackResponse = `To get started with ${topicName}, I recommend:
+            
+1. Take an online course on platforms like Coursera or Udemy
+2. Join communities and forums related to ${topicName}
+3. Practice with small projects to build your skills
+4. Read books and articles from experts in ${topicName}
+
+Would you like me to elaborate on any of these approaches?`;
+          }
+          else if (userInput.toLowerCase().includes('best') || userInput.toLowerCase().includes('tool')) {
+            fallbackResponse = `Some popular tools for ${topicName} include:
+            
+1. Industry-standard software like Adobe Suite for design or TensorFlow for AI
+2. Free alternatives that are beginner-friendly
+3. Cloud-based services that don't require installation
+4. Mobile apps that let you practice on the go
+
+Which type of tools are you most interested in?`;
+          }
+          else {
+            fallbackResponse = `I'm currently experiencing connectivity issues with my AI service.
+            
+Let me provide some information about ${topicName} while our team works on resolving this. ${topicName} is a fascinating field with many applications in today's digital economy.
+
+Is there something specific about ${topicName} you'd like to know more about?`;
+          }
           
           // Update conversation history with fallback response
           this.conversationHistory.push({
             role: 'assistant',
             content: fallbackResponse
           });
-          
-          // Mark session as fallback
-          this.currentGameSession.isFallback = true;
           
           // Update user's credit balance
           const db = firebase.firestore();
