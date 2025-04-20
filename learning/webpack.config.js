@@ -5,7 +5,10 @@ module.exports = {
   output: {
     filename: 'learning-bundle.js',
     path: path.resolve(__dirname, 'dist'),
+    publicPath: '/learning/dist/'
   },
+  mode: 'production',
+  devtool: 'source-map',
   module: {
     rules: [
       {

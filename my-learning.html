@@ -184,12 +184,7 @@
         });
     </script>
 
-    <!-- Load the React app bundle -->
-    <script>
-        // Simple fix that won't break your hosting
-        const script = document.createElement('script');
-        script.src = "learning/dist/learning-bundle.js?" + new Date().getTime();
-        document.body.appendChild(script);
-      </script>      
+    <!-- React App Bundle -->
+    <script src="learning/dist/learning-bundle.js?v=1"></script>  
 </body>
 </html>
