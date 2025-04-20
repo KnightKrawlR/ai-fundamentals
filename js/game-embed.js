@@ -1,39 +1,59 @@
-// Game component definition
+// Interactive Study Portal for AI Fundamentals
+// This component provides a React-based learning experience with Flashcards, Match Game, and Tests
+
 const Game = () => {
+    // State variables
     const [selectedPath, setSelectedPath] = React.useState({
-        id: 3,
-        title: 'Personal Finance',
-        description: 'Master financial concepts and tools'
+        id: 1,
+        title: 'Introduction to AI'
     });
-    
     const [currentMode, setCurrentMode] = React.useState('flashcards');
     const [currentCardIndex, setCurrentCardIndex] = React.useState(0);
     const [isFlipped, setIsFlipped] = React.useState(false);
-    const [fullscreen, setFullscreen] = React.useState(false);
     const [matchCards, setMatchCards] = React.useState([]);
-    const [selectedMatchCard, setSelectedMatchCard] = React.useState(null);
+    const [selectedCards, setSelectedCards] = React.useState([]);
     const [matchedPairs, setMatchedPairs] = React.useState(0);
-    const [testAnswers, setTestAnswers] = React.useState({});
-    const [testScore, setTestScore] = React.useState(0);
-    const [showTestResults, setShowTestResults] = React.useState(false);
     const [progress, setProgress] = React.useState({
         flashcardsCompleted: 0,
         matchGamesWon: 0,
-        testsCompleted: 0,
-        overallProgress: 0
+        testsCompleted: 0
     });
-    
+
+    // Learning paths
+    const learningPaths = [
+        { id: 1, title: 'Introduction to AI', description: 'Learn the basics of artificial intelligence' },
+        { id: 2, title: 'Office Productivity', description: 'Use AI for work and productivity' },
+        { id: 3, title: 'Personal Finance', description: 'Master financial concepts and tools' },
+        { id: 4, title: 'Social Media Marketing', description: 'Leverage AI for social media success' },
+        { id: 5, title: 'Videography', description: 'Create amazing videos with AI tools' },
+        { id: 6, title: 'eCommerce', description: 'Optimize your online store with AI' }
+    ];
+
     // Flashcard content for each path
     const pathFlashcards = {
-        1: [ // Introduction to AI
-            { term: "ChatGPT", definition: "An AI language model for text generation, coding assistance, and general problem-solving" },
-            { term: "Copilot", definition: "AI-powered coding assistant that helps developers write and understand code faster" },
-            // ... more cards ...
+        1: [ // Intro to AI
+            { term: "Artificial Intelligence (AI)", definition: "Computer systems able to perform tasks that normally require human intelligence, such as visual perception, speech recognition, decision-making, and language translation." },
+            { term: "Machine Learning (ML)", definition: "The study of computer algorithms that improve automatically through experience and by the use of data." },
+            { term: "Deep Learning", definition: "A subset of machine learning using neural networks with multiple layers to analyze various factors of data." },
+            { term: "Natural Language Processing (NLP)", definition: "The ability of a computer program to recognize and manipulate human language." },
+            { term: "Neural Networks", definition: "Computing systems with interconnected nodes inspired by human brain neurons." },
+            { term: "Supervised Learning", definition: "Training a model using labeled data where the desired output is known." },
+            { term: "Unsupervised Learning", definition: "Finding patterns in data without pre-existing labels or categorization." },
+            { term: "Reinforcement Learning", definition: "Training models to make sequences of decisions by rewarding desired behaviors." },
+            { term: "Computer Vision", definition: "AI systems designed to derive meaningful information from digital images and videos." },
+            { term: "GPT (Generative Pre-trained Transformer)", definition: "A class of language models designed to generate human-like text based on context." }
         ],
         2: [ // Office Productivity
-            { term: "Notion AI", definition: "AI-powered workspace that helps write, edit, and summarize documents" },
-            { term: "Microsoft Copilot", definition: "AI assistant integrated into Office apps for enhanced productivity" },
-            // ... more cards ...
+            { term: "Microsoft Copilot", definition: "AI assistant integrated into Microsoft 365 for tasks like writing, analyzing, and summarizing" },
+            { term: "Smart Compose", definition: "Google's AI feature that predicts and suggests text as you type" },
+            { term: "Otter.ai", definition: "AI-powered meeting assistant that transcribes conversations in real-time" },
+            { term: "Notion AI", definition: "AI writing assistant integrated with Notion for drafting, editing, and summarizing content" },
+            { term: "Zapier", definition: "Automation platform using AI to connect apps and automate workflows" },
+            { term: "Grammarly", definition: "AI writing assistant that checks grammar, clarity, and style" },
+            { term: "Todoist AI", definition: "Task management app with AI to prioritize and organize tasks" },
+            { term: "Calendly AI", definition: "Scheduling tool with AI capabilities for optimizing meeting times" },
+            { term: "Krisp", definition: "AI-powered noise cancellation tool for clearer virtual meetings" },
+            { term: "Loom", definition: "Video messaging platform with AI features for transcription and highlights" }
         ],
         3: [ // Personal Finance
             { term: "Mint AI", definition: "AI-powered budgeting tool that categorizes expenses and provides insights" },
@@ -45,242 +65,201 @@ const Game = () => {
             { term: "Betterment", definition: "Robo-advisor using AI for automated investing and tax optimization" },
             { term: "Fun Fact: AI Trading", definition: "Over 70% of trading volume is now executed by AI algorithms" },
             { term: "Digit", definition: "AI savings app that automatically saves optimal amounts" },
-            { term: "50/30/20 Rule", definition: "Budgeting principle: 50% needs, 30% wants, 20% savings" },
-            { term: "Marcus Insights", definition: "AI-powered financial insights and management tool by Goldman Sachs" },
-            { term: "Fun Fact: Fraud Detection", definition: "AI can detect fraudulent transactions with 99.9% accuracy" },
-            { term: "Albert", definition: "AI financial advisor that provides personalized guidance" },
-            { term: "Dollar-Cost Averaging", definition: "Investment strategy of regular, fixed-amount investments" },
-            { term: "Acorns", definition: "AI-powered micro-investing app that rounds up purchases" },
-            { term: "Risk Tolerance", definition: "Your comfort level with investment volatility and potential losses" },
-            { term: "Compound Interest", definition: "Interest earned on both principal and accumulated interest" },
-            { term: "M1 Finance", definition: "AI-driven investment platform for automated portfolio management" },
-            { term: "Credit Karma", definition: "AI-powered credit monitoring and financial recommendation tool" },
-            { term: "Emergency Fund", definition: "Savings covering 3-6 months of living expenses" }
+            { term: "50/30/20 Rule", definition: "Budgeting principle: 50% needs, 30% wants, 20% savings" }
         ],
-        4: [ // Social Media Marketing
-            { term: "Hootsuite Insights", definition: "AI-powered social media analytics and content recommendation tool" },
-            { term: "Buffer AI", definition: "Social media scheduler with AI-optimized posting times" },
-            // ... more cards ...
+        4: [ // Social Media
+            { term: "Hootsuite Insights", definition: "AI-powered social listening and analytics tool" },
+            { term: "Buffer AI", definition: "Social media scheduling platform with AI-recommended posting times" },
+            { term: "Canva Magic Write", definition: "AI copywriting tool for social media content creation" },
+            { term: "Sprout Social", definition: "Social media management with AI analytics and recommendations" },
+            { term: "Later", definition: "Instagram-focused scheduling tool with AI-powered analytics" },
+            { term: "BuzzSumo", definition: "Content research tool using AI to identify trending topics" },
+            { term: "Awario", definition: "AI-powered social listening tool for brand monitoring" },
+            { term: "HubSpot Social", definition: "AI-enhanced social media marketing platform integrated with CRM" },
+            { term: "Lately", definition: "AI content generator that creates multiple social posts from long-form content" },
+            { term: "Brandwatch", definition: "AI-powered consumer intelligence platform for social media analysis" }
         ],
         5: [ // Videography
+            { term: "Runway ML", definition: "AI video editing platform with tools for synthesis, editing, and effects" },
             { term: "Descript", definition: "AI video editor that allows editing video by editing text" },
-            { term: "RunwayML", definition: "AI-powered video editing with special effects and generation" },
-            // ... more cards ...
+            { term: "Synthesia", definition: "AI avatar platform for creating videos with virtual presenters" },
+            { term: "Kapwing", definition: "Online video editor with AI-powered tools for subtitles and effects" },
+            { term: "InVideo", definition: "AI-powered video creation platform with templates and automation" },
+            { term: "Premiere Pro AI", definition: "Adobe's video editing software with AI features like auto-reframe" },
+            { term: "DaVinci Resolve", definition: "Video editor with AI-powered color grading and effects" },
+            { term: "Luma AI", definition: "Neural rendering technology for advanced video effects" },
+            { term: "Colourlab.ai", definition: "AI color grading tool for video editors" },
+            { term: "Topaz Video AI", definition: "AI-powered video enhancement and upscaling software" }
         ],
         6: [ // eCommerce
-            { term: "Jasper AI", definition: "AI content generator for product descriptions and marketing copy" },
-            { term: "Klaviyo", definition: "AI-powered email marketing platform for eCommerce" },
-            // ... more cards ...
+            { term: "Shopify Magic", definition: "AI assistant for Shopify stores that generates product descriptions" },
+            { term: "Jasper", definition: "AI content generator specialized in eCommerce copy" },
+            { term: "Algolia", definition: "AI-powered search engine for eCommerce sites" },
+            { term: "Dynamic Yield", definition: "AI personalization platform for eCommerce experiences" },
+            { term: "Nosto", definition: "AI-powered personalization for online shopping experiences" },
+            { term: "Klevu", definition: "Smart search and product discovery using AI" },
+            { term: "Lily AI", definition: "Product attribute technology using emotional intelligence" },
+            { term: "Yotpo", definition: "eCommerce marketing platform with AI review analysis" },
+            { term: "Recolize", definition: "AI-powered product recommendation engine" },
+            { term: "Vue.ai", definition: "Retail automation platform using computer vision and AI" }
         ]
     };
 
-    const paths = [
-        { id: 1, title: 'Introduction to AI', description: 'Learn the basic concepts and terminology of artificial intelligence' },
-        { id: 2, title: 'Office Productivity', description: 'Master AI-powered tools for workplace efficiency' },
-        { id: 3, title: 'Personal Finance', description: 'Master financial concepts and tools' },
-        { id: 4, title: 'Social Media Marketing', description: 'Learn AI-driven social media strategies' },
-        { id: 5, title: 'Videography', description: 'Master AI video creation and editing' },
-        { id: 6, title: 'eCommerce', description: 'Learn AI tools for online business' }
-    ];
-
-    const currentFlashcards = pathFlashcards[selectedPath.id];
+    // Get current flashcards based on selected path
+    const currentFlashcards = pathFlashcards[selectedPath.id] || [];
     const totalCards = currentFlashcards.length;
 
-    React.useEffect(() => {
-        setCurrentCardIndex(0);
-        setIsFlipped(false);
-        if (currentMode === 'match') {
-            initializeMatchGame();
-        }
-    }, [selectedPath.id]);
-
-    React.useEffect(() => {
-        if (currentMode === 'match') {
-            initializeMatchGame();
-        }
-    }, [currentMode]);
-
+    // Initialize match game
     const initializeMatchGame = () => {
-        const currentCards = currentFlashcards.slice(0, 8);
-        const matchGameCards = [];
+        // Create pairs of terms and definitions
+        const pairs = [];
+        const shuffledCards = [...currentFlashcards].sort(() => Math.random() - 0.5).slice(0, 8);
         
-        currentCards.forEach((card, index) => {
-            matchGameCards.push({
-                id: `term_${index}`,
-                content: card.term,
-                type: 'term',
-                isMatched: false,
-                isFlipped: false
-            });
-            
-            matchGameCards.push({
-                id: `def_${index}`,
-                content: card.definition,
-                type: 'definition',
-                isMatched: false,
-                isFlipped: false
-            });
+        shuffledCards.forEach((card, index) => {
+            pairs.push(
+                { id: `term-${index}`, content: card.term, type: 'term', isMatched: false, isFlipped: false },
+                { id: `def-${index}`, content: card.definition, type: 'definition', isMatched: false, isFlipped: false }
+            );
         });
-
-        // Shuffle cards
-        for (let i = matchGameCards.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [matchGameCards[i], matchGameCards[j]] = [matchGameCards[j], matchGameCards[i]];
-        }
-
-        setMatchCards(matchGameCards);
+        
+        // Shuffle the cards
+        const shuffledPairs = pairs.sort(() => Math.random() - 0.5);
+        setMatchCards(shuffledPairs);
         setMatchedPairs(0);
-        setSelectedMatchCard(null);
     };
 
+    // Handle match card click
     const handleMatchCardClick = (clickedCard) => {
-        if (clickedCard.isMatched || clickedCard.isFlipped) return;
-
+        // Ignore clicks on matched cards or if two cards are already flipped
+        if (clickedCard.isMatched || selectedCards.length === 2) return;
+        if (selectedCards.length === 1 && selectedCards[0].id === clickedCard.id) return;
+        
+        // Update cards with the new flipped card
         const updatedCards = matchCards.map(card =>
             card.id === clickedCard.id ? { ...card, isFlipped: true } : card
         );
-
-        if (!selectedMatchCard) {
-            setMatchCards(updatedCards);
-            setSelectedMatchCard(clickedCard);
-            return;
-        }
-
-        // Check for match
-        const isMatch = (
-            (selectedMatchCard.type === 'term' && clickedCard.type === 'definition') ||
-            (selectedMatchCard.type === 'definition' && clickedCard.type === 'term')
-        ) && (
-            currentFlashcards.some(card => 
-                (card.term === selectedMatchCard.content && card.definition === clickedCard.content) ||
-                (card.term === clickedCard.content && card.definition === selectedMatchCard.content)
-            )
-        );
-
-        if (isMatch) {
-            const finalCards = updatedCards.map(card =>
-                (card.id === clickedCard.id || card.id === selectedMatchCard.id)
-                    ? { ...card, isMatched: true, isFlipped: true }
-                    : card
-            );
-            setMatchCards(finalCards);
-            setMatchedPairs(prev => {
-                const newPairs = prev + 1;
-                if (newPairs === 8) { // All pairs matched
-                    updateProgress('matchGamesWon', progress.matchGamesWon + 1);
+        
+        // Update selected cards
+        const newSelectedCards = [...selectedCards, clickedCard];
+        
+        if (newSelectedCards.length === 2) {
+            // Check if the cards match (one term and one definition that belong together)
+            const [card1, card2] = newSelectedCards;
+            const isMatch = card1.type !== card2.type && 
+                ((card1.type === 'term' && card2.type === 'definition') || 
+                 (card1.type === 'definition' && card2.type === 'term'));
+            
+            if (isMatch) {
+                // Extract the indices from the IDs
+                const index1 = parseInt(card1.id.split('-')[1]);
+                const index2 = parseInt(card2.id.split('-')[1]);
+                
+                // Check if they refer to the same flashcard
+                if (index1 === index2) {
+                    // Mark the cards as matched
+                    const matchedCards = updatedCards.map(card =>
+                        (card.id === card1.id || card.id === card2.id)
+                            ? { ...card, isMatched: true, isFlipped: true }
+                            : card
+                    );
+                    
+                    setMatchCards(matchedCards);
+                    setMatchedPairs(prev => prev + 1);
+                    setSelectedCards([]);
+                    
+                    // Check if all pairs are matched
+                    if (matchedPairs + 1 === 8) {
+                        // Game is won!
+                        updateProgress('match', progress.matchGamesWon + 1);
+                        
+                        // Show a success message after a short delay
+                        setTimeout(() => {
+                            alert('Congratulations! You matched all pairs!');
+                            initializeMatchGame();
+                        }, 1000);
+                    }
+                } else {
+                    // Not a match, flip them back after a delay
+                    setMatchCards(updatedCards);
+                    setSelectedCards(newSelectedCards);
+                    
+                    setTimeout(() => {
+                        setMatchCards(matchCards.map(card =>
+                            (card.id === card1.id || card.id === card2.id)
+                                ? { ...card, isFlipped: false }
+                                : card
+                        ));
+                        setSelectedCards([]);
+                    }, 1000);
                 }
-                return newPairs;
-            });
-        } else {
-            setMatchCards(updatedCards);
-            setTimeout(() => {
-                setMatchCards(cards =>
-                    cards.map(card =>
-                        (card.id === clickedCard.id || card.id === selectedMatchCard.id)
+            } else {
+                // Not a match, flip them back after a delay
+                setMatchCards(updatedCards);
+                setSelectedCards(newSelectedCards);
+                
+                setTimeout(() => {
+                    setMatchCards(matchCards.map(card =>
+                        (card.id === card1.id || card.id === card2.id)
                             ? { ...card, isFlipped: false }
                             : card
-                    )
-                );
-            }, 1000);
+                    ));
+                    setSelectedCards([]);
+                }, 1000);
+            }
+        } else {
+            // First card selection
+            setMatchCards(updatedCards);
+            setSelectedCards(newSelectedCards);
         }
-        setSelectedMatchCard(null);
     };
 
-    // Test Implementation
-    const initializeTest = () => {
-        setTestAnswers({});
-        setTestScore(0);
-        setShowTestResults(false);
-    };
-
-    const handleTestAnswer = (questionIndex, selectedAnswer) => {
-        setTestAnswers(prev => ({
+    // Update progress
+    const updateProgress = (type, value) => {
+        setProgress(prev => ({
             ...prev,
-            [questionIndex]: selectedAnswer
+            [type === 'flashcards' ? 'flashcardsCompleted' : 
+             type === 'match' ? 'matchGamesWon' : 
+             'testsCompleted']: value
         }));
     };
 
-    const submitTest = () => {
-        let score = 0;
-        const questions = currentFlashcards.slice(0, 10); // Take 10 questions for the test
-        
-        questions.forEach((question, index) => {
-            if (testAnswers[index] === question.term) {
-                score++;
-            }
-        });
-
-        setTestScore(score);
-        setShowTestResults(true);
-        updateProgress('testsCompleted', progress.testsCompleted + 1);
-    };
-
-    // Progress tracking
-    const updateProgress = (type, value) => {
-        setProgress(prev => {
-            const newProgress = {
-                ...prev,
-                [type]: value,
-                overallProgress: Math.round(
-                    ((prev.flashcardsCompleted / totalCards) * 0.4 +
-                    (prev.matchGamesWon / 5) * 0.3 +
-                    (prev.testsCompleted / 3) * 0.3) * 100
-                )
-            };
-            
-            // Save to localStorage
-            localStorage.setItem(`progress_${selectedPath.id}`, JSON.stringify(newProgress));
-            return newProgress;
-        });
-    };
-
-    // Load progress on path change
-    React.useEffect(() => {
-        const savedProgress = localStorage.getItem(`progress_${selectedPath.id}`);
-        if (savedProgress) {
-            setProgress(JSON.parse(savedProgress));
-        } else {
-            setProgress({
-                flashcardsCompleted: 0,
-                matchGamesWon: 0,
-                testsCompleted: 0,
-                overallProgress: 0
-            });
-        }
-    }, [selectedPath.id]);
-
-    // Path selector dropdown
+    // Path selector component
     const PathSelector = () => {
-        const [isOpen, setIsOpen] = React.useState(false);
-        
-        return React.createElement('div', { 
-            className: 'relative w-full'
-        },
-            React.createElement('button', {
-                onClick: () => setIsOpen(!isOpen),
-                className: 'w-full px-4 py-2 text-left bg-white border rounded-lg shadow-sm flex items-center justify-between hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-purple-500',
-                style: { 
-                    fontFamily: 'Inter, system-ui, sans-serif'
-                }
-            }, 
-                React.createElement('span', { className: 'text-gray-900 font-medium' }, selectedPath.title),
-                React.createElement('span', { className: 'text-gray-500' }, '▼')
-            ),
-            isOpen && React.createElement('div', {
-                className: 'absolute w-full mt-1 bg-white border rounded-lg shadow-lg z-50 max-h-60 overflow-auto'
+        return React.createElement('div', { className: 'mb-6' },
+            React.createElement('div', { 
+                className: 'relative',
+                style: { fontFamily: 'Inter, system-ui, sans-serif' }
             },
-                paths.map(path => 
-                    React.createElement('button', {
-                        key: path.id,
-                        onClick: () => {
-                            setSelectedPath(path);
-                            setIsOpen(false);
-                            setCurrentCardIndex(0);
-                            setIsFlipped(false);
-                        },
-                        className: `w-full px-4 py-2 text-left hover:bg-gray-50 ${path.id === selectedPath.id ? 'bg-purple-50 text-purple-700' : 'text-gray-900'}`,
-                        style: { fontFamily: 'Inter, system-ui, sans-serif' }
-                    }, path.title)
+                React.createElement('button', {
+                    className: 'flex items-center justify-between w-full px-4 py-2 text-left bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 focus:outline-none',
+                    onClick: (e) => {
+                        const dropdown = e.currentTarget.nextElementSibling;
+                        dropdown.classList.toggle('hidden');
+                    }
+                },
+                    React.createElement('span', {}, selectedPath.title),
+                    React.createElement('span', {}, '▼')
+                ),
+                React.createElement('div', {
+                    className: 'absolute z-10 hidden w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg',
+                    style: { maxHeight: '300px', overflowY: 'auto' }
+                },
+                    learningPaths.map(path =>
+                        React.createElement('button', {
+                            key: path.id,
+                            onClick: () => {
+                                setSelectedPath(path);
+                                setCurrentCardIndex(0);
+                                setIsFlipped(false);
+                                setMatchCards([]);
+                                setSelectedCards([]);
+                                setMatchedPairs(0);
+                                e.currentTarget.parentElement.classList.add('hidden');
+                            },
+                            className: `w-full px-4 py-2 text-left hover:bg-gray-50 ${path.id === selectedPath.id ? 'bg-purple-50 text-purple-700' : 'text-gray-900'}`,
+                            style: { fontFamily: 'Inter, system-ui, sans-serif' }
+                        }, path.title)
+                    )
                 )
             )
         );
@@ -298,7 +277,12 @@ const Game = () => {
             ].map(mode => 
                 React.createElement('button', {
                     key: mode.id,
-                    onClick: () => setCurrentMode(mode.id),
+                    onClick: () => {
+                        setCurrentMode(mode.id);
+                        if (mode.id === 'match' && matchCards.length === 0) {
+                            initializeMatchGame();
+                        }
+                    },
                     className: `px-4 py-2 rounded-full font-medium transition-colors ${
                         currentMode === mode.id
                             ? 'bg-purple-600 text-white'
@@ -327,11 +311,11 @@ const Game = () => {
             style: { fontFamily: 'Inter, system-ui, sans-serif' }
         },
             React.createElement('div', { className: 'flex gap-2' },
-                React.createElement('span', null, `Flashcards${progress.flashcardsCompleted}/${totalCards}`),
+                React.createElement('span', null, `Flashcards: ${progress.flashcardsCompleted}/${totalCards}`),
                 React.createElement('span', null, '•'),
-                React.createElement('span', null, `Match Games${progress.matchGamesWon}/5`),
+                React.createElement('span', null, `Match Games: ${progress.matchGamesWon}/5`),
                 React.createElement('span', null, '•'),
-                React.createElement('span', null, `Tests${progress.testsCompleted}/3`)
+                React.createElement('span', null, `Tests: ${progress.testsCompleted}/3`)
             )
         );
     };
@@ -424,14 +408,20 @@ const Game = () => {
             },
                 React.createElement('button', {
                     className: 'p-2 text-gray-600 hover:bg-gray-100 rounded-full transition-colors',
-                    onClick: () => {
+                    onClick: (e) => {
+                        e.stopPropagation();
                         setIsFlipped(false);
                         setCurrentCardIndex((prev) => (prev - 1 + totalCards) % totalCards);
                     }
                 }, '←'),
+                React.createElement('div', {
+                    className: 'text-sm text-gray-500 flex items-center',
+                    style: { fontFamily: 'Inter, system-ui, sans-serif' }
+                }, 'Click card to flip'),
                 React.createElement('button', {
                     className: 'p-2 text-gray-600 hover:bg-gray-100 rounded-full transition-colors',
-                    onClick: () => {
+                    onClick: (e) => {
+                        e.stopPropagation();
                         setIsFlipped(false);
                         setCurrentCardIndex((prev) => (prev + 1) % totalCards);
                     }
@@ -504,6 +494,7 @@ const Game = () => {
     };
 
     return React.createElement('div', { className: 'max-w-4xl mx-auto px-4 py-8' },
+        React.createElement('h1', { className: 'text-2xl font-bold mb-6', style: { fontFamily: 'Inter, system-ui, sans-serif' } }, 'My Learning Dashboard'),
         React.createElement(PathSelector),
         renderProgress(),
         React.createElement(StudyModeTabs),
@@ -515,6 +506,16 @@ const Game = () => {
         }, 'Test mode coming soon')
     );
 };
+
+// Add necessary styles
+document.head.insertAdjacentHTML('beforeend', `
+<style>
+.perspective-1000 { perspective: 1000px; }
+.backface-hidden { backface-visibility: hidden; }
+.transform-style-3d { transform-style: preserve-3d; }
+.rotate-y-180 { transform: rotateY(180deg); }
+</style>
+`);
 
 // Mount the React component
 document.addEventListener('DOMContentLoaded', () => {
