@@ -98,44 +98,55 @@ class VertexAIGameEngine {
       console.log('Topic loaded:', this.currentTopic);
       this.difficultyLevel = difficulty;
       
-      // Create a new game session
+      // Use Firebase Function to initialize a game session
+      const initializeGameSession = firebase.functions().httpsCallable('initializeGameSession');
+      
+      const gameConfig = {
+        gameType: 'educational',
+        characterName: 'Student',
+        topic: this.currentTopic.name,
+        difficulty: this.difficultyLevel
+      };
+      
+      const response = await initializeGameSession({
+        gameConfig,
+        model: 'gemini-pro',
+        options: {
+          temperature: 0.7,
+          maxTokens: 1024
+        },
+        allowAnonymous: false
+      });
+      
+      console.log('Game session initialized:', response.data);
+      
+      // Create a new game session object
       const gameSession = {
         userId,
         topicId,
         difficulty,
+        sessionId: response.data.sessionId,
         startTime: new Date(),
         lastInteractionTime: new Date(),
-        conversationHistory: [],
+        conversationHistory: response.data.messages || [{
+          role: 'assistant',
+          content: response.data.introText
+        }],
         skillsGained: [],
         progress: 0,
-        creditsUsed: 0
+        creditsUsed: 1
       };
       
-      // Save to Firestore
-      const gameSessionRef = await db.collection('gameSessions').add(gameSession);
-      console.log('Game session created with ID:', gameSessionRef.id);
-      
-      // Generate initial AI message
-      const initialPrompt = this.generateInitialPrompt();
-      // Just use a sample response for now
-      const aiResponse = "Welcome to AI Fundamentals Games! I'm your gaming assistant. What specific aspect of " + 
-        this.currentTopic.name + " would you like to learn about today?";
-      
-      // Update conversation history
-      this.conversationHistory = [{
-        role: 'assistant',
-        content: aiResponse
-      }];
-      
-      // Update game session with AI response
-      gameSession.conversationHistory = this.conversationHistory;
-      gameSession.id = gameSessionRef.id;
-      
-      await gameSessionRef.update({
-        conversationHistory: this.conversationHistory
+      // Update user credits
+      await userRef.update({
+        credits: this.userProfile.credits - 1,
+        totalCreditsUsed: (this.userProfile.totalCreditsUsed || 0) + 1
       });
       
+      this.userProfile.credits -= 1;
+      this.conversationHistory = gameSession.conversationHistory;
       this.currentGameSession = gameSession;
+      
       return gameSession;
       
     } catch (error) {
@@ -195,27 +206,39 @@ Start by introducing yourself and asking the user what specific aspect of ${this
         content: processedInput
       });
       
-      // Just use a sample response for now
-      const aiResponse = "Thank you for your question about " + this.currentTopic.name + 
-        ". This is a simulated response since we're not connecting to Vertex AI yet. In a real implementation, this would provide more detailed information related to your query.";
+      // Use Firebase Function to send game message
+      const sendGameMessage = firebase.functions().httpsCallable('sendGameMessage');
+      
+      const response = await sendGameMessage({
+        sessionId: this.currentGameSession.sessionId,
+        message: processedInput,
+        model: 'gemini-pro',
+        options: {
+          temperature: 0.7,
+          maxTokens: 1024
+        },
+        allowAnonymous: false
+      });
+      
+      console.log('Game message response:', response.data);
       
       // Update conversation history with AI response
       this.conversationHistory.push({
         role: 'assistant',
-        content: aiResponse
+        content: response.data.aiResponse
       });
       
       // Update game session in Firestore
-      const gameSessionRef = firebase.firestore().collection('gameSessions').doc(this.currentGameSession.id);
+      const db = firebase.firestore();
+      const gameSessionRef = db.collection('gameSessions').doc(this.currentGameSession.sessionId);
       
       await gameSessionRef.update({
-        conversationHistory: this.conversationHistory,
-        lastInteractionTime: new Date(),
+        lastInteractionTime: firebase.firestore.FieldValue.serverTimestamp(),
         creditsUsed: this.currentGameSession.creditsUsed + creditCost
       });
       
       // Update user's credit balance
-      const userRef = firebase.firestore().collection('users').doc(this.currentGameSession.userId);
+      const userRef = db.collection('users').doc(this.currentGameSession.userId);
       
       await userRef.update({
         credits: this.userProfile.credits - creditCost,
@@ -227,7 +250,7 @@ Start by introducing yourself and asking the user what specific aspect of ${this
       this.userProfile.credits -= creditCost;
       
       return {
-        aiResponse,
+        aiResponse: response.data.aiResponse,
         creditsUsed: creditCost,
         remainingCredits: this.userProfile.credits,
         conversationHistory: this.conversationHistory
@@ -240,21 +263,31 @@ Start by introducing yourself and asking the user what specific aspect of ${this
   }
 
   /**
-   * Generate a prompt from the conversation history
-   * @returns {string} - The prompt for Vertex AI
-   */
-  generatePromptFromHistory() {
-    return "This is a simplified prompt from history";
-  }
-
-  /**
-   * Generate AI response using Firebase Function that calls Vertex AI
-   * @param {string} prompt - The prompt for Vertex AI
+   * Generate AI response
+   * @param {string} prompt - The prompt for the AI
    * @returns {Promise<string>} - The AI response
    */
   async generateAIResponse(prompt) {
     console.log('generateAIResponse called with prompt length:', prompt.length);
-    return "This is a sample AI response since we're not connecting to Vertex AI yet.";
+    try {
+      // Call Firebase Function that interfaces with Vertex AI
+      const generateResponse = firebase.functions().httpsCallable('generateVertexAIResponse');
+      
+      const result = await generateResponse({
+        prompt: prompt,
+        model: 'gemini-pro',
+        options: {
+          maxTokens: 1024,
+          temperature: 0.7
+        }
+      });
+      
+      console.log('VertexAI response received:', result.data);
+      return result.data.text;
+    } catch (error) {
+      console.error('Error generating AI response:', error);
+      return "I apologize, but I encountered an error processing your request. Please try again.";
+    }
   }
 
   /**
@@ -264,7 +297,20 @@ Start by introducing yourself and asking the user what specific aspect of ${this
    * @returns {Promise<string>} - The processed input
    */
   async processImageInput(userText, imageData) {
-    return userText + " [Image description would be here]";
+    try {
+      // Call Firebase Function to process image
+      const processImage = firebase.functions().httpsCallable('processImageForVertexAI');
+      
+      const result = await processImage({
+        imageData,
+        userText
+      });
+      
+      return result.data.processedInput;
+    } catch (error) {
+      console.error('Error processing image input:', error);
+      return userText + " [Error processing image]";
+    }
   }
 
   /**
@@ -274,7 +320,20 @@ Start by introducing yourself and asking the user what specific aspect of ${this
    * @returns {Promise<string>} - The processed input
    */
   async processAudioInput(userText, audioData) {
-    return userText + " [Audio transcription would be here]";
+    try {
+      // Call Firebase Function to process audio
+      const processAudio = firebase.functions().httpsCallable('processAudioForVertexAI');
+      
+      const result = await processAudio({
+        audioData,
+        userText
+      });
+      
+      return result.data.processedInput;
+    } catch (error) {
+      console.error('Error processing audio input:', error);
+      return userText + " [Error processing audio]";
+    }
   }
 
   /**
@@ -283,7 +342,15 @@ Start by introducing yourself and asking the user what specific aspect of ${this
    * @returns {number} - The credit cost
    */
   calculateCreditCost(inputType) {
-    return 1; // Simplified to always return 1 credit
+    switch (inputType) {
+      case 'image':
+        return 2; // Higher cost for image processing
+      case 'audio':
+        return 2; // Higher cost for audio processing
+      case 'text':
+      default:
+        return 1; // Standard cost for text
+    }
   }
 
   /**
@@ -292,7 +359,24 @@ Start by introducing yourself and asking the user what specific aspect of ${this
    */
   async saveGameProgress() {
     console.log('saveGameProgress called');
-    return this.currentGameSession;
+    try {
+      if (!this.currentGameSession) {
+        throw new Error('No active game session');
+      }
+      
+      const db = firebase.firestore();
+      const gameSessionRef = db.collection('gameSessions').doc(this.currentGameSession.sessionId);
+      
+      await gameSessionRef.update({
+        conversationHistory: this.conversationHistory,
+        lastSavedAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      
+      return this.currentGameSession;
+    } catch (error) {
+      console.error('Error saving game progress:', error);
+      throw error;
+    }
   }
 
   /**
@@ -302,7 +386,35 @@ Start by introducing yourself and asking the user what specific aspect of ${this
    */
   async loadGameProgress(gameSessionId) {
     console.log('loadGameProgress called with ID:', gameSessionId);
-    return this.currentGameSession;
+    try {
+      const db = firebase.firestore();
+      const gameSessionRef = db.collection('gameSessions').doc(gameSessionId);
+      const gameSessionSnap = await gameSessionRef.get();
+      
+      if (!gameSessionSnap.exists) {
+        throw new Error('Game session not found');
+      }
+      
+      const gameSession = gameSessionSnap.data();
+      this.currentGameSession = gameSession;
+      this.conversationHistory = gameSession.conversationHistory || [];
+      
+      // Get user and topic data
+      const userRef = db.collection('users').doc(gameSession.userId);
+      const userSnap = await userRef.get();
+      this.userProfile = userSnap.data();
+      
+      const topicRef = db.collection('topics').doc(gameSession.topicId);
+      const topicSnap = await topicRef.get();
+      this.currentTopic = topicSnap.data();
+      
+      this.difficultyLevel = gameSession.difficulty;
+      
+      return gameSession;
+    } catch (error) {
+      console.error('Error loading game progress:', error);
+      throw error;
+    }
   }
 
   /**
@@ -312,8 +424,37 @@ Start by introducing yourself and asking the user what specific aspect of ${this
    */
   async changeDifficulty(newDifficulty) {
     console.log('changeDifficulty called with:', newDifficulty);
-    this.difficultyLevel = newDifficulty;
-    return this.currentGameSession;
+    try {
+      if (!this.currentGameSession) {
+        throw new Error('No active game session');
+      }
+      
+      this.difficultyLevel = newDifficulty;
+      
+      // Add system message about difficulty change
+      const systemMessage = {
+        role: 'system',
+        content: `Difficulty changed to ${newDifficulty.toUpperCase()}. Adjust your responses accordingly.`
+      };
+      
+      this.conversationHistory.push(systemMessage);
+      
+      // Update game session in Firestore
+      const db = firebase.firestore();
+      const gameSessionRef = db.collection('gameSessions').doc(this.currentGameSession.sessionId);
+      
+      await gameSessionRef.update({
+        difficulty: newDifficulty,
+        conversationHistory: this.conversationHistory
+      });
+      
+      this.currentGameSession.difficulty = newDifficulty;
+      
+      return this.currentGameSession;
+    } catch (error) {
+      console.error('Error changing difficulty:', error);
+      throw error;
+    }
   }
 
   /**

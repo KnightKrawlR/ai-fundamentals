@@ -119,6 +119,17 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('Firebase Firestore found');
     showDebugOnPage('Firebase Firestore found');
     
+    // Check for Firebase Functions
+    if (!window.firebase.functions) {
+      const errorMsg = 'Firebase Functions is not initialized. Please check your Firebase configuration.';
+      console.error(errorMsg);
+      showErrorOnPage('Firebase Functions Error', errorMsg);
+      return;
+    }
+    
+    console.log('Firebase Functions found');
+    showDebugOnPage('Firebase Functions found');
+    
     console.log('Initializing React for games component');
     showDebugOnPage('Initializing React for games component');
     
