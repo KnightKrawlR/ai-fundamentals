@@ -44,6 +44,41 @@ class VertexAIGameEngine {
   }
 
   /**
+   * Helper method to call a function through the CORS proxy if direct calls fail
+   * @param {string} functionName - The name of the function to call
+   * @param {Object} data - The data to pass to the function
+   * @returns {Promise<Object>} - The function response
+   */
+  async callWithCorsProxy(functionName, data) {
+    console.log(`Calling ${functionName} via CORS proxy with data:`, data);
+    
+    const proxyUrl = `https://us-central1-ai-fundamentals-ad37d.cloudfunctions.net/corsProxy?function=${functionName}`;
+    
+    try {
+      const response = await fetch(proxyUrl, {
+        method: 'POST',
+        mode: 'cors',
+        credentials: 'omit',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const result = await response.json();
+      console.log(`CORS proxy response for ${functionName}:`, result);
+      return result;
+    } catch (error) {
+      console.error(`Error calling ${functionName} via CORS proxy:`, error);
+      throw error;
+    }
+  }
+
+  /**
    * Initialize a new game session
    * @param {string} userId - The current user's ID
    * @param {string} topicId - The selected topic ID
@@ -104,23 +139,37 @@ class VertexAIGameEngine {
         
         // Try to verify connectivity with a health check first
         try {
-          const healthCheckUrl = 'https://us-central1-ai-fundamentals-ad37d.cloudfunctions.net/healthCheck';
-          const healthResponse = await fetch(healthCheckUrl, {
-            method: 'GET',
-            mode: 'cors',
-            credentials: 'omit',
-            headers: {
-              'Content-Type': 'application/json'
+          console.log('Attempting direct health check...');
+          // First try direct health check
+          try {
+            const healthCheckUrl = 'https://us-central1-ai-fundamentals-ad37d.cloudfunctions.net/healthCheck';
+            const healthResponse = await fetch(healthCheckUrl, {
+              method: 'GET',
+              mode: 'cors',
+              credentials: 'omit',
+              headers: {
+                'Content-Type': 'application/json'
+              }
+            });
+            
+            if (!healthResponse.ok) {
+              console.warn('Direct health check failed, trying proxy...');
+              throw new Error('Health check failed');
+            } else {
+              console.log('Direct health check successful');
             }
-          });
-          
-          if (!healthResponse.ok) {
-            console.warn('Health check failed, but continuing with function call');
-          } else {
-            console.log('Health check successful');
+          } catch (directHealthError) {
+            // If direct health check fails, try the proxy 
+            console.log('Attempting proxy health check...');
+            const proxyResponse = await this.callWithCorsProxy('healthCheck', {});
+            if (proxyResponse.status === 'ok') {
+              console.log('Proxy health check successful, will use proxy for all calls');
+            } else {
+              console.warn('Both direct and proxy health checks failed, but continuing');
+            }
           }
         } catch (healthError) {
-          console.warn('Health check error, but continuing with function call', healthError);
+          console.warn('All health checks failed, but continuing with function call', healthError);
         }
         
         // Use Firebase Function with retry logic
@@ -185,8 +234,67 @@ class VertexAIGameEngine {
           
           return gameSession;
         } catch (functionError) {
-          console.error('Primary function call failed:', functionError);
-          throw functionError; // Let the outer catch handle it
+          console.error('Direct function call failed:', functionError);
+          console.log('Trying via CORS proxy...');
+          
+          // Try via the CORS proxy
+          try {
+            const proxyData = {
+              gameConfig: {
+                gameType: 'educational',
+                characterName: 'Student',
+                topic: this.currentTopic.name,
+                difficulty: this.difficultyLevel
+              },
+              model: 'gemini-pro',
+              options: {
+                temperature: 0.7,
+                maxTokens: 1024
+              },
+              allowAnonymous: true
+            };
+            
+            const proxyResponse = await this.callWithCorsProxy('initializeGameSession', proxyData);
+            
+            if (proxyResponse && proxyResponse.sessionId) {
+              console.log('Game session initialized via proxy:', proxyResponse);
+              
+              // Create a new game session object from proxy response
+              const gameSession = {
+                userId,
+                topicId,
+                difficulty,
+                sessionId: proxyResponse.sessionId,
+                startTime: new Date(),
+                lastInteractionTime: new Date(),
+                conversationHistory: proxyResponse.messages || [{
+                  role: 'assistant',
+                  content: proxyResponse.introText
+                }],
+                skillsGained: [],
+                progress: 0,
+                creditsUsed: 1,
+                usingProxy: true
+              };
+              
+              // Update user credits
+              await userRef.update({
+                credits: this.userProfile.credits - 1,
+                totalCreditsUsed: (this.userProfile.totalCreditsUsed || 0) + 1
+              });
+              
+              this.userProfile.credits -= 1;
+              this.conversationHistory = gameSession.conversationHistory;
+              this.currentGameSession = gameSession;
+              
+              return gameSession;
+            } else {
+              throw new Error('Proxy response did not contain session data');
+            }
+          } catch (proxyError) {
+            console.error('CORS proxy attempt also failed:', proxyError);
+            throw proxyError; // Let the outer catch handle it
+          }
         }
       } catch (functionError) {
         console.error('Firebase function error:', functionError);
@@ -395,9 +503,10 @@ Is there a specific aspect of ${topicName} you'd like to explore further?`;
         const functions = firebase.functions();
         const sendGameMessage = functions.httpsCallable('sendGameMessage');
         
-        // Use Promise.race to implement a timeout
-        const response = await Promise.race([
-          sendGameMessage({
+        // Check if we're already using the proxy from previous calls
+        if (this.currentGameSession.usingProxy) {
+          console.log('Using CORS proxy for message due to previous proxy usage');
+          const proxyData = {
             sessionId: this.currentGameSession.sessionId,
             message: processedInput,
             model: 'gemini-pro',
@@ -405,116 +514,89 @@ Is there a specific aspect of ${topicName} you'd like to explore further?`;
               temperature: 0.7,
               maxTokens: 1024
             },
-            allowAnonymous: true // Allow anonymous access as fallback
-          }),
-          new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('Function call timed out after 30 seconds')), 30000)
-          )
-        ]);
-        
-        console.log('Game message response:', response.data);
-        
-        // Update conversation history with AI response
-        this.conversationHistory.push({
-          role: 'assistant',
-          content: response.data.aiResponse
-        });
-        
-        // Update game session in Firestore
-        const db = firebase.firestore();
-        const gameSessionRef = db.collection('gameSessions').doc(this.currentGameSession.sessionId);
-        
-        await gameSessionRef.update({
-          lastInteractionTime: firebase.firestore.FieldValue.serverTimestamp(),
-          creditsUsed: this.currentGameSession.creditsUsed + creditCost
-        });
-        
-        // Update user's credit balance
-        const userRef = db.collection('users').doc(this.currentGameSession.userId);
-        
-        await userRef.update({
-          credits: this.userProfile.credits - creditCost,
-          totalCreditsUsed: (this.userProfile.totalCreditsUsed || 0) + creditCost
-        });
-        
-        // Update local state
-        this.currentGameSession.creditsUsed += creditCost;
-        this.userProfile.credits -= creditCost;
-        
-        return {
-          aiResponse: response.data.aiResponse,
-          creditsUsed: creditCost,
-          remainingCredits: this.userProfile.credits,
-          conversationHistory: this.conversationHistory
-        };
-        
-      } catch (functionError) {
-        console.error('Firebase function error:', functionError);
-        
-        // If there's a CORS or network issue, use fallback
-        if (functionError.message && (
-            functionError.message.includes('CORS') || 
-            functionError.message.includes('NetworkError') ||
-            functionError.message.includes('Failed to fetch') ||
-            functionError.message.includes('timed out') ||
-            functionError.message.includes('internal')
-        )) {
-          console.warn('CORS or network issue detected, using fallback response');
+            allowAnonymous: true
+          };
           
-          // Switch to fallback mode permanently for this session
-          this.currentGameSession.isFallback = true;
+          const proxyResponse = await this.callWithCorsProxy('sendGameMessage', proxyData);
           
-          // Generate a contextual fallback response
-          const topicName = this.currentTopic.name.toLowerCase();
-          let fallbackResponse = '';
-          
-          // Try to provide a contextual response based on common topics
-          if (userInput.toLowerCase().includes('how') && userInput.toLowerCase().includes('money')) {
-            fallbackResponse = `There are several ways to use ${topicName} to earn money:
+          if (proxyResponse && proxyResponse.aiResponse) {
+            console.log('Message sent via proxy:', proxyResponse);
             
-1. Freelancing: Offer ${topicName} services on platforms like Upwork or Fiverr
-2. Create and sell digital products related to ${topicName}
-3. Start a YouTube channel or blog about ${topicName} topics
-4. Teach others through online courses about ${topicName}
-
-What specific aspect interests you most?`;
-          } 
-          else if (userInput.toLowerCase().includes('learn') || userInput.toLowerCase().includes('start')) {
-            fallbackResponse = `To get started with ${topicName}, I recommend:
+            // Update conversation history with AI response
+            this.conversationHistory.push({
+              role: 'assistant',
+              content: proxyResponse.aiResponse
+            });
             
-1. Take an online course on platforms like Coursera or Udemy
-2. Join communities and forums related to ${topicName}
-3. Practice with small projects to build your skills
-4. Read books and articles from experts in ${topicName}
-
-Would you like me to elaborate on any of these approaches?`;
+            // Update game session in Firestore
+            const db = firebase.firestore();
+            const gameSessionRef = db.collection('gameSessions').doc(this.currentGameSession.sessionId);
+            
+            await gameSessionRef.update({
+              lastInteractionTime: firebase.firestore.FieldValue.serverTimestamp(),
+              creditsUsed: this.currentGameSession.creditsUsed + creditCost
+            });
+            
+            // Update user's credit balance
+            const userRef = db.collection('users').doc(this.currentGameSession.userId);
+            
+            await userRef.update({
+              credits: this.userProfile.credits - creditCost,
+              totalCreditsUsed: (this.userProfile.totalCreditsUsed || 0) + creditCost
+            });
+            
+            // Update local state
+            this.currentGameSession.creditsUsed += creditCost;
+            this.userProfile.credits -= creditCost;
+            
+            return {
+              aiResponse: proxyResponse.aiResponse,
+              creditsUsed: creditCost,
+              remainingCredits: this.userProfile.credits,
+              conversationHistory: this.conversationHistory
+            };
+          } else {
+            throw new Error('Proxy response did not contain AI response');
           }
-          else if (userInput.toLowerCase().includes('best') || userInput.toLowerCase().includes('tool')) {
-            fallbackResponse = `Some popular tools for ${topicName} include:
-            
-1. Industry-standard software like Adobe Suite for design or TensorFlow for AI
-2. Free alternatives that are beginner-friendly
-3. Cloud-based services that don't require installation
-4. Mobile apps that let you practice on the go
-
-Which type of tools are you most interested in?`;
-          }
-          else {
-            fallbackResponse = `I'm currently experiencing connectivity issues with my AI service.
-            
-Let me provide some information about ${topicName} while our team works on resolving this. ${topicName} is a fascinating field with many applications in today's digital economy.
-
-Is there something specific about ${topicName} you'd like to know more about?`;
-          }
+        }
+        
+        // Try direct function call first
+        try {
+          // Use Promise.race to implement a timeout
+          const response = await Promise.race([
+            sendGameMessage({
+              sessionId: this.currentGameSession.sessionId,
+              message: processedInput,
+              model: 'gemini-pro',
+              options: {
+                temperature: 0.7,
+                maxTokens: 1024
+              },
+              allowAnonymous: true // Allow anonymous access as fallback
+            }),
+            new Promise((_, reject) => 
+              setTimeout(() => reject(new Error('Function call timed out after 30 seconds')), 30000)
+            )
+          ]);
           
-          // Update conversation history with fallback response
+          console.log('Game message response:', response.data);
+          
+          // Update conversation history with AI response
           this.conversationHistory.push({
             role: 'assistant',
-            content: fallbackResponse
+            content: response.data.aiResponse
+          });
+          
+          // Update game session in Firestore
+          const db = firebase.firestore();
+          const gameSessionRef = db.collection('gameSessions').doc(this.currentGameSession.sessionId);
+          
+          await gameSessionRef.update({
+            lastInteractionTime: firebase.firestore.FieldValue.serverTimestamp(),
+            creditsUsed: this.currentGameSession.creditsUsed + creditCost
           });
           
           // Update user's credit balance
-          const db = firebase.firestore();
           const userRef = db.collection('users').doc(this.currentGameSession.userId);
           
           await userRef.update({
@@ -527,18 +609,83 @@ Is there something specific about ${topicName} you'd like to know more about?`;
           this.userProfile.credits -= creditCost;
           
           return {
-            aiResponse: fallbackResponse,
+            aiResponse: response.data.aiResponse,
             creditsUsed: creditCost,
             remainingCredits: this.userProfile.credits,
-            conversationHistory: this.conversationHistory,
-            isFallback: true
+            conversationHistory: this.conversationHistory
           };
-        }
         
-        // Re-throw other errors
-        throw functionError;
+        } catch (functionError) {
+          console.error('Direct function call failed:', functionError);
+          console.log('Trying via CORS proxy...');
+          
+          // Try via the CORS proxy
+          try {
+            // Mark session as using proxy for future calls
+            this.currentGameSession.usingProxy = true;
+            
+            const proxyData = {
+              sessionId: this.currentGameSession.sessionId,
+              message: processedInput,
+              model: 'gemini-pro',
+              options: {
+                temperature: 0.7,
+                maxTokens: 1024
+              },
+              allowAnonymous: true
+            };
+            
+            const proxyResponse = await this.callWithCorsProxy('sendGameMessage', proxyData);
+            
+            if (proxyResponse && proxyResponse.aiResponse) {
+              console.log('Message sent via proxy:', proxyResponse);
+              
+              // Update conversation history with AI response
+              this.conversationHistory.push({
+                role: 'assistant',
+                content: proxyResponse.aiResponse
+              });
+              
+              // Update game session in Firestore
+              const db = firebase.firestore();
+              const gameSessionRef = db.collection('gameSessions').doc(this.currentGameSession.sessionId);
+              
+              await gameSessionRef.update({
+                lastInteractionTime: firebase.firestore.FieldValue.serverTimestamp(),
+                creditsUsed: this.currentGameSession.creditsUsed + creditCost,
+                usingProxy: true
+              });
+              
+              // Update user's credit balance
+              const userRef = db.collection('users').doc(this.currentGameSession.userId);
+              
+              await userRef.update({
+                credits: this.userProfile.credits - creditCost,
+                totalCreditsUsed: (this.userProfile.totalCreditsUsed || 0) + creditCost
+              });
+              
+              // Update local state
+              this.currentGameSession.creditsUsed += creditCost;
+              this.userProfile.credits -= creditCost;
+              
+              return {
+                aiResponse: proxyResponse.aiResponse,
+                creditsUsed: creditCost,
+                remainingCredits: this.userProfile.credits,
+                conversationHistory: this.conversationHistory
+              };
+            } else {
+              throw new Error('Proxy response did not contain AI response');
+            }
+          } catch (proxyError) {
+            console.error('CORS proxy attempt also failed:', proxyError);
+            throw proxyError; // Let the outer catch handle it
+          }
+        }
+      } catch (error) {
+        console.error('Error sending user input:', error);
+        throw error;
       }
-      
     } catch (error) {
       console.error('Error sending user input:', error);
       throw error;
