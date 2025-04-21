@@ -1,5 +1,4 @@
-import { auth } from '../firebase';
-import firebase from 'firebase/app';
+import firebase from '../firebase';
 import 'firebase/firestore';
 
 const CREDITS_API_ENDPOINT = 'https://us-central1-ai-fundamentals-d7ab7.cloudfunctions.net/getUserCredits';
@@ -7,6 +6,7 @@ const ADD_CREDITS_API_ENDPOINT = 'https://us-central1-ai-fundamentals-d7ab7.clou
 
 export const getUserCredits = async () => {
   try {
+    const auth = firebase.auth();
     const user = auth.currentUser;
     if (!user) throw new Error("User not authenticated");
     
@@ -34,6 +34,7 @@ export const getUserCredits = async () => {
 
 export const addCredits = async (amount) => {
   try {
+    const auth = firebase.auth();
     const user = auth.currentUser;
     if (!user) throw new Error("User not authenticated");
     
@@ -81,7 +82,8 @@ export const getDaysUntilCreditRefresh = () => {
 
 export const addCreditsToAccount = async (userId, amount) => {
   try {
-    const userRef = firebase.firestore().collection('users').doc(userId);
+    const firestore = firebase.firestore();
+    const userRef = firestore.collection('users').doc(userId);
     const userDoc = await userRef.get();
     
     if (!userDoc.exists) {

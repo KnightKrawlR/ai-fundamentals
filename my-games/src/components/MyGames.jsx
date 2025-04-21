@@ -1,8 +1,6 @@
 // MyGames.jsx - React component for the My Games feature
 import React, { useState, useEffect, useRef } from 'react';
-import firebase from 'firebase/app';
-import 'firebase/auth';
-import 'firebase/functions';
+import firebase from '../firebase';
 import VertexAIGameEngine from './vertexAI';
 import LowCreditsWarning from './LowCreditsWarning';
 import CreditPurchaseModal from './CreditPurchaseModal';
