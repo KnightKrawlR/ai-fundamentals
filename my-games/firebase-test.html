@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Firebase Test</title>
+  
+  <!-- Firebase App (the core Firebase SDK) -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+
+  <!-- Add Firebase products that you want to use -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-functions.js"></script>
+  
+  <script>
+    // Initialize Firebase with your config
+    const firebaseConfig = {
+      apiKey: "AIzaSyAu8DLZc5Wq-Dcd8hCKEZQHFU8OMKrH-iw",
+      authDomain: "ai-fundamentals-d7ab7.firebaseapp.com",
+      projectId: "ai-fundamentals-d7ab7",
+      storageBucket: "ai-fundamentals-d7ab7.appspot.com",
+      messagingSenderId: "307417765018",
+      appId: "1:307417765018:web:5c8735042329d66c96b804",
+      measurementId: "G-TQYFL34EVP"
+    };
+    
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    
+    // Make sure Firebase is available globally
+    window.firebase = firebase;
+    
+    // Simple test to confirm Firebase is working
+    function testFirebase() {
+      console.log("Testing Firebase connection...");
+      
+      // Check if Firebase Auth is available
+      if (firebase.auth) {
+        console.log("Firebase Auth is available");
+        const user = firebase.auth().currentUser;
+        console.log("Current user:", user);
+      } else {
+        console.error("Firebase Auth is not available");
+      }
+      
+      // Check if Firebase Firestore is available
+      if (firebase.firestore) {
+        console.log("Firebase Firestore is available");
+      } else {
+        console.error("Firebase Firestore is not available");
+      }
+      
+      // Check if Firebase Functions is available
+      if (firebase.functions) {
+        console.log("Firebase Functions is available");
+      } else {
+        console.error("Firebase Functions is not available");
+      }
+    }
+  </script>
+</head>
+<body>
+  <h1>Firebase Test Page</h1>
+  <p>Check the console to see if Firebase is properly loaded.</p>
+  <button onclick="testFirebase()">Test Firebase</button>
+  
+  <div>
+    <h2>Firebase Authentication</h2>
+    <div id="auth-status">Not logged in</div>
+    <button id="login-btn">Login (Demo)</button>
+    <button id="logout-btn">Logout</button>
+  </div>
+  
+  <script>
+    // Update auth status when auth state changes
+    firebase.auth().onAuthStateChanged(function(user) {
+      const statusElement = document.getElementById('auth-status');
+      if (user) {
+        statusElement.textContent = `Logged in as: ${user.email}`;
+      } else {
+        statusElement.textContent = 'Not logged in';
+      }
+    });
+    
+    // Demo login button
+    document.getElementById('login-btn').addEventListener('click', function() {
+      // This is a demo - normally you would have a login form
+      firebase.auth().signInAnonymously()
+        .then(() => {
+          console.log("Signed in anonymously");
+        })
+        .catch((error) => {
+          console.error("Error signing in:", error);
+        });
+    });
+    
+    // Logout button
+    document.getElementById('logout-btn').addEventListener('click', function() {
+      firebase.auth().signOut()
+        .then(() => {
+          console.log("Signed out");
+        })
+        .catch((error) => {
+          console.error("Error signing out:", error);
+        });
+    });
+    
+    // Run test on page load
+    document.addEventListener('DOMContentLoaded', testFirebase);
+  </script>
+</body>
+</html> 

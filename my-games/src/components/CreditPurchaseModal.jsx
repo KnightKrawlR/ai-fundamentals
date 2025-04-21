@@ -1,6 +1,10 @@
 import React, { useState } from 'react';
+// Try to use our Firebase import, but have a fallback mechanism
 import firebase from '../firebase';
-import 'firebase/functions';
+// Fallback to global firebase if needed
+if (typeof window !== 'undefined' && !firebase && window.firebase) {
+  firebase = window.firebase;
+}
 
 const CreditPurchaseModal = ({ isOpen, onClose, insufficientCreditsData, onPurchase }) => {
   const [selectedPackage, setSelectedPackage] = useState('basic');
@@ -18,6 +22,10 @@ const CreditPurchaseModal = ({ isOpen, onClose, insufficientCreditsData, onPurch
     setErrorMessage('');
     
     try {
+      if (!firebase) {
+        throw new Error('Firebase is not available');
+      }
+      
       // Call Firebase function to purchase credits
       const purchaseCreditsFunction = firebase.functions().httpsCallable('purchaseCredits');
       

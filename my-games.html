@@ -3,118 +3,106 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Games - AI Fundamentals</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <title>My Games | AI Fundamentals</title>
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/game-styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- Add Firebase SDKs -->
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-functions-compat.js"></script>
+    <!-- Firebase App (the core Firebase SDK) -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+
+    <!-- Add Firebase products that you want to use -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-functions.js"></script>
     
-    <!-- React and ReactDOM -->
-    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script>
+      // Initialize Firebase with your config
+      const firebaseConfig = {
+        apiKey: "AIzaSyAu8DLZc5Wq-Dcd8hCKEZQHFU8OMKrH-iw",
+        authDomain: "ai-fundamentals-d7ab7.firebaseapp.com",
+        projectId: "ai-fundamentals-d7ab7",
+        storageBucket: "ai-fundamentals-d7ab7.appspot.com",
+        messagingSenderId: "307417765018",
+        appId: "1:307417765018:web:5c8735042329d66c96b804",
+        measurementId: "G-TQYFL34EVP"
+      };
+      
+      // Make sure Firebase is available globally before the React app loads
+      window.firebase = firebase;
+      
+      // Initialize Firebase
+      if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+      }
+    </script>
 </head>
 <body>
     <header>
-        <div class="container">
-            <a href="/" class="logo">
-                <i class="fas fa-brain"></i>
-                <h1>AI Fundamentals</h1>
-            </a>
-            <nav>
-                <ul>
-                    <li><a href="/#free-resources">Learning</a></li>
-                    <li><a href="/#ai-tools">AI Tools</a></li>
-                    <li><a href="/#premium">Premium</a></li>
-                </ul>
-            </nav>
-            <div id="auth-container">
-                <a href="login.html" class="sign-in-btn" id="sign-in-btn">
-                    <i class="fas fa-sign-in-alt"></i>
-                    <span>Sign In</span>
+        <nav class="navbar">
+            <div class="navbar-logo">
+                <a href="index.html">
+                    <img src="images/logo.png" alt="AI Fundamentals Logo">
+                    <span>AI Fundamentals</span>
                 </a>
-                <div class="user-menu" id="user-menu" style="display: none;">
-                    <button class="user-profile-btn">
-                        <div class="user-avatar" id="user-avatar"></div>
-                        <span id="user-email"></span>
-                    </button>
-                    <div class="user-menu-content">
-                        <a href="/account.html" class="user-menu-item">
-                            <i class="fas fa-user"></i> My Account
-                        </a>
-                        <a href="/my-learning.html" class="user-menu-item">
-                            <i class="fas fa-graduation-cap"></i> My Learning
-                        </a>
-                        <a href="/my-games.html" class="user-menu-item premium-item">
-                            <i class="fas fa-gamepad"></i> My Games
-                        </a>
-                        <a href="/settings.html" class="user-menu-item">
-                            <i class="fas fa-cog"></i> Settings
-                        </a>
-                        <div class="user-menu-divider"></div>
-                        <a href="#" class="user-menu-item" id="sign-out-btn">
-                            <i class="fas fa-sign-out-alt"></i> Sign Out
-                        </a>
-                    </div>
-                </div>
             </div>
-        </div>
+            <ul class="navbar-menu">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="learning-paths.html">Learning</a></li>
+                <li><a href="tools.html">AI Tools</a></li>
+                <li><a href="premium.html">Premium</a></li>
+                <li><a href="my-games.html" class="active">My Games</a></li>
+            </ul>
+            <div class="navbar-auth">
+                <a href="login.html" class="login-btn">Sign In</a>
+                <a href="register.html" class="register-btn">Register</a>
+            </div>
+        </nav>
     </header>
 
-    <!-- Main Content -->
-    <section class="main-content">
+    <main>
         <div class="container">
-            <div class="game-container">
-                <!-- React app mount point -->
-                <div id="my-games-root" class="min-h-[500px] w-full"></div>
-            </div>
+            <div id="my-games-root"></div>
         </div>
-    </section>
+    </main>
 
-    <!-- Footer -->
     <footer>
         <div class="container">
             <div class="footer-content">
-                <div class="footer-logo">
-                    <h2>AI Fundamentals</h2>
+                <div class="footer-section">
+                    <h3>AI Fundamentals</h3>
                     <p>Your journey to AI mastery starts here</p>
                 </div>
-                <div class="footer-links">
-                    <div class="footer-column">
-                        <h3>Resources</h3>
-                        <ul>
-                            <li><a href="#">Flashcards</a></li>
-                            <li><a href="#">Study Guides</a></li>
-                            <li><a href="#">Video Lessons</a></li>
-                            <li><a href="#">Practice Quizzes</a></li>
-                        </ul>
-                    </div>
-                    <div class="footer-column">
-                        <h3>Company</h3>
-                        <ul>
-                            <li><a href="#">About Us</a></li>
-                            <li><a href="#">Contact</a></li>
-                            <li><a href="#">Careers</a></li>
-                            <li><a href="#">Blog</a></li>
-                        </ul>
-                    </div>
-                    <div class="footer-column">
-                        <h3>Legal</h3>
-                        <ul>
-                            <li><a href="#">Terms of Service</a></li>
-                            <li><a href="#">Privacy Policy</a></li>
-                            <li><a href="#">Cookie Policy</a></li>
-                        </ul>
-                    </div>
+                <div class="footer-section">
+                    <h3>Resources</h3>
+                    <ul>
+                        <li><a href="#">Flashcards</a></li>
+                        <li><a href="#">Study Guides</a></li>
+                        <li><a href="#">Video Lessons</a></li>
+                        <li><a href="#">Practice Quizzes</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>Company</h3>
+                    <ul>
+                        <li><a href="#">About Us</a></li>
+                        <li><a href="#">Contact</a></li>
+                        <li><a href="#">Careers</a></li>
+                        <li><a href="#">Blog</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>Legal</h3>
+                    <ul>
+                        <li><a href="#">Terms of Service</a></li>
+                        <li><a href="#">Privacy Policy</a></li>
+                        <li><a href="#">Cookie Policy</a></li>
+                    </ul>
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>&copy; 2025 AI Fundamentals. All rights reserved.</p>
-                <div class="social-links">
+                <p>&copy; 2023 AI Fundamentals. All rights reserved.</p>
+                <div class="social-icons">
                     <a href="#"><i class="fab fa-twitter"></i></a>
                     <a href="#"><i class="fab fa-facebook"></i></a>
                     <a href="#"><i class="fab fa-instagram"></i></a>
@@ -124,89 +112,7 @@
         </div>
     </footer>
 
-    <!-- Firebase Configuration -->
-    <script>
-        // Firebase configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyDjMisQkMgdA6qNg7gnXDumhNOOWOD-Y00",
-            authDomain: "ai-fundamentals-ad37d.firebaseapp.com",
-            projectId: "ai-fundamentals-ad37d",
-            storageBucket: "ai-fundamentals-ad37d.appspot.com",
-            messagingSenderId: "668115447112",
-            appId: "1:668115447112:web:c0772e9f8c6a498737977d",
-            measurementId: "G-2D5V39EQ3T"
-        };
-
-        // Initialize Firebase - only initialize auth, firestore, and functions (not hosting)
-        const firebaseApp = firebase.initializeApp(firebaseConfig);
-
-        // Auth state observer
-        firebase.auth().onAuthStateChanged((user) => {
-            const signInBtn = document.getElementById('sign-in-btn');
-            const userMenu = document.getElementById('user-menu');
-            const userAvatar = document.getElementById('user-avatar');
-            const userEmail = document.getElementById('user-email');
-            
-            if (user) {
-                // User is signed in
-                signInBtn.style.display = 'none';
-                userMenu.style.display = 'block';
-                
-                // Set user email and avatar
-                userEmail.textContent = user.email;
-                userAvatar.textContent = user.email[0].toUpperCase();
-                
-                // Update premium content visibility
-                document.querySelectorAll('.premium-content').forEach(elem => {
-                    elem.classList.add('unlocked');
-                });
-                
-                // Initialize user credits if needed
-                initializeUserCreditsIfNeeded(user.uid);
-            } else {
-                // User is signed out
-                signInBtn.style.display = 'flex';
-                userMenu.style.display = 'none';
-                
-                // Update premium content visibility
-                document.querySelectorAll('.premium-content').forEach(elem => {
-                    elem.classList.remove('unlocked');
-                });
-                
-                // Redirect to login page since this is a premium feature
-                window.location.href = '/login.html?redirect=my-games.html';
-            }
-        });
-
-        // Sign out functionality
-        document.getElementById('sign-out-btn').addEventListener('click', (e) => {
-            e.preventDefault();
-            firebase.auth().signOut().then(() => {
-                window.location.href = '/';
-            }).catch((error) => {
-                console.error('Sign out error:', error);
-            });
-        });
-        
-        // Initialize user credits if needed
-        function initializeUserCreditsIfNeeded(userId) {
-            const db = firebase.firestore();
-            
-            // First check if user document exists
-            db.collection('users').doc(userId).get().then((doc) => {
-                if (!doc.exists) {
-                    // Create the user document first with initial data
-                    return db.collection('users').doc(userId).set({
-                        credits: 10, // Initial credits for new users
-                    });
-                }
-            }).catch((error) => {
-                console.error('Error checking/initializing user credits:', error);
-            });
-        }
-    </script>
-    
-    <!-- React App Bundle -->
-    <script src="my-games/dist/my-games-bundle.js?v=1"></script>
+    <!-- Include the bundled React application -->
+    <script src="my-games/dist/my-games-bundle.js"></script>
 </body>
 </html>

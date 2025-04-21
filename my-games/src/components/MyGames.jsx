@@ -1,5 +1,6 @@
 // MyGames.jsx - React component for the My Games feature
 import React, { useState, useEffect, useRef } from 'react';
+// Try to import our regular Firebase first, but if it fails, the browser will use the fallback
 import firebase from '../firebase';
 import VertexAIGameEngine from './vertexAI';
 import LowCreditsWarning from './LowCreditsWarning';
@@ -139,7 +140,10 @@ const InsufficientCreditsPrompt = ({ message, options, onAction, onClose }) => {
   );
 };
 
-const MyGames = ({ firebase }) => {
+const MyGames = ({ firebaseProp }) => {
+  // Use the firebase that was imported or passed in as a prop
+  const firebaseInstance = firebaseProp || firebase;
+  
   // State variables
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -172,7 +176,7 @@ const MyGames = ({ firebase }) => {
       
       // Listen for auth state changes
       console.log('Setting up auth listener');
-      const unsubscribe = firebase.auth().onAuthStateChanged((user) => {
+      const unsubscribe = firebaseInstance.auth().onAuthStateChanged((user) => {
         console.log('Auth state changed:', user ? 'User logged in' : 'No user');
         setUser(user);
         setLoading(false);
@@ -191,7 +195,7 @@ const MyGames = ({ firebase }) => {
       console.error('Error in initialization:', error);
       setError(error.message);
     }
-  }, [firebase]);
+  }, [firebaseInstance]);
   
   // Fetch available topics
   const fetchTopics = async () => {
@@ -478,7 +482,7 @@ const MyGames = ({ firebase }) => {
       setLoading(true);
       
       // Call a Firebase function to add credits
-      const addCreditsFunction = firebase.functions().httpsCallable('purchaseCredits');
+      const addCreditsFunction = firebaseInstance.functions().httpsCallable('purchaseCredits');
       
       const result = await addCreditsFunction({
         amount,

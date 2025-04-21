@@ -3,7 +3,7 @@ import 'firebase/auth';
 import 'firebase/firestore';
 import 'firebase/functions';
 
-// Firebase configuration - use direct values as this runs in the browser
+// Firebase configuration - direct values for browser
 const firebaseConfig = {
   apiKey: "AIzaSyAu8DLZc5Wq-Dcd8hCKEZQHFU8OMKrH-iw",
   authDomain: "ai-fundamentals-d7ab7.firebaseapp.com",
@@ -16,24 +16,17 @@ const firebaseConfig = {
 
 // Initialize Firebase
 // Prevent multiple initializations
+let firebaseApp;
 if (!firebase.apps.length) {
-  firebase.initializeApp(firebaseConfig);
+  firebaseApp = firebase.initializeApp(firebaseConfig);
 } else {
-  firebase.app(); // If already initialized, use that one
+  firebaseApp = firebase.app(); // If already initialized, use that one
 }
 
 export const auth = firebase.auth();
 export const firestore = firebase.firestore();
 export const functions = firebase.functions();
 
-// This will only run in development environments where process is defined
-if (typeof window !== 'undefined' && 
-    typeof process !== 'undefined' && 
-    process.env && 
-    process.env.NODE_ENV === 'development') {
-  // functions.useEmulator('localhost', 5001);
-  // firestore.useEmulator('localhost', 8080);
-  // auth.useEmulator('http://localhost:9099');
-}
+// No development environment check - remove entirely to avoid process references
 
 export default firebase; 
