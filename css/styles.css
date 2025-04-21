@@ -1330,3 +1330,209 @@ footer {
         box-shadow: 0 0 0 0 rgba(75, 46, 131, 0);
     }
 }
+
+/* Path dropdown styles */
+.path-dropdown {
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    border: 1px solid var(--border-color);
+    overflow: hidden;
+}
+
+.dropdown-paths {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+.dropdown-path-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    text-decoration: none;
+    color: var(--text-color);
+    border-bottom: 1px solid var(--border-color);
+    transition: background-color 0.3s;
+}
+
+.dropdown-path-item:last-child {
+    border-bottom: none;
+}
+
+.dropdown-path-item:hover {
+    background-color: #eaeaea;
+}
+
+.dropdown-path-item i {
+    color: var(--primary-color);
+}
+
+.dropdown-path-item.premium-path {
+    opacity: 0.85;
+}
+
+.dropdown-path-item.premium-path i {
+    color: #ffc107;
+}
+
+/* Add animation for dropdown */
+.dropdown-show {
+    animation: slideDown 0.3s ease forwards;
+}
+
+.dropdown-hide {
+    animation: slideUp 0.3s ease forwards;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+}
+
+/* Learning Path Styles */
+
+.learning-path {
+    padding: 60px 0;
+    background-color: #f7f9fc;
+}
+
+.learning-path-intro {
+    text-align: center;
+    margin-bottom: 50px;
+}
+
+.paths-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 30px;
+}
+
+.path-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+    overflow: hidden;
+    width: 300px;
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.path-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+}
+
+.path-image {
+    height: 160px;
+    background-size: cover;
+    background-position: center;
+}
+
+.path-content {
+    padding: 20px;
+}
+
+.path-title {
+    margin: 0 0 10px;
+    font-size: 20px;
+    color: #333;
+}
+
+.path-description {
+    color: #666;
+    margin-bottom: 20px;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.path-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #888;
+    font-size: 13px;
+}
+
+.path-difficulty {
+    display: flex;
+    align-items: center;
+}
+
+.path-difficulty i {
+    margin-right: 5px;
+    color: #4c84ff;
+}
+
+.path-modules {
+    display: flex;
+    align-items: center;
+}
+
+.path-modules i {
+    margin-right: 5px;
+    color: #4c84ff;
+}
+
+.path-card.premium .path-image::before {
+    content: "Premium";
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: #ffb100;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: bold;
+    z-index: 1;
+}
+
+.path-card .path-cta {
+    margin-top: 15px;
+    text-align: center;
+}
+
+.path-card .path-cta a {
+    display: inline-block;
+    padding: 8px 20px;
+    background: #4c84ff;
+    color: white;
+    border-radius: 5px;
+    text-decoration: none;
+    font-weight: 500;
+    transition: background 0.3s;
+}
+
+.path-card .path-cta a:hover {
+    background: #3a6edf;
+}
+
+/* Highlight animation for learning path section */
+@keyframes highlightSection {
+    0% { background-color: #f7f9fc; }
+    50% { background-color: #e6f0ff; }
+    100% { background-color: #f7f9fc; }
+}
+
+.highlight-section {
+    animation: highlightSection 2s ease;
+}

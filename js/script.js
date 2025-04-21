@@ -468,4 +468,31 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Set initial active state
     setActiveNavLink();
+
+    // Learning path premium access handling
+    const premiumLinks = document.querySelectorAll('.premium-path-link');
+    
+    // Add click event listener to each premium link
+    premiumLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            // Get the parent path card
+            const pathCard = this.closest('.path-card');
+            
+            // Add highlight class
+            pathCard.classList.add('highlight-section');
+            
+            // Show premium popup after a short delay
+            setTimeout(() => {
+                // Redirect to premium page or show premium modal
+                window.location.href = '#premium-section';
+                
+                // Remove highlight after navigation
+                setTimeout(() => {
+                    pathCard.classList.remove('highlight-section');
+                }, 1000);
+            }, 500);
+        });
+    });
 });

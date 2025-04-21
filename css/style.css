@@ -1,0 +1,125 @@
+/* Learning Paths Styles */
+.learning-path {
+  padding: 60px 0;
+  background-color: #f8f9fa;
+}
+
+.learning-path h2 {
+  text-align: center;
+  margin-bottom: 40px;
+  color: #343a40;
+}
+
+.learning-path p.intro {
+  text-align: center;
+  max-width: 800px;
+  margin: 0 auto 50px;
+  color: #6c757d;
+}
+
+.path-container {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 30px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.path-card {
+  width: 270px;
+  background: white;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.path-card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+}
+
+.path-image {
+  height: 150px;
+  background-size: cover;
+  background-position: center;
+}
+
+.path-content {
+  padding: 20px;
+}
+
+.path-title {
+  font-size: 20px;
+  margin-bottom: 10px;
+  color: #343a40;
+}
+
+.path-description {
+  color: #6c757d;
+  font-size: 14px;
+  line-height: 1.5;
+  margin-bottom: 15px;
+}
+
+.path-meta {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 15px;
+  font-size: 13px;
+  color: #6c757d;
+}
+
+.path-action {
+  text-align: center;
+}
+
+.path-action a {
+  display: inline-block;
+  padding: 8px 15px;
+  background-color: #007bff;
+  color: white;
+  border-radius: 5px;
+  text-decoration: none;
+  font-weight: 500;
+  transition: background-color 0.3s;
+}
+
+.path-action a:hover {
+  background-color: #0069d9;
+}
+
+.premium-badge {
+  background-color: #ffc107;
+  color: #343a40;
+  padding: 2px 8px;
+  border-radius: 3px;
+  font-size: 12px;
+  font-weight: 600;
+  margin-left: 5px;
+}
+
+/* Premium path highlighting */
+.highlight-section {
+  animation: pulse 1s;
+  border: 2px solid #ffc107;
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(255, 193, 7, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 15px rgba(255, 193, 7, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 193, 7, 0);
+  }
+}
+
+/* Remove controls from quizlet section */
+.quizlet-controls .gear-icon,
+.quizlet-controls .fullscreen-icon {
+  display: none;
+} 
