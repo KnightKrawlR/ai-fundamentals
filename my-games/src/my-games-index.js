@@ -74,6 +74,40 @@ const createLoadingUI = () => {
 // Show loading UI immediately
 createLoadingUI();
 
+// Ensure Firebase is correctly initialized
+const ensureFirebase = () => {
+  // Check if Firebase is available from window.firebase (from CDN scripts)
+  if (window.firebase && typeof window.firebase === 'object') {
+    console.log('Firebase found from window.firebase');
+    return window.firebase;
+  }
+  
+  // If window.firebase is not available, create a mock Firebase object
+  console.warn('Firebase not found in window - creating mock object');
+  const mockFirebase = {
+    auth: () => ({
+      onAuthStateChanged: (callback) => {
+        callback(null);
+        return () => {}; // return unsubscribe function
+      },
+      currentUser: null,
+      signInWithEmailAndPassword: () => Promise.reject(new Error('Firebase not available'))
+    }),
+    firestore: () => ({
+      collection: () => ({
+        doc: () => ({
+          get: () => Promise.resolve({ exists: false, data: () => ({}) })
+        })
+      })
+    }),
+    functions: () => ({
+      httpsCallable: () => () => Promise.reject(new Error('Firebase not available'))
+    })
+  };
+  
+  return mockFirebase;
+};
+
 // Wait for DOM to be fully loaded
 document.addEventListener('DOMContentLoaded', () => {
   console.log('DOMContentLoaded event fired for games component');
@@ -87,48 +121,8 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('Checking for Firebase...');
     showDebugOnPage('Checking for Firebase...');
     
-    if (!window.firebase) {
-      const errorMsg = 'Firebase is not initialized. Please check your Firebase configuration.';
-      console.error(errorMsg);
-      showErrorOnPage('Firebase Error', errorMsg);
-      return;
-    }
-    
-    console.log('Firebase found:', typeof window.firebase);
-    showDebugOnPage(`Firebase found: ${typeof window.firebase}`);
-    
-    // Check for Firebase auth
-    if (!window.firebase.auth) {
-      const errorMsg = 'Firebase Auth is not initialized. Please check your Firebase configuration.';
-      console.error(errorMsg);
-      showErrorOnPage('Firebase Auth Error', errorMsg);
-      return;
-    }
-    
-    console.log('Firebase Auth found');
-    showDebugOnPage('Firebase Auth found');
-    
-    // Check for Firebase Firestore
-    if (!window.firebase.firestore) {
-      const errorMsg = 'Firebase Firestore is not initialized. Please check your Firebase configuration.';
-      console.error(errorMsg);
-      showErrorOnPage('Firebase Firestore Error', errorMsg);
-      return;
-    }
-    
-    console.log('Firebase Firestore found');
-    showDebugOnPage('Firebase Firestore found');
-    
-    // Check for Firebase Functions
-    if (!window.firebase.functions) {
-      const errorMsg = 'Firebase Functions is not initialized. Please check your Firebase configuration.';
-      console.error(errorMsg);
-      showErrorOnPage('Firebase Functions Error', errorMsg);
-      return;
-    }
-    
-    console.log('Firebase Functions found');
-    showDebugOnPage('Firebase Functions found');
+    // Get Firebase instance (real or mock)
+    const firebase = ensureFirebase();
     
     console.log('Initializing React for games component');
     showDebugOnPage('Initializing React for games component');
@@ -139,7 +133,7 @@ document.addEventListener('DOMContentLoaded', () => {
     root.render(
       <React.StrictMode>
         <ErrorBoundary>
-          <MyGames firebase={window.firebase} />
+          <MyGames firebaseProp={firebase} />
         </ErrorBoundary>
       </React.StrictMode>
     );

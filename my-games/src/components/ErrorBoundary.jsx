@@ -7,59 +7,99 @@ class ErrorBoundary extends React.Component {
   }
 
   static getDerivedStateFromError(error) {
-    return { hasError: true };
+    // Update state so the next render will show the fallback UI
+    return { hasError: true, error };
   }
 
   componentDidCatch(error, errorInfo) {
-    this.setState({
-      error: error,
-      errorInfo: errorInfo
-    });
-    console.error("React Error Boundary caught an error:", error, errorInfo);
+    // Log the error to console
+    console.error('React ErrorBoundary caught an error:', error, errorInfo);
+    this.setState({ errorInfo });
+    
+    // You can also log the error to an error reporting service like Sentry
+    // Example: logErrorToMyService(error, errorInfo);
   }
 
   render() {
     if (this.state.hasError) {
       return (
         <div style={{
-          padding: '20px',
           margin: '20px',
-          border: '1px solid red',
+          padding: '20px',
+          border: '1px solid #f56565',
           borderRadius: '5px',
-          backgroundColor: '#fff8f8'
+          backgroundColor: '#fff5f5'
         }}>
-          <h2 style={{ color: 'red' }}>Something went wrong.</h2>
-          <details style={{ whiteSpace: 'pre-wrap', marginTop: '10px' }}>
-            <summary>Show error details</summary>
-            <p style={{ color: 'red' }}>{this.state.error && this.state.error.toString()}</p>
-            <p style={{ color: '#666' }}>Component Stack:</p>
-            <pre style={{ 
-              backgroundColor: '#f5f5f5', 
-              padding: '10px', 
-              overflow: 'auto',
-              fontSize: '12px'
+          <h2 style={{ 
+            color: '#c53030', 
+            marginBottom: '10px' 
+          }}>
+            Something went wrong
+          </h2>
+          <p style={{ marginBottom: '15px' }}>
+            We're sorry, but there was an error loading the My Games experience.
+          </p>
+          
+          <details style={{ 
+            marginTop: '15px',
+            padding: '10px',
+            backgroundColor: '#f7fafc',
+            border: '1px solid #e2e8f0',
+            borderRadius: '4px'
+          }}>
+            <summary style={{ 
+              fontWeight: 'bold',
+              cursor: 'pointer'
             }}>
-              {this.state.errorInfo && this.state.errorInfo.componentStack}
+              Error Details (for technical support)
+            </summary>
+            <pre style={{ 
+              marginTop: '10px',
+              padding: '10px',
+              backgroundColor: '#edf2f7',
+              overflow: 'auto',
+              maxHeight: '200px',
+              fontSize: '12px',
+              whiteSpace: 'pre-wrap',
+              wordBreak: 'break-word'
+            }}>
+              {this.state.error && this.state.error.toString()}
             </pre>
+            {this.state.errorInfo && (
+              <pre style={{ 
+                marginTop: '10px',
+                padding: '10px',
+                backgroundColor: '#edf2f7',
+                overflow: 'auto',
+                maxHeight: '200px',
+                fontSize: '12px',
+                whiteSpace: 'pre-wrap',
+                wordBreak: 'break-word'
+              }}>
+                {this.state.errorInfo.componentStack}
+              </pre>
+            )}
           </details>
+          
           <button 
             onClick={() => window.location.reload()} 
             style={{
-              marginTop: '15px',
-              padding: '8px 15px',
-              backgroundColor: '#4a90e2',
+              marginTop: '20px',
+              padding: '8px 16px',
+              backgroundColor: '#3182ce',
               color: 'white',
               border: 'none',
               borderRadius: '4px',
               cursor: 'pointer'
             }}
           >
-            Reload Page
+            Try Again
           </button>
         </div>
       );
     }
 
+    // If there's no error, render children normally
     return this.props.children;
   }
 }

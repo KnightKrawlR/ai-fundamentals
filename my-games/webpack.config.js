@@ -30,5 +30,28 @@ module.exports = {
   },
   resolve: {
     extensions: ['.js', '.jsx'],
+    fallback: {
+      // Node.js polyfills
+      "stream": false,
+      "path": false,
+      "util": false,
+      "process": false,
+      "buffer": false,
+      "crypto": false,
+      "zlib": false,
+      "fs": false,
+      "http": false,
+      "https": false,
+      "net": false,
+      "tls": false
+    }
+  },
+  // Externalize Firebase - it will be loaded from CDN
+  externals: {
+    'firebase/app': 'firebase',
+    'firebase/auth': 'firebase',
+    'firebase/firestore': 'firebase',
+    'firebase/functions': 'firebase',
+    'firebase': 'firebase'
   }
 };
