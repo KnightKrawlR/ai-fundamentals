@@ -63,151 +63,174 @@ class VertexAIGameEngine {
   async callWithCorsProxy(functionName, data) {
     console.log(`Calling ${functionName} with data:`, data);
     
-    // TEMPORARY SOLUTION: Use simulated responses since CORS is blocking the real API
-    // This allows us to test the UI without the backend
+    // Use our new HTTP endpoints which have proper CORS headers
     if (functionName === 'initializeGameSession') {
-      console.log('Using simulated initializeGameSession response');
-      
-      // Generate a realistic looking response
-      const simulatedResponse = {
-        sessionId: `sim-${Date.now()}`,
-        conversationHistory: [
-          {
-            role: 'assistant',
-            content: `Welcome to your learning session about ${data.topicId || 'this topic'}! I'll be your AI guide for exploring ${data.topicId || 'this subject'} concepts. What specific aspects would you like to learn about?`
-          }
-        ],
-        timestamp: new Date().toISOString()
-      };
-      
-      // Add a small delay to simulate network request
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      return simulatedResponse;
+      try {
+        console.log('Using HTTP endpoint for game initialization');
+        
+        // Use the HTTP endpoint instead
+        const response = await fetch('https://us-central1-ai-fundamentals-ad37d.cloudfunctions.net/initGameHttp', {
+          method: 'POST',
+          mode: 'cors',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(data)
+        });
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const result = await response.json();
+        console.log('Game initialization response:', result);
+        return result;
+      } catch (error) {
+        console.error('Error with HTTP game initialization:', error);
+        
+        // FALLBACK to simulated response if HTTP endpoint fails
+        console.log('Using simulated initializeGameSession response');
+        
+        // Generate a realistic looking response
+        const simulatedResponse = {
+          sessionId: `sim-${Date.now()}`,
+          conversationHistory: [
+            {
+              role: 'assistant',
+              content: `Welcome to your learning session about ${data.topicId || 'this topic'}! I'll be your AI guide for exploring ${data.topicId || 'this subject'} concepts. What specific aspects would you like to learn about?`
+            }
+          ],
+          timestamp: new Date().toISOString()
+        };
+        
+        // Add a small delay to simulate network request
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        return simulatedResponse;
+      }
     }
     
     if (functionName === 'sendGameMessage') {
-      console.log('Using simulated sendGameMessage response');
-      
-      // Content for different topics
-      const topics = {
-        'social-media-marketing': [
-          "Social media marketing requires understanding platform-specific audiences. Facebook tends to have older users, while TikTok attracts younger demographics. Instagram sits somewhere in the middle. For effective campaigns, tailor your content to match each platform's user expectations.",
-          "Content calendars are essential for social media success. They help maintain consistency, which algorithms reward with better reach. Plan content 2-4 weeks in advance, mixing promotional posts with educational and entertaining content at a ratio of roughly 1:4.",
-          "Social listening tools like Hootsuite, Buffer, and Sprout Social can help you monitor brand mentions and industry trends. This intelligence lets you respond quickly to opportunities and address potential issues before they escalate.",
-          "For automation, tools like Buffer, Hootsuite, and Later can schedule posts across multiple platforms. However, avoid identical cross-posting - each platform has unique formatting requirements and audience expectations. Tailoring is key."
-        ],
-        'videography': [
-          "When recording video, the 180-degree rule is crucial for maintaining spatial continuity. Keep your camera on one side of an imaginary line between subjects to avoid disorienting viewers during cuts.",
-          "For editing efficiency, consider using proxy files - lower resolution versions of your footage that make editing smoother on less powerful computers. Programs like Premiere Pro can automatically generate and link these.",
-          "Audio quality often matters more than video quality. Viewers will tolerate visual imperfections but will quickly abandon content with poor audio. Invest in a decent external microphone rather than relying on built-in camera mics.",
-          "The rule of thirds remains fundamental in videography composition. Place key elements along the grid lines or at their intersections to create visually balanced and engaging frames."
-        ],
-        'ecommerce': [
-          "Product photography dramatically impacts conversion rates. Consider using 360-degree photos that allow customers to view items from all angles, reducing uncertainty and return rates.",
-          "A/B testing your product descriptions can reveal surprising insights. Try comparing feature-focused versus benefit-focused language to see which resonates better with your specific audience.",
-          "Cart abandonment emails have among the highest conversion rates of any marketing automation. Set up a sequence that sends 1 hour, 24 hours, and 72 hours after abandonment for optimal recovery.",
-          "For pricing psychology, consider charm pricing (ending in 9 or 7) for value perception, while round numbers often work better for luxury items as they signal quality over bargains."
-        ],
-        'intro-to-ai': [
-          "Machine learning is just one subset of artificial intelligence. It focuses on algorithms that improve through experience, while AI more broadly refers to any technique enabling computers to mimic human intelligence.",
-          "The difference between supervised and unsupervised learning is that supervised requires labeled data for training, while unsupervised finds patterns in unlabeled data without specific guidance.",
-          "Natural Language Processing (NLP) has made tremendous advances with transformer models like BERT and GPT. These models use attention mechanisms to understand context in language much better than previous approaches.",
-          "Ethical considerations in AI include bias in training data, algorithmic transparency, privacy concerns with data collection, and the socioeconomic impacts of automation."
-        ],
-        'office-productivity': [
-          "Text expansion tools can save hours of typing. Applications like TextExpander or AutoHotkey let you create shortcuts that expand into frequently used phrases, paragraphs, or even templates.",
-          "Email management using the 4D system (Delete, Delegate, Defer, Do) can help maintain inbox zero. Process each email once and immediately decide which category it belongs in rather than rereading multiple times.",
-          "For document organization, implement a consistent file naming convention that includes date (YYYY-MM-DD format), project, document type, and version number for easy sorting and identification.",
-          "Calendar blocking, where you schedule specific time for focused work tasks, can increase productivity by up to 50% compared to reactive work patterns where you constantly respond to incoming requests."
-        ],
-        'personal-finance': [
-          "When building an emergency fund, aim for 3-6 months of essential expenses rather than income. This more targeted approach ensures you're covered while potentially requiring less savings.",
-          "For retirement planning, the 4% rule suggests you can withdraw 4% of your portfolio in year one, then adjust for inflation each year after. To determine your target retirement savings, multiply your desired annual income by 25.",
-          "Credit utilization, the percentage of available credit you're using, affects about 30% of your credit score. For optimal scores, keep utilization below 10% across all cards, even if you pay in full monthly.",
-          "When evaluating investment returns, focus on the geometric mean (CAGR) rather than arithmetic mean. A 50% loss followed by a 50% gain results in a 25% loss overall, not a 0% return as arithmetic averaging would suggest."
-        ]
-      };
-      
-      // Get the appropriate responses for the topic or use a general fallback
-      const topicId = this.currentTopic?.id || data.topicId || 'social-media-marketing';
-      const responses = topics[topicId] || topics['social-media-marketing'];
-      
-      // Create a response that feels like it's answering the user's question
-      const userMessage = data.message || '';
-      let aiResponse = '';
-      
-      if (userMessage.toLowerCase().includes('automation') || userMessage.toLowerCase().includes('automate')) {
-        // Handle automation-specific questions
-        if (topicId === 'social-media-marketing') {
-          aiResponse = "To automate social media posts, you can use scheduling tools like Buffer, Hootsuite, or Later. These platforms allow you to prepare content in batches and schedule posts for optimal times when your audience is most active. For more advanced automation, consider using IFTTT or Zapier to connect your social accounts with other applications. For example, you could automatically share new blog posts to Twitter or post Instagram photos to Facebook. Remember that while automation saves time, you should still monitor engagement and respond personally to comments and messages.";
-        } else {
-          // Generic automation answer for other topics
-          aiResponse = `Automation can significantly improve efficiency in ${topicId}. There are several tools and techniques that can help you automate repetitive tasks, saving time and reducing errors. Would you like to know about specific automation tools for this field?`;
-        }
-      } else {
-        // Pick a semi-random response that sounds relevant
-        const randomIndex = Math.floor(Math.random() * responses.length);
-        aiResponse = responses[randomIndex];
-        
-        // Add a personalized touch
-        aiResponse += "\n\nDoes this help with what you were asking about? I'd be happy to go into more detail on any specific aspect you're interested in.";
-      }
-      
-      // Add a small delay to simulate network request
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      return {
-        aiResponse: aiResponse,
-        conversationId: data.sessionId || 'sim-session',
-        timestamp: new Date().toISOString()
-      };
-    }
-    
-    // If we get here, we're trying to make a real API call, which we know will fail
-    console.log('Simulating API failure for:', functionName);
-    try {
-      // For logging/development purposes, still try to make the real call to see the error
-      const functionUrl = `https://us-central1-ai-fundamentals-ad37d.cloudfunctions.net/${functionName}`;
-      console.log(`Attempting real call to: ${functionUrl} (expecting failure)`);
-      
-      const requestData = {
-        ...data,
-        timestamp: Date.now(),
-        userInfo: this.userProfile ? {
-          uid: this.userProfile.uid,
-          email: this.userProfile.email
-        } : null
-      };
-      
       try {
-        const response = await fetch(functionUrl, {
+        console.log('Using HTTP endpoint for game message');
+        
+        // Use the HTTP endpoint instead
+        const response = await fetch('https://us-central1-ai-fundamentals-ad37d.cloudfunctions.net/sendMessageHttp', {
           method: 'POST',
           mode: 'cors',
-          cache: 'no-cache',
-          credentials: 'omit',
           headers: {
-            'Content-Type': 'application/json',
+            'Content-Type': 'application/json'
           },
-          body: JSON.stringify(requestData)
+          body: JSON.stringify(data)
         });
         
-        // This likely won't execute due to CORS
-        if (response.ok) {
-          const result = await response.json();
-          console.log(`Unexpected success from API call to ${functionName}:`, result);
-          return result;
-        } else {
-          throw new Error(`HTTP error: ${response.status}`);
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
         }
-      } catch (apiError) {
-        console.error(`Expected API error for ${functionName}:`, apiError);
-        // Fall through to simulation below
+        
+        const result = await response.json();
+        console.log('Game message response:', result);
+        return result;
+      } catch (error) {
+        console.error('Error with HTTP game message:', error);
+        
+        // FALLBACK to simulated response if HTTP endpoint fails
+        console.log('Using simulated sendGameMessage response');
+        
+        // Content for different topics
+        const topics = {
+          'social-media-marketing': [
+            "Social media marketing requires understanding platform-specific audiences. Facebook tends to have older users, while TikTok attracts younger demographics. Instagram sits somewhere in the middle. For effective campaigns, tailor your content to match each platform's user expectations.",
+            "Content calendars are essential for social media success. They help maintain consistency, which algorithms reward with better reach. Plan content 2-4 weeks in advance, mixing promotional posts with educational and entertaining content at a ratio of roughly 1:4.",
+            "Social listening tools like Hootsuite, Buffer, and Sprout Social can help you monitor brand mentions and industry trends. This intelligence lets you respond quickly to opportunities and address potential issues before they escalate.",
+            "For automation, tools like Buffer, Hootsuite, and Later can schedule posts across multiple platforms. However, avoid identical cross-posting - each platform has unique formatting requirements and audience expectations. Tailoring is key."
+          ],
+          'videography': [
+            "When recording video, the 180-degree rule is crucial for maintaining spatial continuity. Keep your camera on one side of an imaginary line between subjects to avoid disorienting viewers during cuts.",
+            "For editing efficiency, consider using proxy files - lower resolution versions of your footage that make editing smoother on less powerful computers. Programs like Premiere Pro can automatically generate and link these.",
+            "Audio quality often matters more than video quality. Viewers will tolerate visual imperfections but will quickly abandon content with poor audio. Invest in a decent external microphone rather than relying on built-in camera mics.",
+            "The rule of thirds remains fundamental in videography composition. Place key elements along the grid lines or at their intersections to create visually balanced and engaging frames."
+          ],
+          'ecommerce': [
+            "Product photography dramatically impacts conversion rates. Consider using 360-degree photos that allow customers to view items from all angles, reducing uncertainty and return rates.",
+            "A/B testing your product descriptions can reveal surprising insights. Try comparing feature-focused versus benefit-focused language to see which resonates better with your specific audience.",
+            "Cart abandonment emails have among the highest conversion rates of any marketing automation. Set up a sequence that sends 1 hour, 24 hours, and 72 hours after abandonment for optimal recovery.",
+            "For pricing psychology, consider charm pricing (ending in 9 or 7) for value perception, while round numbers often work better for luxury items as they signal quality over bargains."
+          ],
+          'intro-to-ai': [
+            "Machine learning is just one subset of artificial intelligence. It focuses on algorithms that improve through experience, while AI more broadly refers to any technique enabling computers to mimic human intelligence.",
+            "The difference between supervised and unsupervised learning is that supervised requires labeled data for training, while unsupervised finds patterns in unlabeled data without specific guidance.",
+            "Natural Language Processing (NLP) has made tremendous advances with transformer models like BERT and GPT. These models use attention mechanisms to understand context in language much better than previous approaches.",
+            "Ethical considerations in AI include bias in training data, algorithmic transparency, privacy concerns with data collection, and the socioeconomic impacts of automation."
+          ],
+          'office-productivity': [
+            "Text expansion tools can save hours of typing. Applications like TextExpander or AutoHotkey let you create shortcuts that expand into frequently used phrases, paragraphs, or even templates.",
+            "Email management using the 4D system (Delete, Delegate, Defer, Do) can help maintain inbox zero. Process each email once and immediately decide which category it belongs in rather than rereading multiple times.",
+            "For document organization, implement a consistent file naming convention that includes date (YYYY-MM-DD format), project, document type, and version number for easy sorting and identification.",
+            "Calendar blocking, where you schedule specific time for focused work tasks, can increase productivity by up to 50% compared to reactive work patterns where you constantly respond to incoming requests."
+          ],
+          'personal-finance': [
+            "When building an emergency fund, aim for 3-6 months of essential expenses rather than income. This more targeted approach ensures you're covered while potentially requiring less savings.",
+            "For retirement planning, the 4% rule suggests you can withdraw 4% of your portfolio in year one, then adjust for inflation each year after. To determine your target retirement savings, multiply your desired annual income by 25.",
+            "Credit utilization, the percentage of available credit you're using, affects about 30% of your credit score. For optimal scores, keep utilization below 10% across all cards, even if you pay in full monthly.",
+            "When evaluating investment returns, focus on the geometric mean (CAGR) rather than arithmetic mean. A 50% loss followed by a 50% gain results in a 25% loss overall, not a 0% return as arithmetic averaging would suggest."
+          ]
+        };
+        
+        // Get the appropriate responses for the topic or use a general fallback
+        const topicId = this.currentTopic?.id || data.topicId || 'social-media-marketing';
+        const responses = topics[topicId] || topics['social-media-marketing'];
+        
+        // Create a response that feels like it's answering the user's question
+        const userMessage = data.message || '';
+        let aiResponse = '';
+        
+        if (userMessage.toLowerCase().includes('automation') || userMessage.toLowerCase().includes('automate')) {
+          // Handle automation-specific questions
+          if (topicId === 'social-media-marketing') {
+            aiResponse = "To automate social media posts, you can use scheduling tools like Buffer, Hootsuite, or Later. These platforms allow you to prepare content in batches and schedule posts for optimal times when your audience is most active. For more advanced automation, consider using IFTTT or Zapier to connect your social accounts with other applications. For example, you could automatically share new blog posts to Twitter or post Instagram photos to Facebook. Remember that while automation saves time, you should still monitor engagement and respond personally to comments and messages.";
+          } else {
+            // Generic automation answer for other topics
+            aiResponse = `Automation can significantly improve efficiency in ${topicId}. There are several tools and techniques that can help you automate repetitive tasks, saving time and reducing errors. Would you like to know about specific automation tools for this field?`;
+          }
+        } else {
+          // Pick a semi-random response that sounds relevant
+          const randomIndex = Math.floor(Math.random() * responses.length);
+          aiResponse = responses[randomIndex];
+          
+          // Add a personalized touch
+          aiResponse += "\n\nDoes this help with what you were asking about? I'd be happy to go into more detail on any specific aspect you're interested in.";
+        }
+        
+        // Add a small delay to simulate network request
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        
+        return {
+          aiResponse: aiResponse,
+          conversationId: data.sessionId || 'sim-session',
+          timestamp: new Date().toISOString()
+        };
+      }
+    }
+    
+    // If we get here, we're trying to make a real API call, but we don't have a specific handler
+    console.log('Using the debug endpoint to test connectivity');
+    try {
+      const response = await fetch('https://us-central1-ai-fundamentals-ad37d.cloudfunctions.net/debug', {
+        method: 'GET',
+        mode: 'cors'
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
       
-      // Return simulated error if we don't have a specific simulation
-      throw new Error(`No simulation available for function: ${functionName}`);
+      const result = await response.json();
+      console.log('Debug endpoint response:', result);
+      
+      // Return a generic error for unsupported functions
+      throw new Error(`No handler for function: ${functionName}`);
     } catch (error) {
-      console.error(`Error in simulated API call:`, error);
+      console.error('Error in connectivity test:', error);
       throw error;
     }
   }
