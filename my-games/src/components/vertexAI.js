@@ -393,7 +393,25 @@ Start by introducing yourself and asking the user what specific aspect of ${this
       
       // Check if user has enough credits
       if (this.userProfile.credits < creditCost) {
-        throw new Error('Insufficient credits');
+        // Instead of throwing an error, return a structured response
+        return {
+          success: false,
+          errorType: 'insufficient_credits',
+          message: `You need ${creditCost} credits to continue, but you only have ${this.userProfile.credits}.`,
+          currentCredits: this.userProfile.credits,
+          options: [
+            {
+              action: 'add_credits',
+              label: 'Purchase Credits',
+              description: 'Buy credits to continue your learning journey.'
+            },
+            {
+              action: 'wait_for_monthly',
+              label: 'Wait for Monthly Credits',
+              description: 'Reminder: Free accounts receive 20 credits on the 1st of each month.'
+            }
+          ]
+        };
       }
       
       // Process different input types
@@ -781,6 +799,14 @@ Is there a specific aspect of ${topicName} you'd like to explore further?`;
       default:
         return 1; // Standard cost for text
     }
+  }
+
+  /**
+   * Check if user has low credits and should be warned
+   * @returns {boolean} - True if credits are low
+   */
+  hasLowCredits() {
+    return this.userProfile && this.userProfile.credits <= 5;
   }
 
   /**

@@ -1,6 +1,260 @@
 // MyGames.jsx - React component for the My Games feature
 import React, { useState, useEffect, useRef } from 'react';
 import VertexAIGameEngine from './vertexAI';
+import LowCreditsWarning from './LowCreditsWarning';
+import { checkCreditsThreshold } from '../services/creditService';
+
+const CreditManagement = ({ credits, onAddCredits }) => {
+  const [showModal, setShowModal] = useState(false);
+  const [creditAmount, setCreditAmount] = useState(10);
+  const [isProcessing, setIsProcessing] = useState(false);
+  
+  const handleAddCredits = async () => {
+    setIsProcessing(true);
+    try {
+      await onAddCredits(creditAmount);
+      setShowModal(false);
+    } catch (error) {
+      console.error('Error adding credits:', error);
+      alert('Failed to add credits. Please try again.');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+  
+  return (
+    <>
+      <div className="flex items-center space-x-2">
+        <span className={`text-sm ${credits < 5 ? 'text-red-600 font-bold' : 'text-gray-600'}`}>
+          Credits: {credits}
+        </span>
+        {credits < 5 && (
+          <button
+            data-credit-button
+            onClick={() => setShowModal(true)}
+            className="text-xs px-2 py-1 bg-primary-500 text-white rounded hover:bg-primary-600"
+          >
+            Add Credits
+          </button>
+        )}
+      </div>
+      
+      {showModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full">
+            <h3 className="text-lg font-bold mb-4">Add Credits</h3>
+            <p className="mb-4">Add more credits to continue enjoying AI Fundamentals games!</p>
+            
+            <div className="mb-4">
+              <label className="block text-sm font-medium mb-1">Amount:</label>
+              <select 
+                value={creditAmount}
+                onChange={(e) => setCreditAmount(Number(e.target.value))}
+                className="w-full p-2 border rounded"
+              >
+                <option value={10}>10 Credits - $1.99</option>
+                <option value={50}>50 Credits - $7.99</option>
+                <option value={100}>100 Credits - $14.99</option>
+                <option value={500}>500 Credits - $59.99</option>
+              </select>
+            </div>
+            
+            <div className="mt-6 flex justify-end space-x-2">
+              <button
+                onClick={() => setShowModal(false)}
+                className="px-4 py-2 border rounded hover:bg-gray-100"
+                disabled={isProcessing}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleAddCredits}
+                className="px-4 py-2 bg-primary-600 text-white rounded hover:bg-primary-700"
+                disabled={isProcessing}
+              >
+                {isProcessing ? 'Processing...' : 'Purchase Credits'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+};
+
+const InsufficientCreditsPrompt = ({ message, options, onAction, onClose }) => {
+  // Calculate days until next month for monthly credit refresh
+  const daysUntilNextMonth = () => {
+    const now = new Date();
+    const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+    return lastDay - now.getDate() + 1;
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg p-6 max-w-md w-full">
+        <h3 className="text-lg font-bold mb-2">Insufficient Credits</h3>
+        <p className="mb-4 text-red-600">{message}</p>
+        
+        <div className="mb-4 p-3 bg-blue-50 border border-blue-200 text-blue-800 rounded">
+          <p className="text-sm">
+            <span className="font-medium">Monthly Credits: </span>
+            Free accounts receive 20 credits on the 1st of every month.
+            <span className="block mt-1">
+              Next refresh in: <span className="font-bold">{daysUntilNextMonth()} days</span>
+            </span>
+          </p>
+        </div>
+        
+        <div className="space-y-3 mb-6">
+          {options.map((option, index) => (
+            <button
+              key={index}
+              onClick={() => onAction(option.action)}
+              className="w-full text-left p-3 border rounded-md hover:bg-gray-50 flex items-center"
+            >
+              <div className="flex-1">
+                <p className="font-medium">{option.label}</p>
+                <p className="text-sm text-gray-500">{option.description}</p>
+              </div>
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+              </svg>
+            </button>
+          ))}
+        </div>
+        
+        <div className="flex justify-end">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 border rounded hover:bg-gray-100"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const CreditPurchaseModal = ({ isOpen, onClose, insufficientCreditsData, onPurchase }) => {
+  const [selectedPackage, setSelectedPackage] = useState('basic');
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+
+  const creditPackages = {
+    basic: { amount: 20, price: '$1.99', popular: false },
+    standard: { amount: 50, price: '$3.99', popular: true },
+    premium: { amount: 100, price: '$6.99', popular: false }
+  };
+
+  const handlePurchase = async () => {
+    setIsProcessing(true);
+    setErrorMessage('');
+    
+    try {
+      // Call Firebase function to purchase credits
+      const purchaseCreditsFunction = firebase.functions().httpsCallable('purchaseCredits');
+      
+      const result = await purchaseCreditsFunction({
+        package: selectedPackage,
+        amount: creditPackages[selectedPackage].amount,
+        paymentMethod: 'demo' // In a real app, this would be payment info from a form
+      });
+      
+      if (result.data && result.data.success) {
+        onPurchase(creditPackages[selectedPackage].amount);
+        onClose();
+      } else {
+        setErrorMessage(result.data?.message || 'Failed to process payment');
+      }
+    } catch (error) {
+      console.error('Error purchasing credits:', error);
+      setErrorMessage('Transaction failed. Please try again.');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-xl font-semibold text-gray-900">Purchase Credits</h3>
+          <button 
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-500"
+          >
+            <span className="sr-only">Close</span>
+            <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        
+        {insufficientCreditsData && (
+          <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 text-yellow-800 rounded">
+            <p>{insufficientCreditsData.message}</p>
+          </div>
+        )}
+        
+        <div className="space-y-4 my-4">
+          <div className="text-lg font-medium">Select a credit package:</div>
+          
+          <div className="grid gap-4">
+            {Object.entries(creditPackages).map(([key, pkg]) => (
+              <div 
+                key={key}
+                onClick={() => setSelectedPackage(key)}
+                className={`border rounded-lg p-4 cursor-pointer transition-all ${
+                  selectedPackage === key 
+                    ? 'border-primary-500 bg-primary-50' 
+                    : 'border-gray-200 hover:border-primary-200'
+                } ${pkg.popular ? 'ring-2 ring-primary-500 ring-opacity-50' : ''}`}
+              >
+                <div className="flex justify-between items-center">
+                  <div>
+                    <span className="font-bold text-xl">{pkg.amount} Credits</span>
+                    <p className="text-gray-600">{pkg.price}</p>
+                  </div>
+                  {pkg.popular && (
+                    <span className="bg-primary-100 text-primary-800 text-xs font-semibold px-2.5 py-0.5 rounded-full">
+                      Most Popular
+                    </span>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+        
+        {errorMessage && (
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-800 rounded">
+            <p>{errorMessage}</p>
+          </div>
+        )}
+        
+        <div className="flex justify-end space-x-3">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-md transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handlePurchase}
+            disabled={isProcessing}
+            className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isProcessing ? 'Processing...' : 'Purchase Now'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const MyGames = ({ firebase }) => {
   // State variables
@@ -18,6 +272,9 @@ const MyGames = ({ firebase }) => {
   const [imageData, setImageData] = useState(null);
   const [audioData, setAudioData] = useState(null);
   const [error, setError] = useState(null);
+  const [insufficientCreditsData, setInsufficientCreditsData] = useState(null);
+  const [isPurchaseModalOpen, setIsPurchaseModalOpen] = useState(false);
+  const [showInsufficientCreditsPrompt, setShowInsufficientCreditsPrompt] = useState(false);
   
   const chatContainerRef = useRef(null);
   
@@ -83,20 +340,52 @@ const MyGames = ({ firebase }) => {
     
     try {
       setLoading(true);
+      setError(null);
       
-      const gameSession = await gameEngine.initializeGame(
+      const gameResult = await gameEngine.initializeGame(
         user.uid,
         selectedTopic.id,
         difficulty
       );
       
-      setCurrentGame(gameSession);
-      setMessages(gameSession.conversationHistory);
+      // Check if initialization failed due to insufficient credits
+      if (!gameResult.success && gameResult.errorType === 'insufficient_credits') {
+        // Set data for insufficient credits prompt
+        setInsufficientCreditsData(gameResult);
+        setShowInsufficientCreditsPrompt(true);
+        setLoading(false);
+        return;
+      }
+      
+      // Normal success flow
+      setCurrentGame(gameResult);
+      setMessages(gameResult.conversationHistory);
       setCredits(gameEngine.userProfile.credits);
-      setError(null);
     } catch (error) {
       console.error('Error starting game:', error);
-      setError(error.message);
+      
+      // Check if error is related to insufficient credits
+      if (error.message && error.message.includes('Insufficient credits')) {
+        setInsufficientCreditsData({
+          message: 'You don\'t have enough credits to start a new game.',
+          currentCredits: gameEngine.userProfile ? gameEngine.userProfile.credits : 0,
+          options: [
+            {
+              action: 'add_credits',
+              label: 'Purchase Credits',
+              description: 'Buy credits to continue your learning journey.'
+            },
+            {
+              action: 'wait_for_monthly',
+              label: 'Wait for Monthly Credits',
+              description: 'Free accounts receive 20 credits on the 1st of each month.'
+            }
+          ]
+        });
+        setShowInsufficientCreditsPrompt(true);
+      } else {
+        setError(error.message);
+      }
     } finally {
       setLoading(false);
     }
@@ -108,6 +397,7 @@ const MyGames = ({ firebase }) => {
     
     try {
       setLoading(true);
+      setError(null);
       
       // Add user message to UI immediately
       const userMessage = {
@@ -131,6 +421,16 @@ const MyGames = ({ firebase }) => {
         inputType,
         additionalData
       );
+      
+      // Handle insufficient credits response
+      if (result && !result.success && result.errorType === 'insufficient_credits') {
+        setInsufficientCreditsData(result);
+        setShowInsufficientCreditsPrompt(true);
+        
+        // Remove the user message since it wasn't processed
+        setMessages(prev => prev.slice(0, -1));
+        return;
+      }
       
       // Update state with response
       setMessages(result.conversationHistory);
@@ -289,6 +589,54 @@ const MyGames = ({ firebase }) => {
     scrollToBottom();
   }, [messages]);
   
+  // Add credits to the user's account
+  const handleAddCredits = async (amount) => {
+    try {
+      setLoading(true);
+      
+      // Call a Firebase function to add credits
+      const addCreditsFunction = firebase.functions().httpsCallable('purchaseCredits');
+      
+      const result = await addCreditsFunction({
+        amount,
+        paymentMethod: 'demo' // In a real app, this would be the payment method info
+      });
+      
+      // Update local state
+      if (result.data && result.data.success) {
+        setCredits(result.data.newTotal);
+        setError(null);
+        
+        // Close any credit-related prompts
+        setShowInsufficientCreditsPrompt(false);
+        setIsPurchaseModalOpen(false);
+        
+        // Show success message
+        alert(`Successfully added ${amount} credits to your account!`);
+      } else {
+        throw new Error(result.data?.message || 'Failed to add credits');
+      }
+    } catch (error) {
+      console.error('Error adding credits:', error);
+      setError('Failed to add credits. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  // Handle insufficient credits action
+  const handleCreditAction = async (action) => {
+    if (action === 'add_credits') {
+      // Show the add credits modal
+      setShowInsufficientCreditsPrompt(false);
+      setIsPurchaseModalOpen(true);
+    } else if (action === 'wait_for_monthly') {
+      // Just close the dialog and show a message
+      setShowInsufficientCreditsPrompt(false);
+      alert('We\'ll notify you when your monthly credits are available!');
+    }
+  };
+  
   // Render loading state
   if (loading && !currentGame) {
     return <div className="flex items-center justify-center min-h-[500px]">
@@ -311,8 +659,11 @@ const MyGames = ({ firebase }) => {
     <div className="flex flex-col space-y-4">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold text-gray-900">My Games</h1>
-        <div className="flex items-center space-x-2">
-          <span className="text-sm text-gray-600">Credits: {credits}</span>
+        <div className="flex items-center space-x-4">
+          <CreditManagement 
+            credits={credits} 
+            onAddCredits={() => setIsPurchaseModalOpen(true)} 
+          />
           <select
             value={difficulty}
             onChange={(e) => setDifficulty(e.target.value)}
@@ -324,6 +675,14 @@ const MyGames = ({ firebase }) => {
           </select>
         </div>
       </div>
+
+      {/* Low credits warning banner */}
+      {credits > 0 && credits <= 20 && !showInsufficientCreditsPrompt && (
+        <LowCreditsWarning 
+          credits={credits} 
+          onAddCredits={() => setIsPurchaseModalOpen(true)} 
+        />
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {topics.map((topic) => (
@@ -410,6 +769,33 @@ const MyGames = ({ firebase }) => {
             </button>
           </div>
         </div>
+      )}
+
+      {/* Hidden file input for image uploads */}
+      <input 
+        type="file" 
+        id="image-upload" 
+        accept="image/*" 
+        onChange={handleImageUpload} 
+        style={{ display: 'none' }} 
+      />
+
+      {/* Credit Purchase Modal */}
+      <CreditPurchaseModal 
+        isOpen={isPurchaseModalOpen} 
+        onClose={() => setIsPurchaseModalOpen(false)} 
+        insufficientCreditsData={insufficientCreditsData}
+        onPurchase={handleAddCredits}
+      />
+
+      {/* Insufficient Credits Prompt */}
+      {showInsufficientCreditsPrompt && insufficientCreditsData && (
+        <InsufficientCreditsPrompt 
+          message={insufficientCreditsData.message}
+          options={insufficientCreditsData.options}
+          onAction={handleCreditAction}
+          onClose={() => setShowInsufficientCreditsPrompt(false)}
+        />
       )}
     </div>
   );

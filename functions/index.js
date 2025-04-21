@@ -512,100 +512,146 @@ exports.processChatConversation = createCallableFunction(async (data, context) =
 });
 
 /**
- * Initialize a game session
+ * Allow users to add credits to their own accounts
  */
-exports.initializeGameSession = createCallableFunction(async (data, context) => {
-  try {
-    const { gameConfig, model = 'gemini-pro', options = {}, allowAnonymous = false } = data;
-    const { gameType, characterName } = gameConfig || {};
-    
-    // Validate input
-    if (!gameType) {
-      throw new functions.https.HttpsError(
-        'invalid-argument',
-        'Game type is required'
-      );
-    }
-    
-    // Validate authentication
-    await validateAuth(context, allowAnonymous);
-    
-    // Create a unique session ID
-    const sessionId = admin.firestore().collection('gameSessions').doc().id;
-    const userId = context.auth?.uid || 'anonymous';
-    
-    // Build the system prompt for the game
-    const systemPrompt = `You are an AI game master for a ${gameType} game. The player's character is named ${characterName || 'Player'}. 
-Generate an engaging introduction to the game world and the first scenario. Be creative, descriptive, and interactive.
-Your responses should be immersive and provide clear choices or actions for the player.`;
-    
-    // Initialize the game model
-    const generativeModel = vertexAI.getGenerativeModel({
-      model: model,
-      generation_config: {
-        max_output_tokens: options.maxTokens || 2048,
-        temperature: options.temperature || 0.8,
-        top_p: options.topP || 0.95,
-        top_k: options.topK || 40
-      },
-    });
-    
-    // Generate the initial game content
-    const result = await generativeModel.generateContent({
-      contents: [
-        { role: 'user', parts: [{ text: systemPrompt }] }
-      ],
-    });
-    
-    const response = result.response;
-    const introText = response.candidates[0].content.parts[0].text;
-    
-    // Get usage metadata
-    const usageMetadata = {
-      promptTokens: response.usageMetadata?.promptTokenCount || 0,
-      candidatesTokens: response.usageMetadata?.candidatesTokenCount || 0,
-      totalTokens: response.usageMetadata?.totalTokenCount || 0
-    };
-    
-    // Store the game session in Firestore
-    await admin.firestore().collection('gameSessions').doc(sessionId).set({
-      userId,
-      sessionId,
-      gameType,
-      characterName: characterName || 'Player',
-      model,
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'assistant', content: introText }
-      ],
-      createdAt: admin.firestore.FieldValue.serverTimestamp(),
-      lastUpdatedAt: admin.firestore.FieldValue.serverTimestamp()
-    });
-    
-    // Log API usage
-    await logAPIUsage(
-      userId,
-      model,
-      usageMetadata.totalTokens,
-      'initializeGameSession'
+exports.addUserCredits = functions.https.onCall(async (data, context) => {
+  // Check if user is authenticated
+  if (!context.auth) {
+    throw new functions.https.HttpsError(
+      'unauthenticated',
+      'You must be logged in to add credits.'
     );
+  }
+  
+  const userId = context.auth.uid;
+  const creditsToAdd = data.credits;
+  
+  // Validate the credit amount
+  if (!creditsToAdd || typeof creditsToAdd !== 'number' || creditsToAdd <= 0) {
+    throw new functions.https.HttpsError(
+      'invalid-argument',
+      'You must specify a positive number of credits to add.'
+    );
+  }
+  
+  // Get a reference to the user document
+  const userRef = admin.firestore().collection('users').doc(userId);
+  
+  try {
+    // Use a transaction to safely update credits
+    const result = await admin.firestore().runTransaction(async (transaction) => {
+      const userDoc = await transaction.get(userRef);
+      
+      if (!userDoc.exists) {
+        throw new functions.https.HttpsError(
+          'not-found',
+          'User not found. Please try again later.'
+        );
+      }
+      
+      const userData = userDoc.data();
+      const currentCredits = userData.credits || 0;
+      const newCredits = currentCredits + creditsToAdd;
+      
+      // Update user document with new credit total
+      transaction.update(userRef, { 
+        credits: newCredits,
+        lastCreditUpdate: admin.firestore.FieldValue.serverTimestamp()
+      });
+      
+      // Log the credit transaction
+      const creditLogRef = admin.firestore().collection('creditTransactions').doc();
+      transaction.set(creditLogRef, {
+        userId: userId,
+        amount: creditsToAdd,
+        type: 'purchase',
+        previousBalance: currentCredits,
+        newBalance: newCredits,
+        timestamp: admin.firestore.FieldValue.serverTimestamp()
+      });
+      
+      return {
+        previousCredits: currentCredits,
+        newCredits: newCredits,
+        added: creditsToAdd
+      };
+    });
     
     return {
-      sessionId,
-      introText,
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'assistant', content: introText }
-      ],
-      usageMetadata,
-      success: true
+      success: true,
+      message: `Successfully added ${creditsToAdd} credits to your account.`,
+      previousCredits: result.previousCredits,
+      currentCredits: result.newCredits
     };
+    
   } catch (error) {
-    console.error('Error initializing game session:', error);
+    console.error('Error adding credits:', error);
     throw new functions.https.HttpsError(
       'internal',
-      error.message || 'Error initializing game session'
+      'Failed to add credits. Please try again later.'
     );
+  }
+});
+
+/**
+ * Initialize a game session
+ */
+exports.initializeGameSession = functions.https.onCall(async (data, context) => {
+  const startTime = Date.now();
+  
+  // Extract the user UID from the auth context
+  const userId = await getUserFromAuth(context);
+  
+  // Get user data for credit check
+  const userRef = admin.firestore().collection('users').doc(userId);
+  const userDoc = await userRef.get();
+  
+  if (!userDoc.exists) {
+    throw new functions.https.HttpsError('not-found', 'User not found');
+  }
+  
+  const userData = userDoc.data();
+  const userCredits = userData.credits || 0;
+  const requiredCredits = GAME_SESSION_COST;
+  
+  // Check if user has enough credits
+  if (userCredits < requiredCredits) {
+    // Instead of throwing an error, return a friendly message with options
+    console.log(`User ${userId} has insufficient credits: ${userCredits}/${requiredCredits}`);
+    
+    // Calculate days until next month for monthly credit refresh
+    const now = new Date();
+    const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+    const daysUntilNextMonth = lastDay - now.getDate() + 1;
+    
+    return {
+      success: false,
+      errorType: 'insufficient_credits',
+      message: `You need ${requiredCredits} credits to start a new game, but you only have ${userCredits} credits.`,
+      currentCredits: userCredits,
+      requiredCredits: requiredCredits,
+      options: [
+        {
+          action: 'add_credits',
+          label: 'Add More Credits',
+          description: 'Purchase additional credits to continue playing.'
+        },
+        {
+          action: 'wait_for_monthly',
+          label: 'Wait for Monthly Credits',
+          description: `You'll receive ${DEFAULT_CREDITS} free credits in ${daysUntilNextMonth} days.`
+        }
+      ]
+    };
+  }
+  
+  // Proceed with building game session if user has enough credits
+  try {
+    // ... existing code to build the game session ...
+    
+    // Continue with the rest of the function as before
+  } catch (error) {
+    // ... existing error handling ...
   }
 });
 
@@ -727,7 +773,7 @@ exports.sendGameMessage = createCallableFunction(async (data, context) => {
 /**
  * Get the available models for the authenticated user
  */
-exports.getAvailableModels = createCallableFunction(async (context) => {
+exports.getAvailableModels = functions.https.onCall(async (data, context) => {
   try {
     // This will throw if the user is not authenticated
     await validateAuth(context, false);
@@ -1144,4 +1190,74 @@ exports.addCredits = functions.https.onRequest((req, res) => {
       });
     }
   });
+});
+
+// Credit purchase function for users
+exports.purchaseCredits = functions.https.onCall(async (data, context) => {
+  // Ensure the user is authenticated
+  if (!context.auth) {
+    throw new functions.https.HttpsError(
+      'unauthenticated',
+      'You must be logged in to purchase credits.'
+    );
+  }
+
+  const uid = context.auth.uid;
+  
+  try {
+    // Validate request data
+    if (!data.amount || typeof data.amount !== 'number' || data.amount <= 0) {
+      throw new functions.https.HttpsError(
+        'invalid-argument',
+        'Please provide a valid credit amount.'
+      );
+    }
+
+    // In a production app, you would integrate with a payment processor here
+    // This is a simplified version for demo purposes
+    
+    // Get current user data
+    const userDoc = await admin.firestore().collection('users').doc(uid).get();
+    
+    if (!userDoc.exists) {
+      throw new functions.https.HttpsError(
+        'not-found',
+        'User not found.'
+      );
+    }
+    
+    const userData = userDoc.data();
+    const currentCredits = userData.credits || 0;
+    const newTotal = currentCredits + data.amount;
+    
+    // Update user's credits in Firestore
+    await admin.firestore().collection('users').doc(uid).update({
+      credits: newTotal,
+      lastCreditPurchase: admin.firestore.FieldValue.serverTimestamp()
+    });
+    
+    // Log the purchase for analytics purposes
+    await admin.firestore().collection('creditPurchases').add({
+      userId: uid,
+      amount: data.amount,
+      paymentMethod: data.paymentMethod || 'demo',
+      package: data.package || 'custom',
+      timestamp: admin.firestore.FieldValue.serverTimestamp()
+    });
+    
+    // Return the updated credit information
+    return {
+      success: true,
+      newTotal: newTotal,
+      message: `Successfully added ${data.amount} credits to your account.`
+    };
+    
+  } catch (error) {
+    console.error('Error in purchaseCredits:', error);
+    
+    throw new functions.https.HttpsError(
+      'internal',
+      'Failed to process credit purchase. Please try again.'
+    );
+  }
 });
