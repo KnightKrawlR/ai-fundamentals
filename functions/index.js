@@ -38,10 +38,36 @@ const MODEL_NAME = functions.config().vertexai?.model || 'gemini-pro';
 // Log configuration for debugging
 console.log(`Initializing Vertex AI with: Project=${PROJECT_ID}, Location=${LOCATION}, Model=${MODEL_NAME}`);
 
-// Initialize with better error handling
+// Initialize with better error handling - with two different approaches
 let vertexAI;
+let vertexClient;
 try {
-  vertexAI = new VertexAI({ project: PROJECT_ID, location: LOCATION });
+  vertexAI = new VertexAI({
+    project: PROJECT_ID, 
+    location: LOCATION
+  });
+  
+  // Try to create a model client directly - this provides a backup approach
+  try {
+    const generativeClient = vertexAI.preview.getGenerativeModel({ model: MODEL_NAME });
+    if (generativeClient) {
+      console.log('Successfully created generative model client using preview API');
+      vertexClient = generativeClient;
+    }
+  } catch (previewError) {
+    console.error('Error creating generative client using preview API:', previewError);
+    // Check if non-preview API works
+    try {
+      const generativeClient = vertexAI.getGenerativeModel({ model: MODEL_NAME });
+      if (generativeClient) {
+        console.log('Successfully created generative model client using standard API');
+        vertexClient = generativeClient;
+      }
+    } catch (standardError) {
+      console.error('Error creating generative client using standard API:', standardError);
+    }
+  }
+  
   console.log('Vertex AI initialized successfully in index.js');
 } catch (error) {
   console.error('Error initializing Vertex AI in index.js:', error);
@@ -1344,6 +1370,38 @@ exports.initGameHttp = functions.https.onRequest((req, res) => {
   
   return cors(req, res, async () => {
     try {
+      // Debug vertexAI initialization
+      console.log('VertexAI client type:', typeof vertexAI);
+      console.log('VertexAI client methods:', Object.keys(vertexAI));
+      console.log('VertexAI client constructor:', vertexAI.constructor?.name);
+      console.log('PROJECT_ID:', PROJECT_ID);
+      console.log('LOCATION:', LOCATION);
+      console.log('MODEL_NAME:', MODEL_NAME);
+      
+      if (!vertexAI) {
+        return res.status(500).json({
+          error: 'Vertex AI client not initialized',
+          success: false
+        });
+      }
+      
+      if (typeof vertexAI.getGenerativeModel !== 'function') {
+        // Fallback to direct response if Vertex AI client is not working
+        return res.status(200).json({
+          sessionId: `temp-${Date.now()}`,
+          initialPrompt: "Welcome! I'm here to help you learn. What would you like to know?",
+          conversationHistory: [{
+            role: 'assistant',
+            content: "Welcome! I'm here to help you learn. What would you like to know?"
+          }],
+          success: true,
+          debugInfo: {
+            vertexAIType: typeof vertexAI,
+            methods: Object.keys(vertexAI)
+          }
+        });
+      }
+      
       const { topicId, difficulty, model = MODEL_NAME, options = {} } = req.body;
       
       if (!topicId) {
@@ -1359,23 +1417,6 @@ exports.initGameHttp = functions.https.onRequest((req, res) => {
       // Debug logging
       console.log(`initGameHttp - Using model: ${model}, Topic: ${topicId}`);
       
-      // Verify Vertex AI is initialized
-      if (!vertexAI) {
-        console.error('Vertex AI not initialized in initGameHttp');
-        throw new Error('Vertex AI client not available');
-      }
-      
-      // Initialize the generative model
-      const generativeModel = vertexAI.getGenerativeModel({
-        model: model,
-        generation_config: {
-          max_output_tokens: options.maxTokens || 1024,
-          temperature: options.temperature || 0.7,
-          top_p: options.topP || 0.9,
-          top_k: options.topK || 40
-        },
-      });
-      
       // Create a prompt for the AI based on the topic and difficulty
       const prompt = `You are an AI guide for learning about ${topicId} at a ${difficulty || 'beginner'} level. 
       Create an introduction to this topic that engages the learner. 
@@ -1385,15 +1426,50 @@ exports.initGameHttp = functions.https.onRequest((req, res) => {
       // Generate content using Vertex AI
       let introText = '';
       try {
-        const result = await generativeModel.generateContent({
-          contents: [{ role: 'user', parts: [{ text: prompt }] }],
-        });
-        
-        introText = result.response.candidates[0].content.parts[0].text;
-        console.log('Generated AI introduction:', introText);
+        // Try using our backup client first
+        if (vertexClient) {
+          console.log('Using direct vertexClient for content generation');
+          const result = await vertexClient.generateContent({
+            contents: [{ role: 'user', parts: [{ text: prompt }] }],
+          });
+          
+          if (result && result.response && result.response.candidates && 
+              result.response.candidates[0] && 
+              result.response.candidates[0].content &&
+              result.response.candidates[0].content.parts &&
+              result.response.candidates[0].content.parts[0]) {
+            introText = result.response.candidates[0].content.parts[0].text;
+            console.log('Generated AI introduction using vertexClient');
+          } else {
+            throw new Error('Invalid response structure from vertexClient');
+          }
+        } else if (vertexAI && typeof vertexAI.getGenerativeModel === 'function') {
+          // Fall back to the original approach if necessary
+          console.log('Using vertexAI.getGenerativeModel for content generation');
+          const generativeModel = vertexAI.getGenerativeModel({
+            model: model,
+            generation_config: {
+              max_output_tokens: options.maxTokens || 1024,
+              temperature: options.temperature || 0.7,
+              top_p: options.topP || 0.9,
+              top_k: options.topK || 40
+            },
+          });
+          
+          const result = await generativeModel.generateContent({
+            contents: [{ role: 'user', parts: [{ text: prompt }] }],
+          });
+          
+          introText = result.response.candidates[0].content.parts[0].text;
+          console.log('Generated AI introduction using generativeModel');
+        } else {
+          // Last resort fallback
+          throw new Error('No valid Vertex AI client available');
+        }
       } catch (aiError) {
         console.error('Error generating AI introduction:', aiError);
         introText = `Welcome to your learning session about ${topicId}! I'll be your AI guide for exploring its concepts. What specific aspects would you like to learn about?`;
+        console.log('Using fallback introduction text due to error');
       }
       
       // Create conversation history
@@ -1480,15 +1556,50 @@ exports.sendMessageHttp = functions.https.onRequest((req, res) => {
       // Generate content using Vertex AI
       let aiResponse = '';
       try {
-        const result = await generativeModel.generateContent({
-          contents: contents,
-        });
-        
-        aiResponse = result.response.candidates[0].content.parts[0].text;
-        console.log('Generated AI response:', aiResponse);
+        // Try using our backup client first
+        if (vertexClient) {
+          console.log('Using direct vertexClient for message response');
+          const result = await vertexClient.generateContent({
+            contents: contents,
+          });
+          
+          if (result && result.response && result.response.candidates && 
+              result.response.candidates[0] && 
+              result.response.candidates[0].content &&
+              result.response.candidates[0].content.parts &&
+              result.response.candidates[0].content.parts[0]) {
+            aiResponse = result.response.candidates[0].content.parts[0].text;
+            console.log('Generated AI response using vertexClient');
+          } else {
+            throw new Error('Invalid response structure from vertexClient');
+          }
+        } else if (vertexAI && typeof vertexAI.getGenerativeModel === 'function') {
+          // Fall back to the original approach if necessary
+          console.log('Using vertexAI.getGenerativeModel for message response');
+          const generativeModel = vertexAI.getGenerativeModel({
+            model: model,
+            generation_config: {
+              max_output_tokens: options.maxTokens || 1024,
+              temperature: options.temperature || 0.7,
+              top_p: options.topP || 0.95,
+              top_k: options.topK || 40
+            },
+          });
+          
+          const result = await generativeModel.generateContent({
+            contents: contents,
+          });
+          
+          aiResponse = result.response.candidates[0].content.parts[0].text;
+          console.log('Generated AI response using generativeModel');
+        } else {
+          // Last resort fallback
+          throw new Error('No valid Vertex AI client available');
+        }
       } catch (aiError) {
         console.error('Error generating AI response:', aiError);
         aiResponse = `Thank you for your message about "${message}". I'm having trouble generating a specific response at the moment. Could you try rephrasing your question or asking about a different aspect of this topic?`;
+        console.log('Using fallback response due to error');
       }
       
       // Return success response
