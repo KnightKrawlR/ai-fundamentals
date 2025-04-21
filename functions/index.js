@@ -1343,8 +1343,36 @@ exports.initGameHttp = functions.https.onRequest((req, res) => {
       // Generate a unique session ID
       const sessionId = admin.firestore().collection('gameSessions').doc().id;
       
-      // Generate a simple introductory message based on topic
-      const introText = `Welcome to your learning session about ${topicId}! I'll be your AI guide for exploring its concepts. What specific aspects would you like to learn about?`;
+      // Initialize the generative model
+      const generativeModel = vertexAI.getGenerativeModel({
+        model: model || 'gemini-pro',
+        generation_config: {
+          max_output_tokens: options.maxTokens || 1024,
+          temperature: options.temperature || 0.7,
+          top_p: options.topP || 0.9,
+          top_k: options.topK || 40
+        },
+      });
+      
+      // Create a prompt for the AI based on the topic and difficulty
+      const prompt = `You are an AI guide for learning about ${topicId} at a ${difficulty || 'beginner'} level. 
+      Create an introduction to this topic that engages the learner. 
+      Ask what specific aspects of ${topicId} they would like to learn about.
+      Keep your response informative, friendly, and under 150 words.`;
+      
+      // Generate content using Vertex AI
+      let introText = '';
+      try {
+        const result = await generativeModel.generateContent({
+          contents: [{ role: 'user', parts: [{ text: prompt }] }],
+        });
+        
+        introText = result.response.candidates[0].content.parts[0].text;
+        console.log('Generated AI introduction:', introText);
+      } catch (aiError) {
+        console.error('Error generating AI introduction:', aiError);
+        introText = `Welcome to your learning session about ${topicId}! I'll be your AI guide for exploring its concepts. What specific aspects would you like to learn about?`;
+      }
       
       // Create conversation history
       const conversationHistory = [{
@@ -1385,17 +1413,52 @@ exports.sendMessageHttp = functions.https.onRequest((req, res) => {
   
   return cors(req, res, async () => {
     try {
-      const { sessionId, message, model = 'gemini-pro', options = {} } = req.body;
+      const { sessionId, message, topicId, difficulty, model = 'gemini-pro', options = {} } = req.body;
       
-      if (!sessionId || !message) {
+      if (!message) {
         return res.status(400).json({
-          error: 'Session ID and message are required',
+          error: 'Message is required',
           success: false
         });
       }
       
-      // Generate a simple response
-      const aiResponse = `Thank you for your message about "${message}". As your AI guide, I'm happy to help you learn more about this topic. Is there anything specific you'd like to explore further?`;
+      // Initialize the generative model
+      const generativeModel = vertexAI.getGenerativeModel({
+        model: model || 'gemini-pro',
+        generation_config: {
+          max_output_tokens: options.maxTokens || 1024,
+          temperature: options.temperature || 0.7,
+          top_p: options.topP || 0.95,
+          top_k: options.topK || 40
+        },
+      });
+      
+      // Create a system context for the AI
+      const topic = topicId || 'the selected topic';
+      const systemPrompt = `You are an AI guide helping someone learn about ${topic} at a ${difficulty || 'intermediate'} level.
+      Give helpful, accurate responses that educate the learner.
+      Keep your answers informative but concise (under 150 words unless specifics are requested).
+      If you don't know something, say so rather than making up information.`;
+      
+      // Format the conversation for Vertex AI
+      const contents = [
+        { role: 'user', parts: [{ text: systemPrompt }] },
+        { role: 'user', parts: [{ text: message }] }
+      ];
+      
+      // Generate content using Vertex AI
+      let aiResponse = '';
+      try {
+        const result = await generativeModel.generateContent({
+          contents: contents,
+        });
+        
+        aiResponse = result.response.candidates[0].content.parts[0].text;
+        console.log('Generated AI response:', aiResponse);
+      } catch (aiError) {
+        console.error('Error generating AI response:', aiError);
+        aiResponse = `Thank you for your message about "${message}". I'm having trouble generating a specific response at the moment. Could you try rephrasing your question or asking about a different aspect of this topic?`;
+      }
       
       // Return success response
       return res.status(200).json({

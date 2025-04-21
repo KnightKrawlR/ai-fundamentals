@@ -75,7 +75,12 @@ class VertexAIGameEngine {
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify(data)
+          body: JSON.stringify({
+            topicId: data.topicId,
+            difficulty: data.difficulty,
+            model: data.model || 'gemini-pro',
+            options: data.options || {}
+          })
         });
         
         if (!response.ok) {
@@ -113,14 +118,21 @@ class VertexAIGameEngine {
       try {
         console.log('Using HTTP endpoint for game message');
         
-        // Use the HTTP endpoint instead
+        // Use the HTTP endpoint instead with topic and difficulty info
         const response = await fetch('https://us-central1-ai-fundamentals-ad37d.cloudfunctions.net/sendMessageHttp', {
           method: 'POST',
           mode: 'cors',
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify(data)
+          body: JSON.stringify({
+            sessionId: data.sessionId,
+            message: data.message,
+            topicId: this.currentTopic?.id || data.topicId,
+            difficulty: this.difficultyLevel || data.difficulty || 'intermediate',
+            model: data.model || 'gemini-pro',
+            options: data.options || {}
+          })
         });
         
         if (!response.ok) {
