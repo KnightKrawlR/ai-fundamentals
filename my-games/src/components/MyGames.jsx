@@ -1,6 +1,6 @@
 // MyGames.jsx - React component for the My Games feature
 import React, { useState, useEffect, useRef } from 'react';
-// Try to import our regular Firebase first, but if it fails, the browser will use the fallback
+// Prefer the globally available Firebase first, falling back to our module import
 import firebase from '../firebase';
 import VertexAIGameEngine from './vertexAI';
 import LowCreditsWarning from './LowCreditsWarning';
@@ -141,8 +141,10 @@ const InsufficientCreditsPrompt = ({ message, options, onAction, onClose }) => {
 };
 
 const MyGames = ({ firebaseProp }) => {
-  // Use the firebase that was imported or passed in as a prop
-  const firebaseInstance = firebaseProp || firebase;
+  // Use the global firebase first if available, then the passed prop, then the imported module
+  const firebaseInstance = (typeof window !== 'undefined' && window.firebase) 
+    ? window.firebase 
+    : (firebaseProp || firebase);
   
   // State variables
   const [user, setUser] = useState(null);

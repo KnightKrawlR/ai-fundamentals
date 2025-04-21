@@ -5,13 +5,13 @@ import 'firebase/functions';
 
 // Firebase configuration - direct values for browser
 const firebaseConfig = {
-  apiKey: "AIzaSyAu8DLZc5Wq-Dcd8hCKEZQHFU8OMKrH-iw",
-  authDomain: "ai-fundamentals-d7ab7.firebaseapp.com",
-  projectId: "ai-fundamentals-d7ab7",
-  storageBucket: "ai-fundamentals-d7ab7.appspot.com",
-  messagingSenderId: "307417765018",
-  appId: "1:307417765018:web:5c8735042329d66c96b804",
-  measurementId: "G-TQYFL34EVP"
+  apiKey: "AIzaSyDjMisQkMgdA6qNg7gnXDumhNOOWOD-Y00",
+  authDomain: "ai-fundamentals-ad37d.firebaseapp.com",
+  projectId: "ai-fundamentals-ad37d",
+  storageBucket: "ai-fundamentals-ad37d.appspot.com",
+  messagingSenderId: "668115447112",
+  appId: "1:668115447112:web:c0772e9f8c6a498737977d",
+  measurementId: "G-2D5V39EQ3T"
 };
 
 // Initialize Firebase

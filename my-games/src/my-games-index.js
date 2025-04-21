@@ -79,6 +79,18 @@ const ensureFirebase = () => {
   // Check if Firebase is available from window.firebase (from CDN scripts)
   if (window.firebase && typeof window.firebase === 'object') {
     console.log('Firebase found from window.firebase');
+    // Ensure window.firebase is properly initialized with our project
+    if (!window.firebase.apps?.length) {
+      window.firebase.initializeApp({
+        apiKey: "AIzaSyDjMisQkMgdA6qNg7gnXDumhNOOWOD-Y00",
+        authDomain: "ai-fundamentals-ad37d.firebaseapp.com",
+        projectId: "ai-fundamentals-ad37d",
+        storageBucket: "ai-fundamentals-ad37d.appspot.com",
+        messagingSenderId: "668115447112",
+        appId: "1:668115447112:web:c0772e9f8c6a498737977d",
+        measurementId: "G-2D5V39EQ3T"
+      });
+    }
     return window.firebase;
   }
   
