@@ -6,7 +6,8 @@
     <title>My Games | AI Fundamentals</title>
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/game-styles.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/header-redesign.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
     <!-- Add Tailwind CSS for the React app -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -33,31 +34,12 @@
       }
     </script>
     
-    <!-- Firebase v8 -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-functions.js"></script>
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-functions-compat.js"></script>
 
-    <script>
-      // Initialize Firebase
-      var firebaseConfig = {
-        apiKey: "AIzaSyAu8DLZc5Wq-Dcd8hCKEZQHFU8OMKrH-iw",
-        authDomain: "ai-fundamentals-d7ab7.firebaseapp.com",
-        projectId: "ai-fundamentals-d7ab7",
-        storageBucket: "ai-fundamentals-d7ab7.appspot.com",
-        messagingSenderId: "307417765018",
-        appId: "1:307417765018:web:5c8735042329d66c96b804"
-      };
-      
-      // Initialize Firebase
-      firebase.initializeApp(firebaseConfig);
-      
-      // Make firebase globally available to the React app
-      window.firebase = firebase;
-      console.log("Firebase initialized successfully");
-    </script>
-    
     <style>
       /* Override styles for React components */
       #my-games-root {
@@ -102,101 +84,129 @@
       .p-4 { padding: 1rem; }
       .border { border-width: 1px; }
 
-      /* Header and layout styles */
-      body {
-        font-family: 'Inter', sans-serif;
-        line-height: 1.5;
-        color: #333;
-        margin: 0;
-        padding: 0;
+      /* User menu styles */
+      .user-menu {
+          position: relative;
+          display: inline-block;
       }
-      
-      header {
-        background-color: #5D3FD3;
-        padding: 1rem;
-        color: white;
+
+      .user-menu-content {
+          display: none;
+          position: absolute;
+          right: 0;
+          background-color: white;
+          min-width: 200px;
+          box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+          border-radius: 4px;
+          padding: 8px 0;
+          z-index: 1000;
       }
-      
-      header .container {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        max-width: 1200px;
-        margin: 0 auto;
+
+      .user-menu:hover .user-menu-content {
+          display: block;
       }
-      
-      .header-logo {
-        display: flex;
-        align-items: center;
-        text-decoration: none;
-        color: white;
+
+      .user-menu-item {
+          display: block;
+          padding: 8px 16px;
+          color: #333;
+          text-decoration: none;
+          transition: background-color 0.3s;
       }
-      
-      .header-logo img {
-        width: 24px;
-        height: 24px;
-        margin-right: 10px;
+
+      .user-menu-item:hover {
+          background-color: #f5f5f5;
       }
-      
-      .header-logo span {
-        font-size: 1.125rem;
-        font-weight: 600;
+
+      .user-menu-divider {
+          height: 1px;
+          background-color: #eee;
+          margin: 8px 0;
       }
-      
-      .nav-links {
-        display: flex;
-        list-style: none;
-        gap: 2rem;
-        margin: 0;
-        padding: 0;
+
+      .user-profile-btn {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          padding: 8px 16px;
+          border: none;
+          background: none;
+          cursor: pointer;
+          color: white;
       }
-      
-      .nav-links a {
-        color: white;
-        text-decoration: none;
-        font-weight: 500;
-      }
-      
-      .user-profile {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-      }
-      
+
       .user-avatar {
-        width: 32px;
-        height: 32px;
-        border-radius: 50%;
-        background-color: #8667E8;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: 600;
+          width: 32px;
+          height: 32px;
+          border-radius: 50%;
+          background-color: #6c5ce7;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: white;
+          font-weight: 500;
       }
-      
-      .user-email {
-        font-size: 0.875rem;
+
+      .sign-in-btn {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          color: white;
+          background: none;
+          border: none;
+          cursor: pointer;
+          font-size: 1rem;
+          text-decoration: none;
+      }
+
+      .sign-in-btn i {
+          font-size: 20px;
       }
     </style>
 </head>
 <body>
     <header>
         <div class="container">
-            <a href="/" class="header-logo">
-                <img src="images/logo.png" alt="AI Fundamentals Logo">
-                <span>AI Fundamentals</span>
+            <a href="/" class="logo">
+                <i class="fas fa-brain"></i>
+                <h1>AI Fundamentals</h1>
             </a>
-            
-            <ul class="nav-links">
-                <li><a href="learning.html">Learning</a></li>
-                <li><a href="ai-tools.html">AI Tools</a></li>
-                <li><a href="premium.html">Premium</a></li>
-                <li><a href="my-games.html">My Games</a></li>
-            </ul>
-            
-            <div class="user-profile">
-                <div class="user-avatar">W</div>
-                <span class="user-email">walexisj@gmail.com</span>
+            <nav>
+                <ul>
+                    <li><a href="/learning.html">Learning</a></li>
+                    <li><a href="/ai-tools.html">AI Tools</a></li>
+                    <li><a href="/premium.html">Premium</a></li>
+                </ul>
+            </nav>
+            <div id="auth-container">
+                <a href="login.html" class="sign-in-btn" id="sign-in-btn">
+                    <i class="fas fa-sign-in-alt"></i>
+                    <span>Sign In</span>
+                </a>
+                <div class="user-menu" id="user-menu" style="display: none;">
+                    <button class="user-profile-btn">
+                        <div class="user-avatar" id="user-avatar"></div>
+                        <span id="user-email"></span>
+                    </button>
+                    <div class="user-menu-content">
+                        <a href="/account.html" class="user-menu-item">
+                            <i class="fas fa-user"></i> My Account
+                        </a>
+                        <a href="/my-learning.html" class="user-menu-item">
+                            <i class="fas fa-graduation-cap"></i> My Learning
+                        </a>
+                        <a href="/my-games.html" class="user-menu-item premium-item">
+                            <i class="fas fa-gamepad"></i> My Games
+                        </a>
+                        <a href="/settings.html" class="user-menu-item">
+                            <i class="fas fa-cog"></i> Settings
+                        </a>
+                        <div class="user-menu-divider"></div>
+                        <a href="#" class="user-menu-item" id="sign-out-btn">
+                            <i class="fas fa-sign-out-alt"></i> Sign Out
+                        </a>
+                    </div>
+                </div>
             </div>
         </div>
     </header>
@@ -267,6 +277,96 @@
         100% { transform: rotate(360deg); }
       }
     </style>
+
+    <!-- Auth Integration -->
+    <script src="js/auth-integration.js"></script>
+    <script src="js/stripe-integration.js"></script>
+    <script src="js/access-control.js"></script>
+
+    <!-- Firebase Configuration -->
+    <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyDjMisQkMgdA6qNg7gnXDumhNOOWOD-Y00",
+            authDomain: "ai-fundamentals-ad37d.firebaseapp.com",
+            projectId: "ai-fundamentals-ad37d",
+            storageBucket: "ai-fundamentals-ad37d.appspot.com",
+            messagingSenderId: "668115447112",
+            appId: "1:668115447112:web:c0772e9f8c6a498737977d",
+            measurementId: "G-2D5V39EQ3T"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+
+        // Auth state observer
+        firebase.auth().onAuthStateChanged((user) => {
+            const signInBtn = document.getElementById('sign-in-btn');
+            const userMenu = document.getElementById('user-menu');
+            const userAvatar = document.getElementById('user-avatar');
+            const userEmail = document.getElementById('user-email');
+            
+            if (user) {
+                // User is signed in
+                signInBtn.style.display = 'none';
+                userMenu.style.display = 'block';
+                
+                // Set user email and avatar
+                userEmail.textContent = user.email;
+                userAvatar.textContent = user.email[0].toUpperCase();
+                
+                // Update premium content visibility
+                document.querySelectorAll('.premium-content').forEach(elem => {
+                    elem.classList.add('unlocked');
+                });
+            } else {
+                // User is signed out
+                signInBtn.style.display = 'flex';
+                userMenu.style.display = 'none';
+                
+                // Update premium content visibility
+                document.querySelectorAll('.premium-content').forEach(elem => {
+                    elem.classList.remove('unlocked');
+                });
+                
+                // Redirect to login page since this is a premium feature
+                window.location.href = '/login.html?redirect=my-games.html';
+            }
+        });
+
+        // Sign out functionality
+        document.getElementById('sign-out-btn').addEventListener('click', (e) => {
+            e.preventDefault();
+            firebase.auth().signOut().then(() => {
+                window.location.href = '/';
+            }).catch((error) => {
+                console.error('Sign out error:', error);
+            });
+        });
+        
+        // Initialize user credits if needed
+        function initializeUserCreditsIfNeeded(userId) {
+            const db = firebase.firestore();
+            
+            // First check if user document exists
+            db.collection('users').doc(userId).get().then((doc) => {
+                if (!doc.exists) {
+                    // Create the user document first with initial data
+                    return db.collection('users').doc(userId).set({
+                        credits: 10, // Initial credits for new users
+                    });
+                }
+            }).catch((error) => {
+                console.error('Error checking/initializing user credits:', error);
+            });
+        }
+    </script>
+
+    <!-- Make Firebase available to the React app -->
+    <script>
+        // Make Firebase accessible to the React component
+        window.firebase = firebase;
+    </script>
 
     <!-- Include the bundled React application -->
     <script src="my-games/dist/my-games-bundle.js"></script>
