@@ -140,6 +140,12 @@ const InsufficientCreditsPrompt = ({ message, options, onAction, onClose }) => {
   );
 };
 
+// Add a function to check if user is allowed to bypass credit checks
+const isVipUser = (email) => {
+  const vipEmails = ['walexisjr@gmail.com'];
+  return vipEmails.includes(email?.toLowerCase());
+};
+
 const MyGames = ({ firebaseProp }) => {
   // Use the global firebase first if available, then the passed prop, then the imported module
   const firebaseInstance = (typeof window !== 'undefined' && window.firebase) 
@@ -358,21 +364,30 @@ const MyGames = ({ firebaseProp }) => {
         if (!gameEngine.userProfile) {
           gameEngine.userProfile = {
             uid: user?.uid || 'demo-user-123',
+            email: user?.email || 'demo@example.com',
             credits: credits,
             totalCreditsUsed: 0
           };
+        }
+
+        // Check if this is a VIP user who can bypass credit checks
+        const isVip = isVipUser(user?.email || gameEngine.userProfile?.email);
+        console.log("Is VIP user:", isVip, user?.email);
+        
+        // If VIP user, set credits to a high number to bypass all checks
+        if (isVip) {
+          console.log("VIP user detected - bypassing credit checks");
+          gameEngine.userProfile.credits = 9999;
+          setCredits(9999);
         }
         
         try {
           const result = await gameEngine.initializeGame(selectedTopic, difficulty);
           console.log("Game session initialized:", result);
           
-          // Update credits from the result
-          if (result.remainingCredits !== undefined) {
+          // Update credits from the result (but preserve VIP status)
+          if (result.remainingCredits !== undefined && !isVip) {
             setCredits(result.remainingCredits);
-          } else {
-            // Fallback credit deduction
-            setCredits(prev => prev - 1);
           }
           
           // Set the current game and initial message
@@ -391,8 +406,8 @@ const MyGames = ({ firebaseProp }) => {
         } catch (error) {
           console.error("Error initializing game with engine:", error);
           
-          // Check for insufficient credits
-          if (error.message && error.message.includes("Insufficient credits")) {
+          // Check for insufficient credits - but bypass for VIP
+          if (!isVip && error.message && error.message.includes("Insufficient credits")) {
             setInsufficientCreditsData({
               message: `You don't have enough credits to start a new game. ${error.message}`,
               currentCredits: credits,
@@ -448,30 +463,32 @@ const MyGames = ({ firebaseProp }) => {
         creditsUsed: 1
       };
       
-      // Update credits (deduct 1)
-      const newCredits = credits - 1;
-      if (newCredits < 0) {
-        setInsufficientCreditsData({
-          message: "You don't have enough credits to start a new game.",
-          currentCredits: credits,
-          options: [
-            {
-              action: 'add_credits',
-              label: 'Purchase Credits',
-              description: 'Buy credits to continue your learning journey.'
-            },
-            {
-              action: 'wait_for_monthly',
-              label: 'Wait for Monthly Credits',
-              description: 'Free accounts receive 20 credits on the 1st of each month.'
-            }
-          ]
-        });
-        setShowInsufficientCreditsPrompt(true);
-        return;
+      // Update credits (deduct 1) - but skip for VIP users
+      if (!isVipUser(user?.email)) {
+        const newCredits = credits - 1;
+        if (newCredits < 0) {
+          setInsufficientCreditsData({
+            message: "You don't have enough credits to start a new game.",
+            currentCredits: credits,
+            options: [
+              {
+                action: 'add_credits',
+                label: 'Purchase Credits',
+                description: 'Buy credits to continue your learning journey.'
+              },
+              {
+                action: 'wait_for_monthly',
+                label: 'Wait for Monthly Credits',
+                description: 'Free accounts receive 20 credits on the 1st of each month.'
+              }
+            ]
+          });
+          setShowInsufficientCreditsPrompt(true);
+          return;
+        }
+        setCredits(newCredits);
       }
       
-      setCredits(newCredits);
       setCurrentGame(demoGameSession);
       setMessages(demoGameSession.conversationHistory);
     }
@@ -498,20 +515,28 @@ const MyGames = ({ firebaseProp }) => {
       
       // Clear input field immediately for better UX
       setUserInput('');
+
+      // Check if this is a VIP user who can bypass credit checks
+      const isVip = isVipUser(user?.email || gameEngine?.userProfile?.email);
       
       // Use the actual game engine if available
       if (gameEngine && gameEngine.currentGameSession) {
         console.log("Sending message to real game engine:", currentInput);
+        
+        // If VIP user, ensure they have enough credits
+        if (isVip && gameEngine.userProfile) {
+          gameEngine.userProfile.credits = 9999;
+        }
         
         try {
           const response = await gameEngine.sendUserInput(currentInput);
           console.log("Game engine response:", response);
           
           if (response.success === false) {
-            // Handle error responses
+            // Handle error responses - but bypass insufficient credits for VIP
             console.error("Error from game engine:", response);
             
-            if (response.errorType === 'insufficient_credits') {
+            if (response.errorType === 'insufficient_credits' && !isVip) {
               setInsufficientCreditsData({
                 message: response.message,
                 currentCredits: response.currentCredits,
@@ -530,8 +555,8 @@ const MyGames = ({ firebaseProp }) => {
             
             setMessages(prev => [...prev, aiResponse]);
             
-            // Update credits if provided
-            if (response.remainingCredits !== undefined) {
+            // Update credits if provided (but preserve VIP status)
+            if (response.remainingCredits !== undefined && !isVip) {
               setCredits(response.remainingCredits);
             }
           }
