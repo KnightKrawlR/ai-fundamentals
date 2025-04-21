@@ -1286,3 +1286,47 @@ footer {
         font-size: 1.2rem;
     }
 }
+
+/* Premium lock and dropdown styles */
+.premium-lock {
+    margin-left: 8px;
+    color: #ffc107;
+    font-size: 0.85em;
+}
+
+.dropdown-arrow {
+    margin-left: 6px;
+    font-size: 0.85em;
+    transition: transform 0.3s ease;
+}
+
+.quizlet-title {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+}
+
+.quizlet-title:hover .dropdown-arrow {
+    transform: translateY(2px);
+}
+
+.dropdown-open .dropdown-arrow {
+    transform: rotate(180deg);
+}
+
+.highlight-section {
+    animation: highlight-pulse 2s ease-in-out;
+}
+
+@keyframes highlight-pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(75, 46, 131, 0.2);
+    }
+    70% {
+        box-shadow: 0 0 0 20px rgba(75, 46, 131, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(75, 46, 131, 0);
+    }
+}

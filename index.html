@@ -187,7 +187,7 @@
                 <div id="flashcards" class="study-mode active">
                     <div class="custom-quizlet-embed">
                         <div class="quizlet-header">
-                            <div class="quizlet-title">AI Fundamentals - Key Concepts</div>
+                            <div class="quizlet-title">AI Fundamentals <i class="fas fa-lock premium-lock"></i> <i class="fas fa-chevron-down dropdown-arrow"></i></div>
                             <div class="quizlet-controls">
                                 <button><i class="fas fa-cog"></i></button>
                                 <button><i class="fas fa-expand"></i></button>
@@ -216,7 +216,7 @@
                 <div id="learn" class="study-mode">
                     <div class="custom-quizlet-learn">
                         <div class="quizlet-header">
-                            <div class="quizlet-title">AI Fundamentals - Learn Mode</div>
+                            <div class="quizlet-title">AI Fundamentals <i class="fas fa-lock premium-lock"></i> <i class="fas fa-chevron-down dropdown-arrow"></i></div>
                             <div class="quizlet-progress">
                                 <div class="progress-bar">
                                     <div class="progress-fill" style="width: 20%;"></div>
@@ -241,7 +241,7 @@
                 <div id="match" class="study-mode">
                     <div class="custom-quizlet-match">
                         <div class="quizlet-header">
-                            <div class="quizlet-title">AI Fundamentals - Match Game</div>
+                            <div class="quizlet-title">AI Fundamentals <i class="fas fa-lock premium-lock"></i> <i class="fas fa-chevron-down dropdown-arrow"></i></div>
                             <div class="match-timer">Time: 0:00</div>
                         </div>
                         <div class="match-game-container">
@@ -253,7 +253,7 @@
                 <div id="test" class="study-mode">
                     <div class="custom-quizlet-test">
                         <div class="quizlet-header">
-                            <div class="quizlet-title">AI Fundamentals - Test</div>
+                            <div class="quizlet-title">AI Fundamentals <i class="fas fa-lock premium-lock"></i> <i class="fas fa-chevron-down dropdown-arrow"></i></div>
                             <div class="test-info">
                                 <span>Multiple Choice</span>
                                 <span>•</span>
@@ -753,6 +753,36 @@
                 });
             });
         }
+        
+        // Quizlet title dropdown functionality
+        document.querySelectorAll('.quizlet-title').forEach(title => {
+            title.addEventListener('click', function(e) {
+                // Check if user is logged in and has premium
+                const user = firebase.auth().currentUser;
+                const hasPremium = false; // This should be determined by checking user's subscription status
+                
+                if (!user || !hasPremium) {
+                    // If not premium user, scroll to learning path section
+                    const learningPathSection = document.getElementById('learning-path');
+                    if (learningPathSection) {
+                        e.preventDefault();
+                        learningPathSection.scrollIntoView({ behavior: 'smooth' });
+                        
+                        // Highlight the section temporarily
+                        learningPathSection.classList.add('highlight-section');
+                        setTimeout(() => {
+                            learningPathSection.classList.remove('highlight-section');
+                        }, 2000);
+                    }
+                } else {
+                    // If premium user, toggle dropdown (this would be expanded in a real implementation)
+                    this.classList.toggle('dropdown-open');
+                    
+                    // Here you would normally toggle showing more content or navigating to full learning page
+                    // For demo purposes, we'll just toggle the class
+                }
+            });
+        });
     </script>
 </body>
 </html>
