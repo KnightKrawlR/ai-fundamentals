@@ -1,14 +1,6 @@
-import React, { useState } from 'react';
-import CreditPurchaseModal from './CreditPurchaseModal';
+import React from 'react';
 
 const LowCreditsWarning = ({ credits, onAddCredits }) => {
-  const [showPurchaseModal, setShowPurchaseModal] = useState(false);
-  
-  const handlePurchase = (option) => {
-    onAddCredits(option.amount);
-    setShowPurchaseModal(false);
-  };
-
   // No warning needed if credits are sufficient
   if (credits > 20) {
     return null;
@@ -24,7 +16,7 @@ const LowCreditsWarning = ({ credits, onAddCredits }) => {
           </div>
           <button 
             className="mt-3 sm:mt-0 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
-            onClick={() => setShowPurchaseModal(true)}
+            onClick={onAddCredits}
           >
             Get Credits Now
           </button>
@@ -37,18 +29,12 @@ const LowCreditsWarning = ({ credits, onAddCredits }) => {
           </div>
           <button 
             className="mt-3 sm:mt-0 px-4 py-2 bg-yellow-600 text-white rounded-md hover:bg-yellow-700 transition-colors"
-            onClick={() => setShowPurchaseModal(true)}
+            onClick={onAddCredits}
           >
             Add Credits
           </button>
         </div>
       )}
-
-      <CreditPurchaseModal 
-        isOpen={showPurchaseModal}
-        onClose={() => setShowPurchaseModal(false)}
-        onPurchase={handlePurchase}
-      />
     </div>
   );
 };

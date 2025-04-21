@@ -1,4 +1,6 @@
 import { auth } from '../firebase';
+import firebase from 'firebase/app';
+import 'firebase/firestore';
 
 const CREDITS_API_ENDPOINT = 'https://us-central1-ai-fundamentals-d7ab7.cloudfunctions.net/getUserCredits';
 const ADD_CREDITS_API_ENDPOINT = 'https://us-central1-ai-fundamentals-d7ab7.cloudfunctions.net/addCredits';
@@ -63,7 +65,46 @@ export const addCredits = async (amount) => {
   }
 };
 
-export const checkCreditsThreshold = (credits) => {
-  const LOW_CREDIT_THRESHOLD = 20;
-  return credits !== null && credits <= LOW_CREDIT_THRESHOLD;
+export const checkCreditsThreshold = (credits, threshold = 20) => {
+  return credits <= threshold;
+};
+
+export const formatCredits = (credits) => {
+  return `${credits} ${credits === 1 ? 'Credit' : 'Credits'}`;
+};
+
+export const getDaysUntilCreditRefresh = () => {
+  const now = new Date();
+  const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+  return lastDay - now.getDate() + 1;
+};
+
+export const addCreditsToAccount = async (userId, amount) => {
+  try {
+    const userRef = firebase.firestore().collection('users').doc(userId);
+    const userDoc = await userRef.get();
+    
+    if (!userDoc.exists) {
+      throw new Error('User not found');
+    }
+    
+    const currentCredits = userDoc.data().credits || 0;
+    const newTotal = currentCredits + amount;
+    
+    await userRef.update({
+      credits: newTotal,
+      lastCreditPurchase: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    
+    return {
+      success: true,
+      newTotal
+    };
+  } catch (error) {
+    console.error('Error adding credits:', error);
+    return {
+      success: false,
+      error: error.message
+    };
+  }
 }; 
