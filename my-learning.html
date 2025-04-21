@@ -141,10 +141,10 @@
             measurementId: "G-2D5V39EQ3T"
         };
 
-        // Initialize Firebase 
+        // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
 
-        // Auth state observer
+        // Auth state observer 
         firebase.auth().onAuthStateChanged((user) => {
             const signInBtn = document.getElementById('sign-in-btn');
             const userMenu = document.getElementById('user-menu');
