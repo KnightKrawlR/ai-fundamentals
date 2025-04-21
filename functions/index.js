@@ -42,14 +42,25 @@ console.log(`Initializing Vertex AI with: Project=${PROJECT_ID}, Location=${LOCA
 let vertexAI;
 let vertexClient;
 try {
+  const { VertexAI } = require('@google-cloud/vertexai');
   vertexAI = new VertexAI({
     project: PROJECT_ID, 
-    location: LOCATION
+    location: LOCATION,
+    credentials: process.env.GOOGLE_APPLICATION_CREDENTIALS ? undefined : 'application_default_credentials'
   });
   
   // Try to create a model client directly - this provides a backup approach
   try {
-    const generativeClient = vertexAI.preview.getGenerativeModel({ model: MODEL_NAME });
+    const generativeClient = vertexAI.preview.getGenerativeModel({ 
+      model: MODEL_NAME,
+      generation_config: {
+        max_output_tokens: 1024,
+        temperature: 0.7,
+        top_p: 0.8,
+        top_k: 40
+      }
+    });
+    
     if (generativeClient) {
       console.log('Successfully created generative model client using preview API');
       vertexClient = generativeClient;
@@ -58,7 +69,16 @@ try {
     console.error('Error creating generative client using preview API:', previewError);
     // Check if non-preview API works
     try {
-      const generativeClient = vertexAI.getGenerativeModel({ model: MODEL_NAME });
+      const generativeClient = vertexAI.getGenerativeModel({ 
+        model: MODEL_NAME,
+        generation_config: {
+          max_output_tokens: 1024,
+          temperature: 0.7,
+          top_p: 0.8,
+          top_k: 40
+        }
+      });
+      
       if (generativeClient) {
         console.log('Successfully created generative model client using standard API');
         vertexClient = generativeClient;
@@ -1546,6 +1566,132 @@ exports.sendMessageHttp = functions.https.onRequest((req, res) => {
       return res.status(500).json({
         error: error.message || 'Error sending game message',
         success: false
+      });
+    }
+  });
+});
+
+// Add a simple test endpoint for Vertex AI troubleshooting
+exports.testVertexAI = functions.https.onRequest((req, res) => {
+  // Set CORS headers
+  res.set('Access-Control-Allow-Origin', '*');
+  res.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  
+  // Handle preflight requests
+  if (req.method === 'OPTIONS') {
+    res.status(204).send('');
+    return;
+  }
+
+  return cors(req, res, async () => {
+    try {
+      // Log all the relevant information
+      console.log('Testing Vertex AI integration');
+      console.log('vertexClient available:', !!vertexClient);
+      console.log('vertexAI available:', !!vertexAI);
+      console.log('PROJECT_ID:', PROJECT_ID);
+      console.log('LOCATION:', LOCATION);
+      console.log('MODEL_NAME:', MODEL_NAME);
+      
+      // Start with a simple health check response
+      const healthResponse = {
+        status: 'ok',
+        vertexClientAvailable: !!vertexClient,
+        vertexAIAvailable: !!vertexAI,
+        config: {
+          projectId: PROJECT_ID,
+          location: LOCATION,
+          model: MODEL_NAME
+        },
+        timestamp: new Date().toISOString()
+      };
+      
+      // Try a very simple Vertex AI call if client is available
+      if (vertexClient) {
+        try {
+          // Use a minimal prompt
+          const simplePrompt = "Hello, can you respond with just the words 'Vertex AI test successful'?";
+          
+          console.log('Attempting simple Vertex AI call with prompt:', simplePrompt);
+          
+          // Try with minimal configuration
+          const result = await vertexClient.generateContent({
+            contents: [{ role: 'user', parts: [{ text: simplePrompt }] }],
+            safetySettings: [],  // No safety settings
+            generationConfig: {
+              maxOutputTokens: 20,  // Very small response
+              temperature: 0.2,     // Very deterministic
+            }
+          });
+          
+          console.log('Vertex AI call successful, result:', JSON.stringify(result));
+          
+          // Extract the response text
+          let responseText = '';
+          if (result?.response?.candidates?.[0]?.content?.parts?.[0]?.text) {
+            responseText = result.response.candidates[0].content.parts[0].text;
+          }
+          
+          healthResponse.aiTest = {
+            success: true,
+            response: responseText
+          };
+        } catch (aiError) {
+          console.error('Error during Vertex AI test call:', aiError);
+          
+          // Capture detailed error information
+          healthResponse.aiTest = {
+            success: false,
+            error: aiError.message,
+            stack: aiError.stack,
+            details: JSON.stringify(aiError)
+          };
+        }
+      } else {
+        healthResponse.aiTest = {
+          success: false,
+          error: 'Vertex AI client not available'
+        };
+        
+        // Try to reinitialize the client
+        try {
+          console.log('Attempting to reinitialize Vertex AI client...');
+          const { VertexAI } = require('@google-cloud/vertexai');
+          const tempVertexAI = new VertexAI({
+            project: PROJECT_ID, 
+            location: LOCATION
+          });
+          
+          // Try the preview API first
+          const tempClient = tempVertexAI.preview.getGenerativeModel({ 
+            model: MODEL_NAME
+          });
+          
+          // If we reach here without error, update the response
+          healthResponse.reinitialization = {
+            success: true,
+            message: 'New client created but not used for this response'
+          };
+        } catch (initError) {
+          console.error('Error reinitializing Vertex AI client:', initError);
+          healthResponse.reinitialization = {
+            success: false,
+            error: initError.message,
+            stack: initError.stack
+          };
+        }
+      }
+      
+      // Return the health response
+      return res.status(200).json(healthResponse);
+    } catch (error) {
+      console.error('Error in testVertexAI function:', error);
+      return res.status(500).json({
+        status: 'error',
+        message: error.message,
+        stack: error.stack,
+        timestamp: new Date().toISOString()
       });
     }
   });

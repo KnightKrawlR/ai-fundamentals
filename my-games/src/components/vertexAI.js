@@ -65,11 +65,15 @@ class VertexAIGameEngine {
     
     // Use our HTTP endpoints which have proper CORS headers
     if (functionName === 'initializeGameSession') {
+      const url = 'https://us-central1-ai-fundamentals-ad37d.cloudfunctions.net/initGameHttp';
+      console.log(`Calling ${url} for game initialization`);
+      
       try {
-        console.log('Using HTTP endpoint for game initialization');
+        // Use more detailed error handling
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
         
-        // Use the HTTP endpoint
-        const response = await fetch('https://us-central1-ai-fundamentals-ad37d.cloudfunctions.net/initGameHttp', {
+        const response = await fetch(url, {
           method: 'POST',
           mode: 'cors',
           headers: {
@@ -80,18 +84,27 @@ class VertexAIGameEngine {
             difficulty: data.difficulty,
             model: data.model || 'gemini-pro',
             options: data.options || {}
-          })
+          }),
+          signal: controller.signal
         });
         
+        clearTimeout(timeoutId);
+        
+        const responseBody = await response.text();
+        console.log('Raw response from initGameHttp:', responseBody);
+        
         if (!response.ok) {
-          const errorText = await response.text();
-          console.error('HTTP error response:', errorText);
-          throw new Error(`HTTP error! status: ${response.status}`);
+          throw new Error(`HTTP error! status: ${response.status}, body: ${responseBody}`);
         }
         
-        const result = await response.json();
-        console.log('Game initialization response:', result);
-        return result;
+        try {
+          const result = JSON.parse(responseBody);
+          console.log('Game initialization parsed response:', result);
+          return result;
+        } catch (parseError) {
+          console.error('Error parsing JSON from initGameHttp:', parseError);
+          throw new Error(`Failed to parse response: ${responseBody}`);
+        }
       } catch (error) {
         console.error('Error with HTTP game initialization:', error);
         
@@ -115,11 +128,15 @@ class VertexAIGameEngine {
     }
     
     if (functionName === 'sendGameMessage') {
+      const url = 'https://us-central1-ai-fundamentals-ad37d.cloudfunctions.net/sendMessageHttp';
+      console.log(`Calling ${url} for game message`);
+      
       try {
-        console.log('Using HTTP endpoint for game message');
+        // Use more detailed error handling
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
         
-        // Use the HTTP endpoint with topic and difficulty info
-        const response = await fetch('https://us-central1-ai-fundamentals-ad37d.cloudfunctions.net/sendMessageHttp', {
+        const response = await fetch(url, {
           method: 'POST',
           mode: 'cors',
           headers: {
@@ -132,18 +149,27 @@ class VertexAIGameEngine {
             difficulty: this.difficultyLevel || data.difficulty || 'intermediate',
             model: data.model || 'gemini-pro',
             options: data.options || {}
-          })
+          }),
+          signal: controller.signal
         });
         
+        clearTimeout(timeoutId);
+        
+        const responseBody = await response.text();
+        console.log('Raw response from sendMessageHttp:', responseBody);
+        
         if (!response.ok) {
-          const errorText = await response.text();
-          console.error('HTTP error response:', errorText);
-          throw new Error(`HTTP error! status: ${response.status}`);
+          throw new Error(`HTTP error! status: ${response.status}, body: ${responseBody}`);
         }
         
-        const result = await response.json();
-        console.log('Game message response:', result);
-        return result;
+        try {
+          const result = JSON.parse(responseBody);
+          console.log('Game message parsed response:', result);
+          return result;
+        } catch (parseError) {
+          console.error('Error parsing JSON from sendMessageHttp:', parseError);
+          throw new Error(`Failed to parse response: ${responseBody}`);
+        }
       } catch (error) {
         console.error('Error with HTTP game message:', error);
         
@@ -183,6 +209,34 @@ class VertexAIGameEngine {
   }
 
   /**
+   * Test the connection to Vertex AI
+   * @returns {Promise<Object>} Test results
+   */
+  async testVertexAIConnection() {
+    try {
+      console.log('Testing Vertex AI connection...');
+      const response = await fetch('https://us-central1-ai-fundamentals-ad37d.cloudfunctions.net/testVertexAI', {
+        method: 'GET',
+        mode: 'cors'
+      });
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('TestVertexAI error response:', errorText);
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const result = await response.json();
+      console.log('TestVertexAI result:', result);
+      
+      return result;
+    } catch (error) {
+      console.error('Error testing Vertex AI connection:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Initialize a new game session
    * @param {string} userId - The current user's ID
    * @param {string} topicId - The selected topic ID
@@ -197,6 +251,20 @@ class VertexAIGameEngine {
       const initialCreditCost = this.calculateCreditCost('initialize');
       if (this.userProfile.credits < initialCreditCost) {
         throw new Error(`Insufficient credits (${this.userProfile.credits}/${initialCreditCost})`);
+      }
+      
+      // First test if Vertex AI is working
+      try {
+        const testResult = await this.testVertexAIConnection();
+        console.log('Vertex AI test result:', testResult);
+        
+        // If the test shows issues, we'll note it but continue with the fallback path
+        if (!testResult.aiTest || !testResult.aiTest.success) {
+          console.warn('Vertex AI test failed, will use fallback responses');
+        }
+      } catch (testError) {
+        console.error('Error testing Vertex AI:', testError);
+        // Continue with fallback if test fails
       }
       
       try {
