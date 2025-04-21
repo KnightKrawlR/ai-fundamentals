@@ -165,37 +165,71 @@ const MyGames = ({ firebaseProp }) => {
   
   const chatContainerRef = useRef(null);
   
-  // Initialize on component mount
+  // Hide the loading indicator when component mounts
   useEffect(() => {
-    console.log('MyGames component mounted');
+    // Hide the loading fallback
+    const loadingFallback = document.getElementById('loading-fallback');
+    if (loadingFallback) {
+      loadingFallback.style.display = 'none';
+    }
+    
+    // Initialize game engine
+    console.log('Initializing game engine');
     try {
-      // Initialize game engine
-      console.log('Initializing game engine');
       const engine = new VertexAIGameEngine();
       setGameEngine(engine);
+    } catch (error) {
+      console.error('Error initializing game engine:', error);
+      setError('Failed to initialize game engine. Please try again.');
+    }
+    
+    // Initialize with demo data if Firebase auth isn't available
+    initializeDemoData();
+    
+    // Attempt to set up Firebase auth listener
+    try {
+      // For demo purposes, we'll bypass auth and create a fake user
+      // In a real app, you'd use Firebase auth
+      const fakeUser = {
+        uid: 'demo-user-123',
+        email: 'demo@example.com',
+        displayName: 'Demo User'
+      };
+      setUser(fakeUser);
+      setLoading(false);
       
-      // Listen for auth state changes
-      console.log('Setting up auth listener');
-      const unsubscribe = firebaseInstance.auth().onAuthStateChanged((user) => {
-        console.log('Auth state changed:', user ? 'User logged in' : 'No user');
-        setUser(user);
-        setLoading(false);
-      });
-      
-      // Fetch available topics
-      console.log('Fetching topics');
+      // Fetch topics
       fetchTopics();
       
-      // Cleanup on unmount
       return () => {
-        console.log('Cleaning up auth listener');
-        unsubscribe();
+        // Cleanup
       };
     } catch (error) {
-      console.error('Error in initialization:', error);
-      setError(error.message);
+      console.error('Auth initialization error:', error);
+      setError('Authentication error. Please try again.');
+      setLoading(false);
     }
   }, [firebaseInstance]);
+  
+  // Initialize with demo data
+  const initializeDemoData = () => {
+    // Set some initial credits for demo
+    setCredits(10);
+    
+    // If no topics, set demo topics
+    if (topics.length === 0) {
+      const demoTopics = [
+        { id: 'intro-to-ai', name: 'Introduction to AI', description: 'Learn the basics of artificial intelligence and its applications.' },
+        { id: 'office-productivity', name: 'Office Productivity', description: 'Use AI to enhance your productivity in office environments.' },
+        { id: 'personal-finance', name: 'Personal Finance', description: 'Apply AI to personal finance management and investment.' },
+        { id: 'social-media-marketing', name: 'Social Media Marketing', description: 'Leverage AI for effective social media marketing strategies.' },
+        { id: 'videography', name: 'Videography', description: 'Enhance video production and editing with AI tools.' },
+        { id: 'ecommerce', name: 'eCommerce', description: 'Optimize eCommerce operations and sales with AI.' }
+      ];
+      setTopics(demoTopics);
+      setSelectedTopic(demoTopics[0]);
+    }
+  };
   
   // Fetch available topics
   const fetchTopics = async () => {
@@ -221,41 +255,41 @@ const MyGames = ({ firebaseProp }) => {
     }
   };
   
-  // Start a new game
+  // Start a new game - simplified for demo
   const startNewGame = async () => {
-    if (!user || !selectedTopic) return;
+    if (!selectedTopic) {
+      alert("Please select a topic first");
+      return;
+    }
     
     try {
       setLoading(true);
       setError(null);
       
-      const gameResult = await gameEngine.initializeGame(
-        user.uid,
-        selectedTopic.id,
-        difficulty
-      );
+      // In a real app, this would call the game engine
+      // For demo, we'll just simulate a successful game start
+      const demoGameSession = {
+        userId: 'demo-user-123',
+        topicId: selectedTopic.id,
+        difficulty,
+        sessionId: `demo-session-${Date.now()}`,
+        startTime: new Date(),
+        lastInteractionTime: new Date(),
+        conversationHistory: [{
+          role: 'assistant',
+          content: `Welcome to your AI learning game about ${selectedTopic.name}! I'm your AI guide. What would you like to know about this topic?`
+        }],
+        skillsGained: [],
+        progress: 0,
+        creditsUsed: 1
+      };
       
-      // Check if initialization failed due to insufficient credits
-      if (!gameResult.success && gameResult.errorType === 'insufficient_credits') {
-        // Set data for insufficient credits prompt
-        setInsufficientCreditsData(gameResult);
-        setShowInsufficientCreditsPrompt(true);
-        setLoading(false);
-        return;
-      }
-      
-      // Normal success flow
-      setCurrentGame(gameResult);
-      setMessages(gameResult.conversationHistory);
-      setCredits(gameEngine.userProfile.credits);
-    } catch (error) {
-      console.error('Error starting game:', error);
-      
-      // Check if error is related to insufficient credits
-      if (error.message && error.message.includes('Insufficient credits')) {
+      // Update credits (deduct 1)
+      const newCredits = credits - 1;
+      if (newCredits < 0) {
         setInsufficientCreditsData({
-          message: 'You don\'t have enough credits to start a new game.',
-          currentCredits: gameEngine.userProfile ? gameEngine.userProfile.credits : 0,
+          message: "You don't have enough credits to start a new game.",
+          currentCredits: credits,
           options: [
             {
               action: 'add_credits',
@@ -270,15 +304,28 @@ const MyGames = ({ firebaseProp }) => {
           ]
         });
         setShowInsufficientCreditsPrompt(true);
-      } else {
-        setError(error.message);
+        setLoading(false);
+        return;
       }
+      
+      setCredits(newCredits);
+      setCurrentGame(demoGameSession);
+      setMessages(demoGameSession.conversationHistory);
+      
+      // If we had a game engine
+      if (gameEngine) {
+        gameEngine.conversationHistory = demoGameSession.conversationHistory;
+        gameEngine.currentGameSession = demoGameSession;
+      }
+    } catch (error) {
+      console.error('Error starting game:', error);
+      setError('Failed to start game. Please try again.');
     } finally {
       setLoading(false);
     }
   };
   
-  // Send user input to the game engine
+  // Send user input to the game engine - simplified for demo
   const sendMessage = async () => {
     if (!userInput.trim() && inputType === 'text') return;
     
@@ -294,47 +341,25 @@ const MyGames = ({ firebaseProp }) => {
       
       setMessages(prev => [...prev, userMessage]);
       
-      // Process different input types
-      let additionalData = null;
-      if (inputType === 'image') {
-        additionalData = imageData;
-      } else if (inputType === 'audio') {
-        additionalData = audioData;
-      }
-      
-      // Send to game engine
-      const result = await gameEngine.sendUserInput(
-        userInput,
-        inputType,
-        additionalData
-      );
-      
-      // Handle insufficient credits response
-      if (result && !result.success && result.errorType === 'insufficient_credits') {
-        setInsufficientCreditsData(result);
-        setShowInsufficientCreditsPrompt(true);
+      // Demo AI response (in a real app, this would call the game engine)
+      setTimeout(() => {
+        const aiResponse = {
+          role: 'assistant',
+          content: `Thank you for your message about "${userInput}". This is a demo response since we're in development mode. In the real app, this would be a thoughtful AI response about ${selectedTopic?.name || 'your selected topic'}.`
+        };
         
-        // Remove the user message since it wasn't processed
-        setMessages(prev => prev.slice(0, -1));
-        return;
-      }
-      
-      // Update state with response
-      setMessages(result.conversationHistory);
-      setCredits(result.remainingCredits);
-      
-      // Clear input
-      setUserInput('');
-      setInputType('text');
-      setImageData(null);
-      setAudioData(null);
-      
-      // Scroll to bottom of chat
-      scrollToBottom();
+        setMessages(prev => [...prev, aiResponse]);
+        setLoading(false);
+        
+        // Clear input
+        setUserInput('');
+        
+        // Scroll to bottom of chat
+        scrollToBottom();
+      }, 1000);
     } catch (error) {
       console.error('Error sending message:', error);
-      setError(error.message);
-    } finally {
+      setError('Failed to send message. Please try again.');
       setLoading(false);
     }
   };
@@ -345,123 +370,27 @@ const MyGames = ({ firebaseProp }) => {
     
     if (type === 'image') {
       // Open file picker for image
-      document.getElementById('image-upload').click();
+      document.getElementById('image-upload')?.click();
     } else if (type === 'audio') {
-      // Start audio recording
-      startAudioRecording();
+      alert("Audio recording is not available in the demo version");
     }
   };
   
   // Handle image upload
   const handleImageUpload = (event) => {
-    const file = event.target.files[0];
+    const file = event.target.files?.[0];
     if (!file) return;
     
     const reader = new FileReader();
     reader.onload = (e) => {
-      const base64Data = e.target.result.split(',')[1]; // Remove data URL prefix
+      const base64Data = e.target?.result.split(',')[1]; // Remove data URL prefix
       setImageData(base64Data);
+      
+      // Auto-send a message with the uploaded image
+      setUserInput('I uploaded an image for analysis');
+      setTimeout(() => sendMessage(), 500);
     };
     reader.readAsDataURL(file);
-  };
-  
-  // Start audio recording
-  const startAudioRecording = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mediaRecorder = new MediaRecorder(stream);
-      const audioChunks = [];
-      
-      mediaRecorder.addEventListener('dataavailable', (event) => {
-        audioChunks.push(event.data);
-      });
-      
-      mediaRecorder.addEventListener('stop', () => {
-        const audioBlob = new Blob(audioChunks);
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          const base64Data = e.target.result.split(',')[1]; // Remove data URL prefix
-          setAudioData({
-            data: base64Data,
-            transcription: 'Transcription in progress...' // In a real app, you'd use Speech-to-Text here
-          });
-        };
-        reader.readAsDataURL(audioBlob);
-      });
-      
-      // Start recording
-      mediaRecorder.start();
-      
-      // Stop recording after 10 seconds
-      setTimeout(() => {
-        mediaRecorder.stop();
-        stream.getTracks().forEach(track => track.stop());
-      }, 10000);
-    } catch (error) {
-      console.error('Error starting audio recording:', error);
-      setError('Failed to start audio recording. Please check your microphone permissions.');
-    }
-  };
-  
-  // Change difficulty level
-  const changeDifficulty = async (newDifficulty) => {
-    if (!currentGame) return;
-    
-    try {
-      setLoading(true);
-      
-      await gameEngine.changeDifficulty(newDifficulty);
-      setDifficulty(newDifficulty);
-      
-      // Update messages to include system message about difficulty change
-      setMessages(gameEngine.conversationHistory);
-    } catch (error) {
-      console.error('Error changing difficulty:', error);
-      setError(error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-  
-  // Change topic
-  const changeTopic = async (topic) => {
-    setSelectedTopic(topic);
-    
-    if (currentGame) {
-      try {
-        setLoading(true);
-        
-        const gameSession = await gameEngine.changeTopic(topic.id);
-        
-        setCurrentGame(gameSession);
-        setMessages(gameSession.conversationHistory);
-      } catch (error) {
-        console.error('Error changing topic:', error);
-        setError(error.message);
-      } finally {
-        setLoading(false);
-      }
-    }
-  };
-  
-  // Save game progress
-  const saveGameProgress = async () => {
-    if (!currentGame) return;
-    
-    try {
-      setLoading(true);
-      
-      await gameEngine.saveGameProgress();
-      
-      // Show success message
-      setError(null);
-      alert('Game progress saved successfully!');
-    } catch (error) {
-      console.error('Error saving game progress:', error);
-      setError(error.message);
-    } finally {
-      setLoading(false);
-    }
   };
   
   // Scroll to bottom of chat
@@ -476,33 +405,21 @@ const MyGames = ({ firebaseProp }) => {
     scrollToBottom();
   }, [messages]);
   
-  // Add credits to the user's account
+  // Add credits to the user's account - simplified for demo
   const handleAddCredits = async (amount) => {
     try {
       setLoading(true);
       
-      // Call a Firebase function to add credits
-      const addCreditsFunction = firebaseInstance.functions().httpsCallable('purchaseCredits');
+      // Simple demo - just add credits
+      const newTotal = credits + amount;
+      setCredits(newTotal);
       
-      const result = await addCreditsFunction({
-        amount,
-        paymentMethod: 'demo' // In a real app, this would be the payment method info
-      });
+      // Close any credit-related prompts
+      setShowInsufficientCreditsPrompt(false);
+      setIsPurchaseModalOpen(false);
       
-      // Update local state
-      if (result.data && result.data.success) {
-        setCredits(result.data.newTotal);
-        setError(null);
-        
-        // Close any credit-related prompts
-        setShowInsufficientCreditsPrompt(false);
-        setIsPurchaseModalOpen(false);
-        
-        // Show success message
-        alert(`Successfully added ${amount} credits to your account!`);
-      } else {
-        throw new Error(result.data?.message || 'Failed to add credits');
-      }
+      // Show success message
+      alert(`Successfully added ${amount} credits to your account!`);
     } catch (error) {
       console.error('Error adding credits:', error);
       setError('Failed to add credits. Please try again.');
@@ -524,33 +441,23 @@ const MyGames = ({ firebaseProp }) => {
     }
   };
   
-  // Render loading state
-  if (loading && !currentGame) {
-    return <div className="flex items-center justify-center min-h-[500px]">
-      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-600"></div>
-    </div>;
-  }
-  
-  // Render error state
-  if (error) {
-    return <div className="flex items-center justify-center min-h-[500px]">
-      <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
-        <strong className="font-bold">Error: </strong>
-        <span className="block sm:inline">{error}</span>
-      </div>
-    </div>;
-  }
-  
   // Render main content
   return (
     <div className="flex flex-col space-y-4">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold text-gray-900">My Games</h1>
         <div className="flex items-center space-x-4">
-          <CreditManagement 
-            credits={credits} 
-            onAddCredits={() => setIsPurchaseModalOpen(true)} 
-          />
+          <div className="flex items-center space-x-2">
+            <span className={`text-sm ${credits < 5 ? 'text-red-600 font-bold' : 'text-gray-600'}`}>
+              Credits: {credits}
+            </span>
+            <button
+              onClick={() => setIsPurchaseModalOpen(true)}
+              className="text-xs px-2 py-1 bg-primary-500 text-white rounded hover:bg-primary-600"
+            >
+              Add Credits
+            </button>
+          </div>
           <select
             value={difficulty}
             onChange={(e) => setDifficulty(e.target.value)}
@@ -564,11 +471,21 @@ const MyGames = ({ firebaseProp }) => {
       </div>
 
       {/* Low credits warning banner */}
-      {credits > 0 && credits <= 20 && !showInsufficientCreditsPrompt && (
-        <LowCreditsWarning 
-          credits={credits} 
-          onAddCredits={() => setIsPurchaseModalOpen(true)} 
-        />
+      {credits > 0 && credits <= 5 && !showInsufficientCreditsPrompt && (
+        <div className="p-4 mb-4 rounded-lg text-sm bg-yellow-100 text-yellow-800">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between">
+            <div>
+              <span className="font-bold">Low Credits Warning: {credits} {credits === 1 ? 'credit' : 'credits'} remaining</span>
+              <p className="mt-1">You're running low on credits. Consider purchasing more to avoid interruptions.</p>
+            </div>
+            <button 
+              className="mt-3 sm:mt-0 px-4 py-2 bg-yellow-600 text-white rounded-md hover:bg-yellow-700 transition-colors"
+              onClick={() => setIsPurchaseModalOpen(true)}
+            >
+              Add Credits
+            </button>
+          </div>
+        </div>
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -668,21 +585,115 @@ const MyGames = ({ firebaseProp }) => {
       />
 
       {/* Credit Purchase Modal */}
-      <CreditPurchaseModal 
-        isOpen={isPurchaseModalOpen} 
-        onClose={() => setIsPurchaseModalOpen(false)} 
-        insufficientCreditsData={insufficientCreditsData}
-        onPurchase={handleAddCredits}
-      />
+      {isPurchaseModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-semibold text-gray-900">Purchase Credits</h3>
+              <button 
+                onClick={() => setIsPurchaseModalOpen(false)}
+                className="text-gray-400 hover:text-gray-500"
+              >
+                <span className="sr-only">Close</span>
+                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            
+            {insufficientCreditsData && (
+              <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 text-yellow-800 rounded">
+                <p>{insufficientCreditsData.message}</p>
+              </div>
+            )}
+            
+            <div className="space-y-4 my-4">
+              <div className="text-lg font-medium">Select a credit package:</div>
+              
+              <div className="grid gap-4">
+                {[
+                  { key: 'basic', amount: 20, price: '$1.99', popular: false },
+                  { key: 'standard', amount: 50, price: '$3.99', popular: true },
+                  { key: 'premium', amount: 100, price: '$6.99', popular: false }
+                ].map((pkg) => (
+                  <div 
+                    key={pkg.key}
+                    onClick={() => handleAddCredits(pkg.amount)}
+                    className={`border rounded-lg p-4 cursor-pointer transition-all hover:border-primary-500 hover:bg-primary-50`}
+                  >
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <span className="font-bold text-xl">{pkg.amount} Credits</span>
+                        <p className="text-gray-600">{pkg.price}</p>
+                      </div>
+                      {pkg.popular && (
+                        <span className="bg-primary-100 text-primary-800 text-xs font-semibold px-2.5 py-0.5 rounded-full">
+                          Most Popular
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={() => setIsPurchaseModalOpen(false)}
+                className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-md transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Insufficient Credits Prompt */}
       {showInsufficientCreditsPrompt && insufficientCreditsData && (
-        <InsufficientCreditsPrompt 
-          message={insufficientCreditsData.message}
-          options={insufficientCreditsData.options}
-          onAction={handleCreditAction}
-          onClose={() => setShowInsufficientCreditsPrompt(false)}
-        />
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full">
+            <h3 className="text-lg font-bold mb-2">Insufficient Credits</h3>
+            <p className="mb-4 text-red-600">{insufficientCreditsData.message}</p>
+            
+            <div className="mb-4 p-3 bg-blue-50 border border-blue-200 text-blue-800 rounded">
+              <p className="text-sm">
+                <span className="font-medium">Monthly Credits: </span>
+                Free accounts receive 20 credits on the 1st of every month.
+                <span className="block mt-1">
+                  Next refresh in: <span className="font-bold">15 days</span>
+                </span>
+              </p>
+            </div>
+            
+            <div className="space-y-3 mb-6">
+              {insufficientCreditsData.options?.map((option, index) => (
+                <button
+                  key={index}
+                  onClick={() => handleCreditAction(option.action)}
+                  className="w-full text-left p-3 border rounded-md hover:bg-gray-50 flex items-center"
+                >
+                  <div className="flex-1">
+                    <p className="font-medium">{option.label}</p>
+                    <p className="text-sm text-gray-500">{option.description}</p>
+                  </div>
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                  </svg>
+                </button>
+              ))}
+            </div>
+            
+            <div className="flex justify-end">
+              <button
+                onClick={() => setShowInsufficientCreditsPrompt(false)}
+                className="px-4 py-2 border rounded hover:bg-gray-100"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
