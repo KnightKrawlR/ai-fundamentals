@@ -14,6 +14,14 @@ class VertexAIGameEngine {
     // Get Firebase instance - prefer global one
     this.firebase = (typeof window !== 'undefined' && window.firebase) ? window.firebase : null;
     
+    // Log Firebase initialization status
+    if (this.firebase) {
+      console.log("Firebase initialized in VertexAIGameEngine:", this.firebase.app().name);
+      console.log("Firebase project:", this.firebase.app().options.projectId);
+    } else {
+      console.error("Firebase not available in VertexAIGameEngine");
+    }
+    
     // Default sample topics for fallback
     this.sampleTopics = [
       { 
@@ -55,17 +63,40 @@ class VertexAIGameEngine {
   async callWithCorsProxy(functionName, data) {
     console.log(`Calling ${functionName} via CORS proxy with data:`, data);
     
-    const proxyUrl = `https://us-central1-ai-fundamentals-ad37d.cloudfunctions.net/corsProxy?function=${functionName}`;
+    // Log user info for debugging
+    if (this.userProfile) {
+      console.log("Current user in callWithCorsProxy:", {
+        uid: this.userProfile.uid,
+        email: this.userProfile.email
+      });
+    }
+    
+    // Direct API endpoint - more reliable than the proxy
+    const functionUrl = `https://us-central1-ai-fundamentals-ad37d.cloudfunctions.net/${functionName}`;
+    
+    // Add timestamp to ensure fresh requests
+    const requestData = {
+      ...data,
+      timestamp: Date.now(),
+      userInfo: this.userProfile ? {
+        uid: this.userProfile.uid,
+        email: this.userProfile.email
+      } : null
+    };
     
     try {
-      const response = await fetch(proxyUrl, {
+      console.log(`Calling direct function URL: ${functionUrl}`);
+      const response = await fetch(functionUrl, {
         method: 'POST',
         mode: 'cors',
+        cache: 'no-cache',
         credentials: 'omit',
         headers: {
           'Content-Type': 'application/json',
+          'User-Agent': 'AI-Fundamentals-WebClient',
+          'Authorization': this.userProfile?.uid ? `Bearer ${this.userProfile.uid}` : ''
         },
-        body: JSON.stringify(data)
+        body: JSON.stringify(requestData)
       });
       
       if (!response.ok) {
@@ -73,11 +104,57 @@ class VertexAIGameEngine {
       }
       
       const result = await response.json();
-      console.log(`CORS proxy response for ${functionName}:`, result);
+      console.log(`Direct API response for ${functionName}:`, result);
       return result;
-    } catch (error) {
-      console.error(`Error calling ${functionName} via CORS proxy:`, error);
-      throw error;
+    } catch (directError) {
+      console.error(`Error calling ${functionName} directly:`, directError);
+      
+      // Try fallback CORS proxy
+      try {
+        console.log(`Falling back to CORS proxy for ${functionName}`);
+        const proxyUrl = `https://us-central1-ai-fundamentals-ad37d.cloudfunctions.net/corsProxy?function=${functionName}`;
+        
+        const proxyResponse = await fetch(proxyUrl, {
+          method: 'POST',
+          mode: 'cors',
+          cache: 'no-cache',
+          credentials: 'omit',
+          headers: {
+            'Content-Type': 'application/json',
+            'User-Agent': 'AI-Fundamentals-WebClient'
+          },
+          body: JSON.stringify(requestData)
+        });
+        
+        if (!proxyResponse.ok) {
+          throw new Error(`HTTP error with proxy! status: ${proxyResponse.status}`);
+        }
+        
+        const proxyResult = await proxyResponse.json();
+        console.log(`CORS proxy response for ${functionName}:`, proxyResult);
+        return proxyResult;
+      } catch (proxyError) {
+        console.error(`Both direct and proxy methods failed for ${functionName}:`, proxyError);
+        
+        // Try debugging response
+        try {
+          const debugUrl = `https://us-central1-ai-fundamentals-ad37d.cloudfunctions.net/debug`;
+          const debugResponse = await fetch(debugUrl, {
+            method: 'GET',
+            mode: 'cors',
+            cache: 'no-cache'
+          });
+          
+          if (debugResponse.ok) {
+            const debugInfo = await debugResponse.json();
+            console.log("Debug info from server:", debugInfo);
+          }
+        } catch (debugError) {
+          console.error("Debug endpoint also failed:", debugError);
+        }
+        
+        throw proxyError;
+      }
     }
   }
 
