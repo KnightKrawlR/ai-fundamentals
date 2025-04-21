@@ -5,20 +5,36 @@
 const { VertexAI } = require('@google-cloud/vertexai');
 const functions = require('firebase-functions');
 
-// Initialize Vertex AI with your project and location
-const projectId = process.env.GCLOUD_PROJECT;
-const location = 'us-central1'; // Change to your preferred location
-const vertexAI = new VertexAI({ project: projectId, location });
+// Initialize Vertex AI with Firebase config values
+const projectId = functions.config().vertexai?.project || process.env.GCLOUD_PROJECT || 'ai-fundamentals-ad37d';
+const location = functions.config().vertexai?.location || 'us-central1';
+const modelName = functions.config().vertexai?.model || 'gemini-pro';
 
-// Define the models to use
-const MODEL_NAME = 'gemini-1.5-pro';
-const IMAGE_MODEL_NAME = 'gemini-1.5-pro-vision';
+// Log configuration on initialization
+console.log(`Initializing Vertex AI Helper with: Project=${projectId}, Location=${location}, Model=${modelName}`);
+
+// Initialize Vertex AI with error handling
+let vertexAI;
+try {
+  vertexAI = new VertexAI({ project: projectId, location });
+  console.log('Vertex AI Helper initialized successfully');
+} catch (error) {
+  console.error('Error initializing Vertex AI Helper:', error);
+  // Don't throw here - we'll handle errors in the individual functions
+}
+
+// Define the models to use - now using config values
+const MODEL_NAME = modelName;
+const IMAGE_MODEL_NAME = 'gemini-pro-vision';
 
 /**
  * Get a generative model for text processing
  * @returns {GenerativeModel} A generative model instance
  */
 function getGenerativeModel() {
+  if (!vertexAI) {
+    throw new Error('Vertex AI client not initialized');
+  }
   return vertexAI.getGenerativeModel({ model: MODEL_NAME });
 }
 

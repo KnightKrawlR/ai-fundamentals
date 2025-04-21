@@ -30,10 +30,23 @@ const IMAGE_CREDIT_COST = 5;
 const GAME_SESSION_COST = 2;
 const GAME_MESSAGE_COST = 1;
 
-// Initialize Vertex AI
-const PROJECT_ID = process.env.GCLOUD_PROJECT || 'ai-fundamentals';
-const LOCATION = 'us-central1';
-const vertexAI = new VertexAI({ project: PROJECT_ID, location: LOCATION });
+// Initialize Vertex AI using Firebase config values
+const PROJECT_ID = functions.config().vertexai?.project || process.env.GCLOUD_PROJECT || 'ai-fundamentals-ad37d';
+const LOCATION = functions.config().vertexai?.location || 'us-central1';
+const MODEL_NAME = functions.config().vertexai?.model || 'gemini-pro';
+
+// Log configuration for debugging
+console.log(`Initializing Vertex AI with: Project=${PROJECT_ID}, Location=${LOCATION}, Model=${MODEL_NAME}`);
+
+// Initialize with better error handling
+let vertexAI;
+try {
+  vertexAI = new VertexAI({ project: PROJECT_ID, location: LOCATION });
+  console.log('Vertex AI initialized successfully in index.js');
+} catch (error) {
+  console.error('Error initializing Vertex AI in index.js:', error);
+  // We'll handle errors in the individual functions
+}
 
 // Create a wrapper for callable functions that properly sets CORS headers
 const createCallableFunction = (handler) => {
@@ -1331,7 +1344,7 @@ exports.initGameHttp = functions.https.onRequest((req, res) => {
   
   return cors(req, res, async () => {
     try {
-      const { topicId, difficulty, model = 'gemini-pro', options = {} } = req.body;
+      const { topicId, difficulty, model = MODEL_NAME, options = {} } = req.body;
       
       if (!topicId) {
         return res.status(400).json({
@@ -1343,9 +1356,18 @@ exports.initGameHttp = functions.https.onRequest((req, res) => {
       // Generate a unique session ID
       const sessionId = admin.firestore().collection('gameSessions').doc().id;
       
+      // Debug logging
+      console.log(`initGameHttp - Using model: ${model}, Topic: ${topicId}`);
+      
+      // Verify Vertex AI is initialized
+      if (!vertexAI) {
+        console.error('Vertex AI not initialized in initGameHttp');
+        throw new Error('Vertex AI client not available');
+      }
+      
       // Initialize the generative model
       const generativeModel = vertexAI.getGenerativeModel({
-        model: model || 'gemini-pro',
+        model: model,
         generation_config: {
           max_output_tokens: options.maxTokens || 1024,
           temperature: options.temperature || 0.7,
@@ -1413,7 +1435,7 @@ exports.sendMessageHttp = functions.https.onRequest((req, res) => {
   
   return cors(req, res, async () => {
     try {
-      const { sessionId, message, topicId, difficulty, model = 'gemini-pro', options = {} } = req.body;
+      const { sessionId, message, topicId, difficulty, model = MODEL_NAME, options = {} } = req.body;
       
       if (!message) {
         return res.status(400).json({
@@ -1422,9 +1444,18 @@ exports.sendMessageHttp = functions.https.onRequest((req, res) => {
         });
       }
       
+      // Debug logging
+      console.log(`sendMessageHttp - Using model: ${model}, Message: ${message.substring(0, 50)}...`);
+      
+      // Verify Vertex AI is initialized
+      if (!vertexAI) {
+        console.error('Vertex AI not initialized in sendMessageHttp');
+        throw new Error('Vertex AI client not available');
+      }
+      
       // Initialize the generative model
       const generativeModel = vertexAI.getGenerativeModel({
-        model: model || 'gemini-pro',
+        model: model,
         generation_config: {
           max_output_tokens: options.maxTokens || 1024,
           temperature: options.temperature || 0.7,

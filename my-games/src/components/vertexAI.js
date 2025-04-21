@@ -63,12 +63,12 @@ class VertexAIGameEngine {
   async callWithCorsProxy(functionName, data) {
     console.log(`Calling ${functionName} with data:`, data);
     
-    // Use our new HTTP endpoints which have proper CORS headers
+    // Use our HTTP endpoints which have proper CORS headers
     if (functionName === 'initializeGameSession') {
       try {
         console.log('Using HTTP endpoint for game initialization');
         
-        // Use the HTTP endpoint instead
+        // Use the HTTP endpoint
         const response = await fetch('https://us-central1-ai-fundamentals-ad37d.cloudfunctions.net/initGameHttp', {
           method: 'POST',
           mode: 'cors',
@@ -84,6 +84,8 @@ class VertexAIGameEngine {
         });
         
         if (!response.ok) {
+          const errorText = await response.text();
+          console.error('HTTP error response:', errorText);
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         
@@ -93,24 +95,22 @@ class VertexAIGameEngine {
       } catch (error) {
         console.error('Error with HTTP game initialization:', error);
         
-        // FALLBACK to simulated response if HTTP endpoint fails
-        console.log('Using simulated initializeGameSession response');
-        
-        // Generate a realistic looking response
-        const simulatedResponse = {
-          sessionId: `sim-${Date.now()}`,
+        // If the HTTP endpoint fails, try to use a fallback
+        const fallbackResponse = {
+          sessionId: `fallback-${Date.now()}`,
+          initialPrompt: `Welcome to your learning session! I'll be your AI guide for exploring ${data.topicId || 'this topic'}. What specific aspects would you like to learn about?`,
           conversationHistory: [
             {
               role: 'assistant',
-              content: `Welcome to your learning session about ${data.topicId || 'this topic'}! I'll be your AI guide for exploring ${data.topicId || 'this subject'} concepts. What specific aspects would you like to learn about?`
+              content: `Welcome to your learning session! I'll be your AI guide for exploring ${data.topicId || 'this topic'}. What specific aspects would you like to learn about?`
             }
           ],
-          timestamp: new Date().toISOString()
+          success: false,
+          error: error.message,
+          isFallback: true
         };
         
-        // Add a small delay to simulate network request
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        return simulatedResponse;
+        return fallbackResponse;
       }
     }
     
@@ -118,7 +118,7 @@ class VertexAIGameEngine {
       try {
         console.log('Using HTTP endpoint for game message');
         
-        // Use the HTTP endpoint instead with topic and difficulty info
+        // Use the HTTP endpoint with topic and difficulty info
         const response = await fetch('https://us-central1-ai-fundamentals-ad37d.cloudfunctions.net/sendMessageHttp', {
           method: 'POST',
           mode: 'cors',
@@ -136,6 +136,8 @@ class VertexAIGameEngine {
         });
         
         if (!response.ok) {
+          const errorText = await response.text();
+          console.error('HTTP error response:', errorText);
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         
@@ -145,89 +147,22 @@ class VertexAIGameEngine {
       } catch (error) {
         console.error('Error with HTTP game message:', error);
         
-        // FALLBACK to simulated response if HTTP endpoint fails
-        console.log('Using simulated sendGameMessage response');
-        
-        // Content for different topics
-        const topics = {
-          'social-media-marketing': [
-            "Social media marketing requires understanding platform-specific audiences. Facebook tends to have older users, while TikTok attracts younger demographics. Instagram sits somewhere in the middle. For effective campaigns, tailor your content to match each platform's user expectations.",
-            "Content calendars are essential for social media success. They help maintain consistency, which algorithms reward with better reach. Plan content 2-4 weeks in advance, mixing promotional posts with educational and entertaining content at a ratio of roughly 1:4.",
-            "Social listening tools like Hootsuite, Buffer, and Sprout Social can help you monitor brand mentions and industry trends. This intelligence lets you respond quickly to opportunities and address potential issues before they escalate.",
-            "For automation, tools like Buffer, Hootsuite, and Later can schedule posts across multiple platforms. However, avoid identical cross-posting - each platform has unique formatting requirements and audience expectations. Tailoring is key."
-          ],
-          'videography': [
-            "When recording video, the 180-degree rule is crucial for maintaining spatial continuity. Keep your camera on one side of an imaginary line between subjects to avoid disorienting viewers during cuts.",
-            "For editing efficiency, consider using proxy files - lower resolution versions of your footage that make editing smoother on less powerful computers. Programs like Premiere Pro can automatically generate and link these.",
-            "Audio quality often matters more than video quality. Viewers will tolerate visual imperfections but will quickly abandon content with poor audio. Invest in a decent external microphone rather than relying on built-in camera mics.",
-            "The rule of thirds remains fundamental in videography composition. Place key elements along the grid lines or at their intersections to create visually balanced and engaging frames."
-          ],
-          'ecommerce': [
-            "Product photography dramatically impacts conversion rates. Consider using 360-degree photos that allow customers to view items from all angles, reducing uncertainty and return rates.",
-            "A/B testing your product descriptions can reveal surprising insights. Try comparing feature-focused versus benefit-focused language to see which resonates better with your specific audience.",
-            "Cart abandonment emails have among the highest conversion rates of any marketing automation. Set up a sequence that sends 1 hour, 24 hours, and 72 hours after abandonment for optimal recovery.",
-            "For pricing psychology, consider charm pricing (ending in 9 or 7) for value perception, while round numbers often work better for luxury items as they signal quality over bargains."
-          ],
-          'intro-to-ai': [
-            "Machine learning is just one subset of artificial intelligence. It focuses on algorithms that improve through experience, while AI more broadly refers to any technique enabling computers to mimic human intelligence.",
-            "The difference between supervised and unsupervised learning is that supervised requires labeled data for training, while unsupervised finds patterns in unlabeled data without specific guidance.",
-            "Natural Language Processing (NLP) has made tremendous advances with transformer models like BERT and GPT. These models use attention mechanisms to understand context in language much better than previous approaches.",
-            "Ethical considerations in AI include bias in training data, algorithmic transparency, privacy concerns with data collection, and the socioeconomic impacts of automation."
-          ],
-          'office-productivity': [
-            "Text expansion tools can save hours of typing. Applications like TextExpander or AutoHotkey let you create shortcuts that expand into frequently used phrases, paragraphs, or even templates.",
-            "Email management using the 4D system (Delete, Delegate, Defer, Do) can help maintain inbox zero. Process each email once and immediately decide which category it belongs in rather than rereading multiple times.",
-            "For document organization, implement a consistent file naming convention that includes date (YYYY-MM-DD format), project, document type, and version number for easy sorting and identification.",
-            "Calendar blocking, where you schedule specific time for focused work tasks, can increase productivity by up to 50% compared to reactive work patterns where you constantly respond to incoming requests."
-          ],
-          'personal-finance': [
-            "When building an emergency fund, aim for 3-6 months of essential expenses rather than income. This more targeted approach ensures you're covered while potentially requiring less savings.",
-            "For retirement planning, the 4% rule suggests you can withdraw 4% of your portfolio in year one, then adjust for inflation each year after. To determine your target retirement savings, multiply your desired annual income by 25.",
-            "Credit utilization, the percentage of available credit you're using, affects about 30% of your credit score. For optimal scores, keep utilization below 10% across all cards, even if you pay in full monthly.",
-            "When evaluating investment returns, focus on the geometric mean (CAGR) rather than arithmetic mean. A 50% loss followed by a 50% gain results in a 25% loss overall, not a 0% return as arithmetic averaging would suggest."
-          ]
+        // If the HTTP endpoint fails, return a helpful fallback
+        const fallbackResponse = {
+          aiResponse: `I'm having difficulty connecting to the AI service at the moment. Your question was about "${data.message}". Please try again in a moment, or try a different question.`,
+          success: false,
+          error: error.message,
+          isFallback: true
         };
         
-        // Get the appropriate responses for the topic or use a general fallback
-        const topicId = this.currentTopic?.id || data.topicId || 'social-media-marketing';
-        const responses = topics[topicId] || topics['social-media-marketing'];
-        
-        // Create a response that feels like it's answering the user's question
-        const userMessage = data.message || '';
-        let aiResponse = '';
-        
-        if (userMessage.toLowerCase().includes('automation') || userMessage.toLowerCase().includes('automate')) {
-          // Handle automation-specific questions
-          if (topicId === 'social-media-marketing') {
-            aiResponse = "To automate social media posts, you can use scheduling tools like Buffer, Hootsuite, or Later. These platforms allow you to prepare content in batches and schedule posts for optimal times when your audience is most active. For more advanced automation, consider using IFTTT or Zapier to connect your social accounts with other applications. For example, you could automatically share new blog posts to Twitter or post Instagram photos to Facebook. Remember that while automation saves time, you should still monitor engagement and respond personally to comments and messages.";
-          } else {
-            // Generic automation answer for other topics
-            aiResponse = `Automation can significantly improve efficiency in ${topicId}. There are several tools and techniques that can help you automate repetitive tasks, saving time and reducing errors. Would you like to know about specific automation tools for this field?`;
-          }
-        } else {
-          // Pick a semi-random response that sounds relevant
-          const randomIndex = Math.floor(Math.random() * responses.length);
-          aiResponse = responses[randomIndex];
-          
-          // Add a personalized touch
-          aiResponse += "\n\nDoes this help with what you were asking about? I'd be happy to go into more detail on any specific aspect you're interested in.";
-        }
-        
-        // Add a small delay to simulate network request
-        await new Promise(resolve => setTimeout(resolve, 1500));
-        
-        return {
-          aiResponse: aiResponse,
-          conversationId: data.sessionId || 'sim-session',
-          timestamp: new Date().toISOString()
-        };
+        return fallbackResponse;
       }
     }
     
     // If we get here, we're trying to make a real API call, but we don't have a specific handler
-    console.log('Using the debug endpoint to test connectivity');
+    console.log('Using the health check endpoint to test connectivity');
     try {
-      const response = await fetch('https://us-central1-ai-fundamentals-ad37d.cloudfunctions.net/debug', {
+      const response = await fetch('https://us-central1-ai-fundamentals-ad37d.cloudfunctions.net/healthCheck', {
         method: 'GET',
         mode: 'cors'
       });
@@ -237,7 +172,7 @@ class VertexAIGameEngine {
       }
       
       const result = await response.json();
-      console.log('Debug endpoint response:', result);
+      console.log('Health check response:', result);
       
       // Return a generic error for unsupported functions
       throw new Error(`No handler for function: ${functionName}`);
@@ -265,9 +200,9 @@ class VertexAIGameEngine {
       }
       
       try {
-        console.log('Attempting to initialize game session');
+        console.log('Attempting to initialize game session with Vertex AI');
         
-        // Try using callWithCorsProxy which now has simulated responses
+        // Use our HTTP endpoint with proper CORS support
         const proxyResponse = await this.callWithCorsProxy('initializeGameSession', {
           topicId: topic.id,
           difficulty: difficulty,
@@ -285,41 +220,43 @@ class VertexAIGameEngine {
             topicId: topic.id,
             difficulty: difficulty,
             creditsUsed: initialCreditCost,
-            isSimulated: true
+            isFallback: proxyResponse.isFallback || false
           };
           
           this.currentTopic = topic;
-          this.conversationHistory = proxyResponse.conversationHistory || [];
+          this.conversationHistory = proxyResponse.conversationHistory || [{
+            role: 'assistant',
+            content: proxyResponse.initialPrompt
+          }];
           
-          // No need to update Firestore in simulated mode
-          // Just update local credit count
+          // Update local credit count
           this.userProfile.credits -= initialCreditCost;
           
-          console.log('Game initialized in simulated mode:', this.currentGameSession);
+          console.log('Game initialized:', this.currentGameSession);
           
           return {
             sessionId: this.currentGameSession.sessionId,
             initialPrompt: this.conversationHistory[0].content,
             creditsUsed: initialCreditCost,
             remainingCredits: this.userProfile.credits,
-            isSimulated: true
+            isFallback: proxyResponse.isFallback || false
           };
         } else {
-          throw new Error('Invalid simulated response');
+          throw new Error('Invalid response from initialization');
         }
       } catch (error) {
-        console.error('Error initializing game:', error);
+        console.error('Error initializing game with Vertex AI:', error);
         
-        // All methods failed, use fallback with helpful error message
-        const introText = `I'll be your guide to learning about ${topic.name}. Since we're having some connection issues right now, let me know what specific aspects of ${topic.name} you're interested in, and I'll do my best to help once connectivity is restored.`;
+        // Connectivity issue fallback
+        const introText = `I'll be your guide to learning about ${topic.name}. We're currently experiencing a connection issue with our AI service. Please try again in a moment, or let me know what specific aspects of ${topic.name} you're interested in, and I'll do my best to help once connectivity is restored.`;
         
         this.currentGameSession = {
-          sessionId: `local-${Date.now()}`,
+          sessionId: `fallback-${Date.now()}`,
           userId: this.userProfile.uid,
           topicId: topic.id,
           difficulty: difficulty,
           creditsUsed: initialCreditCost,
-          fallbackMode: true
+          connectivityIssue: true
         };
         
         this.currentTopic = topic;
@@ -328,7 +265,7 @@ class VertexAIGameEngine {
           content: introText
         }];
         
-        // Just update local credit count
+        // Update local credit count
         this.userProfile.credits -= initialCreditCost;
         
         return {
@@ -336,11 +273,35 @@ class VertexAIGameEngine {
           initialPrompt: introText,
           creditsUsed: initialCreditCost,
           remainingCredits: this.userProfile.credits,
-          isConnectivityIssue: true
+          connectivityIssue: true
         };
       }
     } catch (error) {
       console.error('Error initializing game:', error);
+      
+      // Return a structured error response
+      if (error.message.includes('Insufficient credits')) {
+        return {
+          success: false,
+          errorType: 'insufficient_credits',
+          message: error.message,
+          currentCredits: this.userProfile.credits,
+          requiredCredits: this.calculateCreditCost('initialize'),
+          options: [
+            {
+              action: 'add_credits',
+              label: 'Purchase Credits',
+              description: 'Buy credits to continue your learning journey.'
+            },
+            {
+              action: 'wait_for_monthly',
+              label: 'Wait for Monthly Credits',
+              description: 'Reminder: Free accounts receive 20 credits on the 1st of each month.'
+            }
+          ]
+        };
+      }
+      
       throw error;
     }
   }
@@ -384,7 +345,7 @@ Start by introducing yourself and asking the user what specific aspect of ${this
       
       // Check if user has enough credits
       if (this.userProfile.credits < creditCost) {
-        // Instead of throwing an error, return a structured response
+        // Return a structured response
         return {
           success: false,
           errorType: 'insufficient_credits',
@@ -399,26 +360,23 @@ Start by introducing yourself and asking the user what specific aspect of ${this
             {
               action: 'wait_for_monthly',
               label: 'Wait for Monthly Credits',
-              description: 'Reminder: Free accounts receive 20 credits on the 1st of each month.'
+              description: 'Free accounts receive 20 credits on the 1st of each month.'
             }
           ]
         };
       }
       
-      // Process different input types
-      let processedInput = userInput;
-      
-      // Update conversation history
+      // Update conversation history with user message
       this.conversationHistory.push({
         role: 'user',
-        content: processedInput
+        content: userInput
       });
       
       try {
-        // Use simulated response from callWithCorsProxy
+        // Use the HTTP endpoint for game messages
         const response = await this.callWithCorsProxy('sendGameMessage', {
           sessionId: this.currentGameSession.sessionId,
-          message: processedInput,
+          message: userInput,
           model: 'gemini-pro',
           options: {
             temperature: 0.7,
@@ -428,13 +386,16 @@ Start by introducing yourself and asking the user what specific aspect of ${this
         
         console.log('Game message response:', response);
         
+        // If there was an error but we got a fallback response
+        if (response.isFallback) {
+          console.log('Using fallback AI response');
+        }
+        
         // Update conversation history with AI response
         this.conversationHistory.push({
           role: 'assistant',
           content: response.aiResponse
         });
-        
-        // For simulated mode, we don't update Firestore
         
         // Update local state
         this.currentGameSession.creditsUsed += creditCost;
@@ -445,13 +406,13 @@ Start by introducing yourself and asking the user what specific aspect of ${this
           creditsUsed: creditCost,
           remainingCredits: this.userProfile.credits,
           conversationHistory: this.conversationHistory,
-          isSimulated: true
+          isFallback: response.isFallback || false
         };
       } catch (error) {
         console.error('Error with sendGameMessage:', error);
         
-        // Fallback response if even the simulation fails
-        const fallbackResponse = `I apologize, but I'm having trouble processing your request about "${processedInput}". This appears to be a technical issue on our end. Could you try again with a different question?`;
+        // General connectivity error fallback
+        const fallbackResponse = `I apologize, but I'm having trouble connecting to our AI service. Your question was about "${userInput}". This appears to be a technical issue. Please try again in a moment.`;
         
         // Add fallback to conversation history
         this.conversationHistory.push({
@@ -470,7 +431,7 @@ Start by introducing yourself and asking the user what specific aspect of ${this
     } catch (error) {
       console.error('Error sending user input:', error);
       
-      // Return a more helpful error message
+      // Return a helpful error message
       return {
         success: false,
         errorType: 'api_error',

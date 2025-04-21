@@ -15,10 +15,10 @@ const functions = require('firebase-functions');
 // Load environment variables
 dotenv.config();
 
-// Vertex AI configuration
-const PROJECT_ID = process.env.VERTEX_PROJECT_ID || 'your-project-id';
-const LOCATION = process.env.VERTEX_LOCATION || 'us-central1';
-const GEMINI_PRO_MODEL = process.env.GEMINI_PRO_MODEL || 'gemini-pro';
+// Vertex AI configuration - Use Firebase config values
+const PROJECT_ID = functions.config().vertexai?.project || process.env.VERTEX_PROJECT_ID || 'ai-fundamentals-ad37d';
+const LOCATION = functions.config().vertexai?.location || process.env.VERTEX_LOCATION || 'us-central1';
+const GEMINI_PRO_MODEL = functions.config().vertexai?.model || process.env.GEMINI_PRO_MODEL || 'gemini-pro';
 const GEMINI_PRO_VISION_MODEL = process.env.GEMINI_PRO_VISION_MODEL || 'gemini-pro-vision';
 const EMBEDDING_MODEL = process.env.EMBEDDING_MODEL || 'textembedding-gecko@latest';
 
@@ -42,21 +42,23 @@ const safetySettings = [
   },
 ];
 
-// Initialize the Vertex AI client
+// Initialize the Vertex AI client with better error handling
 let vertexAI;
 try {
   vertexAI = new VertexAI({
     project: PROJECT_ID, 
     location: LOCATION,
   });
-  console.log('Vertex AI client initialized successfully');
+  console.log(`Vertex AI client initialized successfully for project ${PROJECT_ID} in ${LOCATION}`);
 } catch (error) {
   console.error('Error initializing Vertex AI client:', error);
-  throw error;
+  console.error('Project ID:', PROJECT_ID);
+  console.error('Location:', LOCATION);
+  throw new Error(`Failed to initialize Vertex AI: ${error.message}`);
 }
 
-// Text model configuration
-const TEXT_MODEL_NAME = "gemini-1.5-pro";
+// Text model configuration - updated to use config values
+const TEXT_MODEL_NAME = GEMINI_PRO_MODEL;
 const TEXT_GENERATION_CONFIG = {
   temperature: 0.2,
   topP: 0.8,
@@ -65,7 +67,7 @@ const TEXT_GENERATION_CONFIG = {
 };
 
 // Image model configuration
-const IMAGE_MODEL_NAME = "gemini-1.5-pro-vision";
+const IMAGE_MODEL_NAME = GEMINI_PRO_VISION_MODEL;
 const IMAGE_GENERATION_CONFIG = {
   temperature: 0.2,
   topP: 0.8,
