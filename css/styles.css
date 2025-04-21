@@ -1104,15 +1104,26 @@ footer {
 
 @media (max-width: 576px) {
     header .container {
-        padding: 0 0.5rem;
+        padding: 0 0.75rem;
     }
     
-    nav ul {
-        gap: 0.5rem;
+    .logo h1 {
+        font-size: 1rem;
     }
     
-    nav ul li {
-        margin-left: 0.5rem;
+    .mobile-menu-toggle {
+        font-size: 1.25rem;
+        padding: 0.25rem;
+    }
+    
+    .user-avatar {
+        width: 28px;
+        height: 28px;
+        font-size: 0.875rem;
+    }
+    
+    .sign-in-btn {
+        padding: 0.3rem 0.6rem;
     }
     
     .hero-buttons {
@@ -1125,7 +1136,7 @@ footer {
     }
     
     .term, .definition {
-        font-size: 1.25rem;
+        font-size: 1.15rem;
     }
 }
 
@@ -1189,4 +1200,89 @@ footer {
     color: white;
     font-size: 1.5rem;
     z-index: 1;
+}
+
+/* Mobile Menu Styles */
+.mobile-menu-toggle {
+    display: none;
+    font-size: 1.5rem;
+    color: var(--primary-color);
+    cursor: pointer;
+    padding: 0.5rem;
+}
+
+.mobile-menu-active #main-nav {
+    display: block;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    background-color: white;
+    padding: 1rem;
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+    z-index: 99;
+}
+
+.mobile-menu-active #main-nav ul {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+}
+
+.mobile-menu-active #main-nav ul li {
+    margin: 0;
+    width: 100%;
+}
+
+.mobile-menu-active #main-nav ul li a {
+    display: block;
+    padding: 0.5rem 0;
+    width: 100%;
+}
+
+/* Mobile view adjustments */
+@media (max-width: 768px) {
+    .mobile-menu-toggle {
+        display: block;
+    }
+    
+    #main-nav {
+        display: none;
+    }
+    
+    header .container {
+        padding: 0 1rem;
+    }
+    
+    #auth-container {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-left: auto;
+    }
+    
+    .sign-in-btn {
+        padding: 0.4rem 0.8rem;
+    }
+    
+    .sign-in-btn span {
+        display: none;
+    }
+    
+    .user-profile-btn {
+        padding: 8px 0;
+    }
+    
+    .user-profile-btn span {
+        display: none;
+    }
+    
+    /* Compact layout for mobile navigation */
+    nav ul li {
+        margin-left: 0;
+    }
+    
+    .logo h1 {
+        font-size: 1.2rem;
+    }
 }
