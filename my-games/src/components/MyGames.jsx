@@ -180,35 +180,117 @@ const MyGames = ({ firebaseProp }) => {
     try {
       const engine = new VertexAIGameEngine();
       setGameEngine(engine);
+      
+      // Attempt to set up Firebase auth listener
+      if (firebaseInstance) {
+        console.log("Setting up Firebase auth listener");
+        const unsubscribe = firebaseInstance.auth().onAuthStateChanged(async (authUser) => {
+          console.log("Auth state changed:", authUser);
+          if (authUser) {
+            // User is signed in
+            setUser(authUser);
+            
+            // Try to get user profile from Firestore
+            try {
+              const db = firebaseInstance.firestore();
+              const userDoc = await db.collection('users').doc(authUser.uid).get();
+              
+              if (userDoc.exists) {
+                const userData = userDoc.data();
+                console.log("User data from Firestore:", userData);
+                
+                // Set user profile in game engine
+                if (engine) {
+                  engine.userProfile = {
+                    uid: authUser.uid,
+                    email: authUser.email,
+                    credits: userData.credits || 10,
+                    totalCreditsUsed: userData.totalCreditsUsed || 0,
+                    ...userData
+                  };
+                  console.log("Set user profile in game engine:", engine.userProfile);
+                }
+                
+                // Update credits in UI
+                setCredits(userData.credits || 10);
+              } else {
+                console.log("Creating new user profile");
+                // Create user profile if it doesn't exist
+                await db.collection('users').doc(authUser.uid).set({
+                  email: authUser.email,
+                  displayName: authUser.displayName,
+                  credits: 10,
+                  totalCreditsUsed: 0,
+                  createdAt: firebaseInstance.firestore.FieldValue.serverTimestamp()
+                });
+                
+                if (engine) {
+                  engine.userProfile = {
+                    uid: authUser.uid,
+                    email: authUser.email,
+                    credits: 10,
+                    totalCreditsUsed: 0
+                  };
+                }
+                
+                setCredits(10);
+              }
+            } catch (error) {
+              console.error("Error fetching user data:", error);
+              // Set fallback user profile if Firestore fails
+              if (engine) {
+                engine.userProfile = {
+                  uid: authUser.uid,
+                  email: authUser.email,
+                  credits: 10,
+                  totalCreditsUsed: 0
+                };
+              }
+              setCredits(10);
+            }
+          } else {
+            // User is signed out, use demo mode
+            console.log("No authenticated user, using demo mode");
+            const demoUser = {
+              uid: 'demo-user-' + Date.now(),
+              email: 'demo@example.com',
+              displayName: 'Demo User'
+            };
+            
+            setUser(demoUser);
+            
+            if (engine) {
+              engine.userProfile = {
+                uid: demoUser.uid,
+                email: demoUser.email,
+                credits: 10,
+                totalCreditsUsed: 0
+              };
+            }
+            
+            setCredits(10);
+          }
+          
+          setLoading(false);
+          
+          // Fetch topics after user is set up
+          fetchTopics();
+        });
+        
+        return () => {
+          // Cleanup auth listener on unmount
+          if (unsubscribe) unsubscribe();
+        };
+      } else {
+        // No Firebase available, use demo mode
+        console.warn("Firebase not available, using demo mode");
+        initializeDemoData();
+        setLoading(false);
+      }
     } catch (error) {
       console.error('Error initializing game engine:', error);
       setError('Failed to initialize game engine. Please try again.');
-    }
-    
-    // Initialize with demo data if Firebase auth isn't available
-    initializeDemoData();
-    
-    // Attempt to set up Firebase auth listener
-    try {
-      // For demo purposes, we'll bypass auth and create a fake user
-      // In a real app, you'd use Firebase auth
-      const fakeUser = {
-        uid: 'demo-user-123',
-        email: 'demo@example.com',
-        displayName: 'Demo User'
-      };
-      setUser(fakeUser);
-      setLoading(false);
-      
-      // Fetch topics
-      fetchTopics();
-      
-      return () => {
-        // Cleanup
-      };
-    } catch (error) {
-      console.error('Auth initialization error:', error);
-      setError('Authentication error. Please try again.');
+      initializeDemoData();
       setLoading(false);
     }
   }, [firebaseInstance]);
@@ -257,7 +339,7 @@ const MyGames = ({ firebaseProp }) => {
     }
   };
   
-  // Start a new game - simplified for demo
+  // Start a new game - modified to use real game engine
   const startNewGame = async () => {
     if (!selectedTopic) {
       alert("Please select a topic first");
@@ -268,10 +350,90 @@ const MyGames = ({ firebaseProp }) => {
       setLoading(true);
       setError(null);
       
-      // In a real app, this would call the game engine
-      // For demo, we'll just simulate a successful game start
+      // Use the actual game engine with real API calls
+      if (gameEngine) {
+        console.log("Using real game engine to start game with topic:", selectedTopic);
+        
+        // Set user profile info in the game engine if not set
+        if (!gameEngine.userProfile) {
+          gameEngine.userProfile = {
+            uid: user?.uid || 'demo-user-123',
+            credits: credits,
+            totalCreditsUsed: 0
+          };
+        }
+        
+        try {
+          const result = await gameEngine.initializeGame(selectedTopic, difficulty);
+          console.log("Game session initialized:", result);
+          
+          // Update credits from the result
+          if (result.remainingCredits !== undefined) {
+            setCredits(result.remainingCredits);
+          } else {
+            // Fallback credit deduction
+            setCredits(prev => prev - 1);
+          }
+          
+          // Set the current game and initial message
+          setCurrentGame({
+            sessionId: result.sessionId,
+            topicId: selectedTopic.id,
+            difficulty,
+            creditsUsed: result.creditsUsed || 1
+          });
+          
+          // Set initial message
+          setMessages([{
+            role: 'assistant',
+            content: result.initialPrompt || `Welcome to your AI learning game about ${selectedTopic.name}! I'm your AI guide. What would you like to know about this topic?`
+          }]);
+        } catch (error) {
+          console.error("Error initializing game with engine:", error);
+          
+          // Check for insufficient credits
+          if (error.message && error.message.includes("Insufficient credits")) {
+            setInsufficientCreditsData({
+              message: `You don't have enough credits to start a new game. ${error.message}`,
+              currentCredits: credits,
+              options: [
+                {
+                  action: 'add_credits',
+                  label: 'Purchase Credits',
+                  description: 'Buy credits to continue your learning journey.'
+                },
+                {
+                  action: 'wait_for_monthly',
+                  label: 'Wait for Monthly Credits',
+                  description: 'Free accounts receive 20 credits on the 1st of each month.'
+                }
+              ]
+            });
+            setShowInsufficientCreditsPrompt(true);
+            setLoading(false);
+            return;
+          }
+          
+          // Fallback to basic initialization if error
+          console.log("Falling back to basic initialization due to error");
+          fallbackToBasicInitialization();
+        }
+      } else {
+        console.warn("No game engine available, using basic initialization");
+        fallbackToBasicInitialization();
+      }
+    } catch (error) {
+      console.error('Error starting game:', error);
+      setError('Failed to start game. Please try again.');
+      fallbackToBasicInitialization();
+    } finally {
+      setLoading(false);
+    }
+    
+    // Fallback initialization function
+    function fallbackToBasicInitialization() {
       const demoGameSession = {
-        userId: 'demo-user-123',
+        userId: user?.uid || 'demo-user-123',
         topicId: selectedTopic.id,
         difficulty,
         sessionId: `demo-session-${Date.now()}`,
@@ -306,28 +468,16 @@ const MyGames = ({ firebaseProp }) => {
           ]
         });
         setShowInsufficientCreditsPrompt(true);
-        setLoading(false);
         return;
       }
       
       setCredits(newCredits);
       setCurrentGame(demoGameSession);
       setMessages(demoGameSession.conversationHistory);
-      
-      // If we had a game engine
-      if (gameEngine) {
-        gameEngine.conversationHistory = demoGameSession.conversationHistory;
-        gameEngine.currentGameSession = demoGameSession;
-      }
-    } catch (error) {
-      console.error('Error starting game:', error);
-      setError('Failed to start game. Please try again.');
-    } finally {
-      setLoading(false);
     }
   };
   
-  // Send user input to the game engine - simplified for demo
+  // Send user input to the game engine - modified to use real API
   const sendMessage = async () => {
     if (!userInput.trim() && inputType === 'text') return;
     
@@ -343,26 +493,77 @@ const MyGames = ({ firebaseProp }) => {
       
       setMessages(prev => [...prev, userMessage]);
       
-      // Demo AI response (in a real app, this would call the game engine)
+      // Store current input
+      const currentInput = userInput;
+      
+      // Clear input field immediately for better UX
+      setUserInput('');
+      
+      // Use the actual game engine if available
+      if (gameEngine && gameEngine.currentGameSession) {
+        console.log("Sending message to real game engine:", currentInput);
+        
+        try {
+          const response = await gameEngine.sendUserInput(currentInput);
+          console.log("Game engine response:", response);
+          
+          if (response.success === false) {
+            // Handle error responses
+            console.error("Error from game engine:", response);
+            
+            if (response.errorType === 'insufficient_credits') {
+              setInsufficientCreditsData({
+                message: response.message,
+                currentCredits: response.currentCredits,
+                options: response.options
+              });
+              setShowInsufficientCreditsPrompt(true);
+            } else {
+              setError(response.message || "Error sending message");
+            }
+          } else {
+            // Handle successful responses
+            const aiResponse = {
+              role: 'assistant',
+              content: response.aiResponse
+            };
+            
+            setMessages(prev => [...prev, aiResponse]);
+            
+            // Update credits if provided
+            if (response.remainingCredits !== undefined) {
+              setCredits(response.remainingCredits);
+            }
+          }
+        } catch (error) {
+          console.error("Error sending message via game engine:", error);
+          fallbackToDemo(currentInput);
+        }
+      } else {
+        console.warn("No game engine or active session, using demo response");
+        fallbackToDemo(currentInput);
+      }
+    } catch (error) {
+      console.error('Error in sendMessage:', error);
+      setError('Failed to send message. Please try again.');
+    } finally {
+      setLoading(false);
+      
+      // Scroll to bottom of chat
+      scrollToBottom();
+    }
+    
+    // Fallback function for demo response
+    function fallbackToDemo(input) {
+      console.log("Using fallback demo response");
       setTimeout(() => {
         const aiResponse = {
           role: 'assistant',
-          content: `Thank you for your message about "${userInput}". This is a demo response since we're in development mode. In the real app, this would be a thoughtful AI response about ${selectedTopic?.name || 'your selected topic'}.`
+          content: `Thank you for your message about "${input}". This is a demo response since we're in development mode. In the real app, this would be a thoughtful AI response about ${selectedTopic?.name || 'your selected topic'}.`
         };
         
         setMessages(prev => [...prev, aiResponse]);
-        setLoading(false);
-        
-        // Clear input
-        setUserInput('');
-        
-        // Scroll to bottom of chat
-        scrollToBottom();
       }, 1000);
-    } catch (error) {
-      console.error('Error sending message:', error);
-      setError('Failed to send message. Please try again.');
-      setLoading(false);
     }
   };
   
