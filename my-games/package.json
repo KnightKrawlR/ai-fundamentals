@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "AI Powered games to learn AI Fundamentals",
   "main": "index.js",
+  "engines": {
+    "node": "18.x"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "webpack --mode production",
