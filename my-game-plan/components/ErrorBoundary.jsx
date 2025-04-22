@@ -7,34 +7,53 @@ class ErrorBoundary extends React.Component {
   }
 
   static getDerivedStateFromError(error) {
+    // Update state so the next render will show the fallback UI
     return { hasError: true };
   }
 
   componentDidCatch(error, errorInfo) {
-    this.setState({ error, errorInfo });
-    console.error('Error caught by ErrorBoundary:', error, errorInfo);
+    // Log the error to the console
+    console.error('Error in component:', error);
+    console.error('Component stack:', errorInfo.componentStack);
+    
+    // Update state with error details
+    this.setState({
+      error: error,
+      errorInfo: errorInfo
+    });
   }
 
   render() {
     if (this.state.hasError) {
+      // You can render any custom fallback UI
       return (
-        <div className="error-boundary">
+        <div className="error-container">
           <h2>Something went wrong.</h2>
-          <p>We've encountered an error. Please try refreshing the page.</p>
-          <button onClick={() => window.location.reload()}>
-            Refresh Page
+          <details style={{ whiteSpace: 'pre-wrap' }}>
+            <summary>View error details</summary>
+            {this.state.error && this.state.error.toString()}
+            <br />
+            {this.state.errorInfo && this.state.errorInfo.componentStack}
+          </details>
+          <button 
+            onClick={() => window.location.reload()}
+            style={{
+              marginTop: '20px',
+              padding: '8px 16px',
+              backgroundColor: '#0284c7',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer'
+            }}
+          >
+            Reload Page
           </button>
-          {this.state.error && (
-            <details style={{ whiteSpace: 'pre-wrap', marginTop: '16px' }}>
-              <summary>Error Details</summary>
-              <p>{this.state.error.toString()}</p>
-              <p>{this.state.errorInfo?.componentStack}</p>
-            </details>
-          )}
         </div>
       );
     }
 
+    // If there's no error, render children normally
     return this.props.children;
   }
 }

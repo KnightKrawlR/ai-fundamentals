@@ -1638,20 +1638,21 @@ exports.generateGamePlan = functions.https.onCall(async (data, context) => {
   
   try {
     // Validate input
-    if (!data.projectDescription && !data.category) {
+    if (!data.projectDescription && !data.topic) {
       throw new functions.https.HttpsError(
         'invalid-argument',
-        'You must provide either a project description or select a category.'
+        'You must provide either a project description or select a topic.'
       );
     }
     
-    // Create enhanced prompt for game plan generation with category and topic
+    // Create enhanced prompt for game plan generation with topic, challenge, and project type
     const prompt = `
       Create a detailed implementation plan for the following project:
       "${data.projectDescription || 'A project in the selected category'}"
       
-      ${data.category ? `Category: ${data.category}` : ''}
       ${data.topic ? `Topic: ${data.topic}` : ''}
+      ${data.challenge ? `Challenge: ${data.challenge}` : ''}
+      ${data.projectType ? `Project Type: ${data.projectType}` : ''}
       
       Provide the following:
       1. A step-by-step implementation plan (at least 5 steps)
@@ -1674,6 +1675,12 @@ exports.generateGamePlan = functions.https.onCall(async (data, context) => {
       Always format your response as a valid JSON object with the specified structure.
       Ensure all URLs in resources are valid and point to reputable sources.
       For each technology recommended, provide a clear and concise description of its purpose and benefits.
+      
+      Tailor your response to the specific topic, challenge, and project type provided.
+      For example:
+      - If the topic is "Videography" and the challenge is "Video Editing", focus on video editing tools and workflows.
+      - If the project type is "Personal Project", keep recommendations accessible for individuals.
+      - If the project type is "Enterprise Solution", include considerations for scalability and team collaboration.
     `;
     
     // Initialize axios if not available
@@ -1712,20 +1719,20 @@ exports.generateGamePlan = functions.https.onCall(async (data, context) => {
       parsedResponse = JSON.parse(jsonString);
     } catch (parseError) {
       console.error('Error parsing AI response:', parseError);
-      // Provide a fallback structured response
+      // Provide a fallback structured response based on the selected topic and challenge
       return {
         success: true,
         plan: [
-          "Please provide more specific details about your project.",
-          "Consider selecting a category and topic to get more targeted recommendations.",
+          `Please provide more specific details about your ${data.topic || 'project'}.`,
+          `Consider the specific challenges you're facing with ${data.challenge || 'your project'}.`,
+          `Think about the requirements for your ${data.projectType || 'project type'}.`,
           "Describe what you're trying to build and what problem it solves.",
-          "Mention any specific technologies you're interested in using.",
-          "Include any constraints or requirements for your project."
+          "Include any specific technologies you're interested in using."
         ],
         technologies: [
           {
             name: "Recommended Technologies",
-            description: "Select a category and provide project details to get specific technology recommendations."
+            description: `Select specific details for your ${data.topic || 'project'} to get tailored technology recommendations.`
           }
         ],
         resources: [
@@ -1740,14 +1747,14 @@ exports.generateGamePlan = functions.https.onCall(async (data, context) => {
     
     // Validate the response structure and provide fallbacks if needed
     if (!parsedResponse.plan || !Array.isArray(parsedResponse.plan) || parsedResponse.plan.length === 0) {
-      parsedResponse.plan = ["Please provide more specific details about your project to get a customized implementation plan."];
+      parsedResponse.plan = [`Please provide more specific details about your ${data.topic || 'project'} to get a customized implementation plan.`];
     }
     
     if (!parsedResponse.technologies || !Array.isArray(parsedResponse.technologies) || parsedResponse.technologies.length === 0) {
       parsedResponse.technologies = [
         {
           name: "Recommended Technologies",
-          description: "Please provide more specific project details to get technology recommendations."
+          description: `Please provide more specific details about your ${data.topic || 'project'} to get technology recommendations.`
         }
       ];
     }
