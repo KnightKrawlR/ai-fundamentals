@@ -489,7 +489,7 @@
               // Construct the prompt
               const prompt = `Generate a detailed project implementation game plan for the following:\nTopic: ${selectedTopic}\nChallenge: ${selectedChallenge}\nProject Type: ${selectedProjectType}\nDescription: ${description || 'None provided'}\n\nPlease provide a step-by-step plan including potential tools, resources, and milestones.`;
               
-              console.log("Calling callGrokApi with prompt:", prompt);
+              console.log("Calling generateGamePlan with prompt:", prompt);
               
               try {
                 // Ensure Firebase functions is available
@@ -497,10 +497,11 @@
                     throw new Error("Firebase Functions SDK is not available.");
                 }
                 
-                const callGrokApi = firebase.functions().httpsCallable('callGrokApi');
-                const result = await callGrokApi({ prompt: prompt });
+                // Update the function name to the one that actually exists
+                const actualGamePlanFunction = firebase.functions().httpsCallable('generateGamePlan');
+                const result = await actualGamePlanFunction({ prompt: prompt });
                 
-                console.log("Received response from callGrokApi:", result);
+                console.log("Received response from generateGamePlan function:", result);
                 
                 if (result.data && result.data.plan) {
                   setGamePlan(result.data.plan);
@@ -508,7 +509,7 @@
                   throw new Error(result.data.error || 'Invalid response structure from API function.');
                 }
               } catch (err) {
-                console.error("Error calling callGrokApi:", err);
+                console.error("Error calling generateGamePlan:", err);
                 setError(err.message || 'Failed to generate game plan. Please try again.');
               } finally {
                 setIsLoading(false);
