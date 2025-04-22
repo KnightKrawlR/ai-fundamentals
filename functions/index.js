@@ -487,12 +487,12 @@ exports.generateVertexAIResponse = createCallableFunction(async (data, context) 
         top_k: options.topK || 40
       },
     });
-    
+
     // Generate content
     const result = await generativeModel.generateContent({
       contents: [{ role: 'user', parts: [{ text: prompt }] }],
     });
-    
+
     const response = result.response;
     const generatedText = response.candidates[0].content.parts[0].text;
     
@@ -777,7 +777,7 @@ exports.initializeGameSession = functions.https.onCall(async (data, context) => 
   });
   
   // Return success response
-  return {
+    return { 
     sessionId: sessionId,
     initialPrompt: introText,
     conversationHistory: conversationHistory,
@@ -803,9 +803,9 @@ exports.sendGameMessage = functions.https.onCall(async (data, context) => {
     }
     
     // Validate authentication
-    if (!context.auth) {
-      throw new functions.https.HttpsError(
-        'unauthenticated',
+  if (!context.auth) {
+    throw new functions.https.HttpsError(
+      'unauthenticated',
         'Authentication required'
       );
     }
@@ -853,7 +853,7 @@ exports.sendGameMessage = functions.https.onCall(async (data, context) => {
       lastUpdatedAt: admin.firestore.FieldValue.serverTimestamp()
     });
     
-    return {
+    return { 
       aiResponse,
       success: true
     };
@@ -963,9 +963,9 @@ exports.processChat = functions.https.onRequest((req, res) => {
       functions.logger.error('Error in processChat function:', error);
       return res.status(500).json({ error: 'Failed to process chat', details: error.message });
     }
-  });
-});
-
+        });
+      });
+      
 /**
  * Process image with VertexAI Vision
  */
@@ -994,7 +994,7 @@ exports.processImage = functions.https.onRequest((req, res) => {
       return res.status(500).json({ error: 'Failed to process image', details: error.message });
     }
   });
-});
+  });
 
 /**
  * Generate text embeddings for semantic search
@@ -1032,12 +1032,12 @@ exports.generateEmbedding = functions.https.onRequest((req, res) => {
 exports.processGameMessage = functions.https.onCall(async (data, context) => {
   try {
     // Ensure user is authenticated
-    if (!context.auth) {
-      throw new functions.https.HttpsError(
-        'unauthenticated',
-        'The function must be called while authenticated.'
-      );
-    }
+  if (!context.auth) {
+    throw new functions.https.HttpsError(
+      'unauthenticated',
+      'The function must be called while authenticated.'
+    );
+  }
 
     const { gameState, userMessage } = data;
     
@@ -1181,9 +1181,9 @@ exports.processAudio = functions.https.onRequest((req, res) => {
         error: error.message 
       });
     }
-  });
-});
-
+        });
+      });
+      
 /**
  * Get user's credit balance
  */
@@ -1218,7 +1218,7 @@ exports.getUserCredits = functions.https.onRequest((req, res) => {
       });
     }
   });
-});
+  });
 
 /**
  * Add credits to user account (for admins or payment processing)
@@ -1342,8 +1342,8 @@ exports.purchaseCredits = functions.https.onCall(async (data, context) => {
     });
     
     // Return the updated credit information
-    return {
-      success: true,
+      return { 
+        success: true,
       newTotal: newTotal,
       message: `Successfully added ${data.amount} credits to your account.`
     };
@@ -1597,7 +1597,7 @@ exports.testVertexAI = functions.https.onRequest((req, res) => {
         }
         
         healthResponse.aiTest = {
-          success: true,
+      success: true,
           response: responseText
         };
       } catch (aiError) {
@@ -1611,7 +1611,7 @@ exports.testVertexAI = functions.https.onRequest((req, res) => {
       
       // Return the health response
       return res.status(200).json(healthResponse);
-    } catch (error) {
+  } catch (error) {
       console.error('Error in testVertexAI function:', error);
       return res.status(500).json({
         status: 'error',

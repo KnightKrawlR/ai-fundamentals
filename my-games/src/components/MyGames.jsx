@@ -209,9 +209,9 @@ const MyGames = ({ firebaseProp }) => {
     // Initialize game engine
     console.log('Initializing game engine');
     try {
-      const engine = new VertexAIGameEngine();
-      setGameEngine(engine);
-      
+    const engine = new VertexAIGameEngine();
+    setGameEngine(engine);
+    
       // Attempt to set up Firebase auth listener
       if (firebaseInstance) {
         console.log("Setting up Firebase auth listener");
@@ -711,9 +711,9 @@ const MyGames = ({ firebaseProp }) => {
         <div className="flex items-center space-x-4">
           <div className="flex items-center space-x-2">
             <span className={`text-sm ${credits < 5 ? 'text-red-600 font-bold' : 'text-gray-600'}`}>
-              Credits: {credits}
+            Credits: {credits}
             </span>
-            <button
+            <button 
               onClick={() => setIsPurchaseModalOpen(true)}
               className="text-xs px-2 py-1 bg-primary-500 text-white rounded hover:bg-primary-600"
             >
@@ -750,14 +750,14 @@ const MyGames = ({ firebaseProp }) => {
             >
               Add Credits
             </button>
-          </div>
+      </div>
         </div>
       )}
-
+      
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {topics.map((topic) => (
-          <div
-            key={topic.id}
+            <div 
+              key={topic.id}
             className={`p-4 border rounded-lg cursor-pointer transition-colors ${
               selectedTopic?.id === topic.id
                 ? 'bg-primary-100 border-primary-500'
@@ -767,13 +767,13 @@ const MyGames = ({ firebaseProp }) => {
           >
             <h3 className="font-semibold">{topic.name}</h3>
             <p className="text-sm text-gray-600">{topic.description}</p>
-          </div>
-        ))}
+            </div>
+          ))}
       </div>
-
+      
       {selectedTopic && (
         <div className="mt-4">
-          <button
+          <button 
             onClick={startNewGame}
             className="px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 transition-colors"
             disabled={loading}
@@ -785,30 +785,30 @@ const MyGames = ({ firebaseProp }) => {
 
       {currentGame && (
         <div className="mt-4 border rounded-lg p-4">
-          <div
+          <div 
             ref={chatContainerRef}
             className="h-96 overflow-y-auto space-y-4 mb-4"
           >
             {messages.map((message, index) => (
-              <div
+              <div 
                 key={index}
                 className={`flex ${
                   message.role === 'user' ? 'justify-end' : 'justify-start'
                 }`}
               >
-                <div
+                  <div 
                   className={`max-w-3/4 p-3 rounded-lg ${
-                    message.role === 'user'
+                      message.role === 'user' 
                       ? 'bg-primary-100 text-gray-900'
                       : 'bg-gray-100 text-gray-900'
-                  }`}
-                >
-                  {message.content}
-                </div>
+                    }`}
+                  >
+                    {message.content}
+                  </div>
               </div>
             ))}
           </div>
-
+          
           <div className="flex items-center space-x-2">
             <input
               type="text"
@@ -818,35 +818,35 @@ const MyGames = ({ firebaseProp }) => {
               className="flex-1 px-4 py-2 border rounded-md"
               placeholder="Type your message..."
             />
-            <button
+              <button 
               onClick={() => handleInputTypeChange('image')}
               className="p-2 text-gray-600 hover:text-primary-600"
             >
               <i className="fas fa-image"></i>
-            </button>
-            <button
+              </button>
+              <button 
               onClick={() => handleInputTypeChange('audio')}
               className="p-2 text-gray-600 hover:text-primary-600"
             >
               <i className="fas fa-microphone"></i>
-            </button>
-            <button
+              </button>
+              <button 
               onClick={sendMessage}
               disabled={loading}
               className="px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 transition-colors"
             >
               {loading ? 'Sending...' : 'Send'}
-            </button>
+              </button>
           </div>
         </div>
       )}
 
       {/* Hidden file input for image uploads */}
-      <input 
-        type="file" 
-        id="image-upload" 
-        accept="image/*" 
-        onChange={handleImageUpload} 
+              <input 
+                type="file" 
+                id="image-upload" 
+                accept="image/*" 
+                onChange={handleImageUpload} 
         style={{ display: 'none' }} 
       />
 
@@ -951,12 +951,12 @@ const MyGames = ({ firebaseProp }) => {
             </div>
             
             <div className="flex justify-end">
-              <button
+          <button 
                 onClick={() => setShowInsufficientCreditsPrompt(false)}
                 className="px-4 py-2 border rounded hover:bg-gray-100"
-              >
+          >
                 Close
-              </button>
+          </button>
             </div>
           </div>
         </div>
