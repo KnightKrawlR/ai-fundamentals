@@ -536,11 +536,13 @@
             
             // Close mobile menu when clicking on a menu item
             document.querySelectorAll('#main-nav a').forEach(link => {
-                link.addEventListener('click', function() {
+                link.addEventListener('click', function(e) {
+                    // Only manage the mobile menu, don't interfere with navigation
                     header.classList.remove('mobile-menu-active');
                     const icon = mobileMenuToggle.querySelector('i');
                     icon.classList.remove('fa-times');
                     icon.classList.add('fa-bars');
+                    // Allow the default link behavior to continue
                 });
             });
         }
