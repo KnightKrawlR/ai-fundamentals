@@ -1622,9 +1622,12 @@ exports.testVertexAI = functions.https.onRequest((req, res) => {
   });
 });
 
-// Get Grok API key from Firebase config
+// Get Grok API key and URL from Firebase config/environment variables
 const GROK_API_KEY = functions.config().grok?.apikey || process.env.GROK_API_KEY;
-const GROK_API_URL = 'https://api.xai.com/v1/chat/completions';
+const GROK_API_URL = functions.config().grok?.apiurl || process.env.GROK_API_URL || 'https://api.x.ai/v1/chat/completions'; // Use env var, fallback if needed
+
+// Log the URL being used for verification
+console.log('Using Grok API URL:', GROK_API_URL);
 
 // Generate Game Plan using Grok
 exports.generateGamePlan = functions.https.onCall(async (data, context) => {
