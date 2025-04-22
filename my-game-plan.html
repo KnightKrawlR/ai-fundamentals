@@ -502,9 +502,8 @@
                     throw new Error("Firebase Functions SDK is not available.");
                 }
                 
-                // Update the function name to the one that actually exists
+                // Ensure we are calling the function that uses Grok API
                 const actualGamePlanFunction = firebase.functions().httpsCallable('generateGamePlan');
-                // Send the structured data object instead of just the prompt string
                 const result = await actualGamePlanFunction(requestData);
                 
                 console.log("Received response from generateGamePlan function:", result);
