@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Tools - AI Fundamentals</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/header-redesign.css">
+    <!-- Add Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <a href="/" class="logo">
+                <i class="fas fa-brain"></i>
+                <h1>AI Fundamentals</h1>
+            </a>
+            <div class="mobile-menu-toggle" id="mobile-menu-toggle">
+                <i class="fas fa-bars"></i>
+            </div>
+            <nav id="main-nav">
+                <ul>
+                    <li><a href="/">Learning</a></li>
+                    <li><a href="/ai-tools.html" class="active">AI Tools</a></li>
+                    <li><a href="/premium.html">Premium</a></li>
+                </ul>
+            </nav>
+            <div id="auth-container">
+                <a href="login.html" class="sign-in-btn" id="sign-in-btn">
+                    <i class="fas fa-sign-in-alt"></i>
+                    <span>Sign In</span>
+                </a>
+                <div class="user-menu" id="user-menu" style="display: none;">
+                    <button class="user-profile-btn">
+                        <div class="user-avatar" id="user-avatar"></div>
+                        <span id="user-email"></span>
+                    </button>
+                    <div class="user-menu-content">
+                        <a href="/account.html" class="user-menu-item">
+                            <i class="fas fa-user"></i> My Account
+                        </a>
+                        <a href="/my-learning.html" class="user-menu-item">
+                            <i class="fas fa-graduation-cap"></i> My Learning
+                        </a>
+                        <a href="/my-games.html" class="user-menu-item premium-item">
+                            <i class="fas fa-gamepad"></i> My Games
+                        </a>
+                        <a href="/settings.html" class="user-menu-item">
+                            <i class="fas fa-cog"></i> Settings
+                        </a>
+                        <div class="user-menu-divider"></div>
+                        <a href="#" class="user-menu-item" id="sign-out-btn">
+                            <i class="fas fa-sign-out-alt"></i> Sign Out
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <section id="ai-tools">
+        <div class="container">
+            <h2>AI Tools Directory</h2>
+            <p class="section-intro">Explore the best AI tools for productivity and content creation</p>
+            
+            <div class="tool-categories" id="tool-categories">
+                <button class="category-btn active" data-category="all">
+                    <i class="fas fa-th-large"></i> All Tools
+                </button>
+                <button class="category-btn" data-category="text">
+                    <i class="fas fa-font"></i> Text Generation
+                </button>
+                <button class="category-btn" data-category="image">
+                    <i class="fas fa-image"></i> Image Creation
+                </button>
+                <button class="category-btn" data-category="video">
+                    <i class="fas fa-video"></i> Video Editing
+                </button>
+                <button class="category-btn" data-category="audio">
+                    <i class="fas fa-microphone"></i> Audio Tools
+                </button>
+                <button class="category-btn" data-category="productivity">
+                    <i class="fas fa-tasks"></i> Productivity
+                </button>
+            </div>
+            
+            <div class="tools-container">
+                <div class="tool-card" data-category="text">
+                    <div class="tool-logo">
+                        <i class="fas fa-robot fa-2x"></i>
+                    </div>
+                    <div class="tool-content">
+                        <h3>ChatGPT</h3>
+                        <p>Conversational AI for text generation and problem-solving</p>
+                        <div class="tool-rating">
+                            <div class="stars">★★★★★</div>
+                            <div class="score">4.9/5</div>
+                        </div>
+                        <div class="tool-tags">
+                            <span class="tag">Text</span>
+                            <span class="tag">Conversation</span>
+                            <span class="tag">Research</span>
+                        </div>
+                        <a href="https://chat.openai.com" target="_blank" class="tool-link">Try Now <span class="discount-badge">Discounts Available</span></a>
+                    </div>
+                </div>
+                
+                <div class="tool-card" data-category="text">
+                    <div class="tool-logo">
+                        <i class="fas fa-pencil-alt fa-2x"></i>
+                    </div>
+                    <div class="tool-content">
+                        <h3>Jasper</h3>
+                        <p>AI writing assistant for marketing copy and content creation</p>
+                        <div class="tool-rating">
+                            <div class="stars">★★★★☆</div>
+                            <div class="score">4.7/5</div>
+                        </div>
+                        <div class="tool-tags">
+                            <span class="tag">Writing</span>
+                            <span class="tag">Marketing</span>
+                            <span class="tag">Content</span>
+                        </div>
+                        <a href="https://www.jasper.ai" target="_blank" class="tool-link">Try Now <span class="discount-badge">Discounts Available</span></a>
+                    </div>
+                </div>
+                
+                <div class="tool-card" data-category="image">
+                    <div class="tool-logo">
+                        <i class="fas fa-palette fa-2x"></i>
+                    </div>
+                    <div class="tool-content">
+                        <h3>DALL-E</h3>
+                        <p>AI image generation from textual descriptions</p>
+                        <div class="tool-rating">
+                            <div class="stars">★★★★★</div>
+                            <div class="score">4.8/5</div>
+                        </div>
+                        <div class="tool-tags">
+                            <span class="tag">Images</span>
+                            <span class="tag">Art</span>
+                            <span class="tag">Design</span>
+                        </div>
+                        <a href="https://openai.com/dall-e-3" target="_blank" class="tool-link">Try Now <span class="discount-badge">Discounts Available</span></a>
+                    </div>
+                </div>
+                
+                <div class="tool-card" data-category="image">
+                    <div class="tool-logo">
+                        <i class="fas fa-paint-brush fa-2x"></i>
+                    </div>
+                    <div class="tool-content">
+                        <h3>Midjourney</h3>
+                        <p>AI art generator creating detailed images from text prompts</p>
+                        <div class="tool-rating">
+                            <div class="stars">★★★★★</div>
+                            <div class="score">4.9/5</div>
+                        </div>
+                        <div class="tool-tags">
+                            <span class="tag">Art</span>
+                            <span class="tag">Images</span>
+                            <span class="tag">Creative</span>
+                        </div>
+                        <a href="https://www.midjourney.com" target="_blank" class="tool-link">Try Now <span class="discount-badge">Discounts Available</span></a>
+                    </div>
+                </div>
+                
+                <div class="tool-card" data-category="video">
+                    <div class="tool-logo">
+                        <i class="fas fa-film fa-2x"></i>
+                    </div>
+                    <div class="tool-content">
+                        <h3>Runway</h3>
+                        <p>AI-powered video editing and generation platform</p>
+                        <div class="tool-rating">
+                            <div class="stars">★★★★☆</div>
+                            <div class="score">4.6/5</div>
+                        </div>
+                        <div class="tool-tags">
+                            <span class="tag">Video</span>
+                            <span class="tag">Editing</span>
+                            <span class="tag">Generation</span>
+                        </div>
+                        <a href="https://runwayml.com" target="_blank" class="tool-link">Try Now <span class="discount-badge">Discounts Available</span></a>
+                    </div>
+                </div>
+                
+                <div class="tool-card" data-category="audio">
+                    <div class="tool-logo">
+                        <i class="fas fa-headphones fa-2x"></i>
+                    </div>
+                    <div class="tool-content">
+                        <h3>Descript</h3>
+                        <p>AI-powered audio and video editing with transcription</p>
+                        <div class="tool-rating">
+                            <div class="stars">★★★★☆</div>
+                            <div class="score">4.5/5</div>
+                        </div>
+                        <div class="tool-tags">
+                            <span class="tag">Audio</span>
+                            <span class="tag">Transcription</span>
+                            <span class="tag">Editing</span>
+                        </div>
+                        <a href="https://www.descript.com" target="_blank" class="tool-link">Try Now <span class="discount-badge">Discounts Available</span></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-logo">
+                    <h2>AI Fundamentals</h2>
+                    <p>Your journey to AI mastery starts here</p>
+                </div>
+                <div class="footer-links">
+                    <div class="footer-column">
+                        <h3>Resources</h3>
+                        <ul>
+                            <li><a href="#">Flashcards</a></li>
+                            <li><a href="#">Study Guides</a></li>
+                            <li><a href="#">Video Lessons</a></li>
+                            <li><a href="#">Practice Quizzes</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-column">
+                        <h3>Company</h3>
+                        <ul>
+                            <li><a href="#">About Us</a></li>
+                            <li><a href="#">Contact</a></li>
+                            <li><a href="#">Careers</a></li>
+                            <li><a href="#">Blog</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-column">
+                        <h3>Legal</h3>
+                        <ul>
+                            <li><a href="#">Terms of Service</a></li>
+                            <li><a href="#">Privacy Policy</a></li>
+                            <li><a href="#">Cookie Policy</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 AI Fundamentals. All rights reserved.</p>
+                <div class="social-links">
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                    <a href="#"><i class="fab fa-facebook"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                    <a href="#"><i class="fab fa-linkedin"></i></a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/script.js"></script>
+    <script src="js/auth-integration.js"></script>
+    <script src="js/access-control.js"></script>
+    <script>
+        // Firebase configuration 
+        const firebaseConfig = {
+            apiKey: "AIzaSyDjMisQkMgdA6qNg7gnXDumhNOOWOD-Y00",
+            authDomain: "ai-fundamentals-ad37d.firebaseapp.com",
+            projectId: "ai-fundamentals-ad37d",
+            storageBucket: "ai-fundamentals-ad37d.appspot.com",
+            messagingSenderId: "668115447112",
+            appId: "1:668115447112:web:c0772e9f8c6a498737977d",
+            measurementId: "G-2D5V39EQ3T"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+
+        // Auth state observer
+        firebase.auth().onAuthStateChanged((user) => {
+            const signInBtn = document.getElementById('sign-in-btn');
+            const userMenu = document.getElementById('user-menu');
+            const userAvatar = document.getElementById('user-avatar');
+            const userEmail = document.getElementById('user-email');
+            
+            if (user) {
+                // User is signed in
+                signInBtn.style.display = 'none';
+                userMenu.style.display = 'block';
+                
+                // Set user email and avatar
+                userEmail.textContent = user.email;
+                userAvatar.textContent = user.email[0].toUpperCase();
+            } else {
+                // User is signed out
+                signInBtn.style.display = 'flex';
+                userMenu.style.display = 'none';
+            }
+        });
+
+        // Sign out functionality
+        document.getElementById('sign-out-btn').addEventListener('click', (e) => {
+            e.preventDefault();
+            firebase.auth().signOut().then(() => {
+                window.location.href = '/';
+            }).catch((error) => {
+                console.error('Sign out error:', error);
+            });
+        });
+        
+        // Mobile menu toggle
+        const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+        const header = document.querySelector('header');
+        
+        if (mobileMenuToggle) {
+            mobileMenuToggle.addEventListener('click', function() {
+                header.classList.toggle('mobile-menu-active');
+                // Change hamburger icon to X when menu is open
+                const icon = mobileMenuToggle.querySelector('i');
+                if (header.classList.contains('mobile-menu-active')) {
+                    icon.classList.remove('fa-bars');
+                    icon.classList.add('fa-times');
+                } else {
+                    icon.classList.remove('fa-times');
+                    icon.classList.add('fa-bars');
+                }
+            });
+            
+            // Close mobile menu when clicking on a menu item
+            document.querySelectorAll('#main-nav a').forEach(link => {
+                link.addEventListener('click', function() {
+                    header.classList.remove('mobile-menu-active');
+                    const icon = mobileMenuToggle.querySelector('i');
+                    icon.classList.remove('fa-times');
+                    icon.classList.add('fa-bars');
+                });
+            });
+        }
+        
+        // Tool category filtering
+        document.querySelectorAll('.category-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                // Update active button
+                document.querySelector('.category-btn.active').classList.remove('active');
+                this.classList.add('active');
+                
+                // Get the selected category
+                const category = this.getAttribute('data-category');
+                
+                // Filter the tools
+                document.querySelectorAll('.tool-card').forEach(card => {
+                    if (category === 'all' || card.getAttribute('data-category') === category) {
+                        card.style.display = 'flex';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html> 

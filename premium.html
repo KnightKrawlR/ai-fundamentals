@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Premium - AI Fundamentals</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/header-redesign.css">
+    <!-- Add Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <style>
+        .billing-toggle {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 1rem;
+        }
+        .toggle-btn {
+            background: #f5f5f5;
+            border: 1px solid #d1d1d1;
+            color: #333;
+            padding: 6px 18px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background 0.2s, color 0.2s;
+        }
+        .toggle-btn.active {
+            background: #6c5ce7;
+            color: #fff;
+            border-color: #6c5ce7;
+        }
+        .save-badge {
+            background: #28a745;
+            color: #fff;
+            font-size: 0.8em;
+            border-radius: 10px;
+            padding: 2px 8px;
+            margin-left: 4px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <a href="/" class="logo">
+                <i class="fas fa-brain"></i>
+                <h1>AI Fundamentals</h1>
+            </a>
+            <div class="mobile-menu-toggle" id="mobile-menu-toggle">
+                <i class="fas fa-bars"></i>
+            </div>
+            <nav id="main-nav">
+                <ul>
+                    <li><a href="/">Learning</a></li>
+                    <li><a href="/ai-tools.html">AI Tools</a></li>
+                    <li><a href="/premium.html" class="active">Premium</a></li>
+                </ul>
+            </nav>
+            <div id="auth-container">
+                <a href="login.html" class="sign-in-btn" id="sign-in-btn">
+                    <i class="fas fa-sign-in-alt"></i>
+                    <span>Sign In</span>
+                </a>
+                <div class="user-menu" id="user-menu" style="display: none;">
+                    <button class="user-profile-btn">
+                        <div class="user-avatar" id="user-avatar"></div>
+                        <span id="user-email"></span>
+                    </button>
+                    <div class="user-menu-content">
+                        <a href="/account.html" class="user-menu-item">
+                            <i class="fas fa-user"></i> My Account
+                        </a>
+                        <a href="/my-learning.html" class="user-menu-item">
+                            <i class="fas fa-graduation-cap"></i> My Learning
+                        </a>
+                        <a href="/my-games.html" class="user-menu-item premium-item">
+                            <i class="fas fa-gamepad"></i> My Games
+                        </a>
+                        <a href="/settings.html" class="user-menu-item">
+                            <i class="fas fa-cog"></i> Settings
+                        </a>
+                        <div class="user-menu-divider"></div>
+                        <a href="#" class="user-menu-item" id="sign-out-btn">
+                            <i class="fas fa-sign-out-alt"></i> Sign Out
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <section id="premium">
+        <div class="container">
+            <h2>Premium Content</h2>
+            <p class="section-intro">Unlock advanced AI learning resources and exclusive content</p>
+            
+            <div class="pricing-grid">
+                <div class="pricing-card">
+                    <h3>Basic</h3>
+                    <div class="price">Free</div>
+                    <ul class="features">
+                        <li>Access to basic flashcards</li>
+                        <li>Limited study modes</li>
+                        <li>Basic AI tools directory</li>
+                        <li>Community forum access</li>
+                    </ul>
+                    <a href="#" class="btn" id="current-plan-btn">Current Plan</a>
+                </div>
+                
+                <div class="pricing-card featured">
+                    <div class="popular-badge">Most Popular</div>
+                    <h3>Premium</h3>
+                    <div class="billing-toggle">
+                        <button id="monthly-btn" class="toggle-btn active">Monthly</button>
+                        <button id="annual-btn" class="toggle-btn">Annual <span class="save-badge">Save $30</span></button>
+                    </div>
+                    <div class="price" id="premium-price">$9.99<span>/month</span></div>
+                    <ul class="features">
+                        <li>All basic features</li>
+                        <li>500+ advanced AI flashcards</li>
+                        <li>Unlimited study sessions</li>
+                        <li>Progress tracking</li>
+                        <li>Downloadable resources</li>
+                        <li>Priority support</li>
+                    </ul>
+                    <a href="payment.html?plan=premium" class="btn premium-upgrade-btn" id="premium-upgrade-btn">Upgrade Now</a>
+                    <div class="payment-methods">
+                        <i class="fab fa-cc-visa fa-lg"></i>
+                        <i class="fab fa-cc-mastercard fa-lg"></i>
+                        <i class="fab fa-cc-amex fa-lg"></i>
+                        <i class="fab fa-cc-paypal fa-lg"></i>
+                    </div>
+                </div>
+                
+                <div class="pricing-card">
+                    <h3>Premium Plus</h3>
+                    <div class="price">$150<span>/year</span></div>
+                    <ul class="features">
+                        <li>All premium features</li>
+                        <li>Billed annually</li>
+                        <li>Lifetime updates while subscribed</li>
+                        <li>1-on-1 coaching session</li>
+                        <li>Exclusive webinars</li>
+                        <li>Certificate of completion</li>
+                    </ul>
+                    <a href="payment.html?plan=premiumplus" class="btn premium-upgrade-btn">Get Premium Plus</a>
+                    <div class="payment-methods">
+                        <i class="fab fa-cc-visa fa-lg"></i>
+                        <i class="fab fa-cc-mastercard fa-lg"></i>
+                        <i class="fab fa-cc-amex fa-lg"></i>
+                        <i class="fab fa-cc-paypal fa-lg"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="learning-path">
+        <div class="container">
+            <h2>Learning Path</h2>
+            <p class="section-intro">Follow our structured learning path to master AI fundamentals</p>
+            
+            <div class="path-container">
+                <div class="path-progress">
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 25%;"></div>
+                    </div>
+                    <div class="progress-text">25% Complete</div>
+                </div>
+                
+                <div class="path-steps">
+                    <div class="path-step">
+                        <div class="step-number">1</div>
+                        <div class="step-content">
+                            <h3>Introduction to AI</h3>
+                            <p>Learn the basic concepts and terminology of artificial intelligence</p>
+                            <div class="step-resources">
+                                <a href="#" class="resource-link"><i class="fas fa-book"></i> Study Guide</a>
+                                <a href="#" class="resource-link"><i class="fas fa-video"></i> Video Lesson</a>
+                                <a href="#" class="resource-link"><i class="fas fa-tasks"></i> Practice Quiz</a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="path-step locked">
+                        <div class="step-number">2</div>
+                        <div class="step-content">
+                            <h3>Office Productivity</h3>
+                            <p>Enhance your workflow with AI-powered tools for documents, spreadsheets, and presentations</p>
+                            <div class="step-resources">
+                                <a href="#" class="resource-link premium-button"><i class="fas fa-lock"></i> Unlock Premium</a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="path-step locked">
+                        <div class="step-number">3</div>
+                        <div class="step-content">
+                            <h3>Personal Finance</h3>
+                            <p>Discover how AI can help with budgeting, investing, and financial planning</p>
+                            <div class="step-resources">
+                                <a href="#" class="resource-link premium-button"><i class="fas fa-lock"></i> Unlock Premium</a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="path-step locked">
+                        <div class="step-number">4</div>
+                        <div class="step-content">
+                            <h3>Social Media Marketing</h3>
+                            <p>Learn to leverage AI for content creation, scheduling, and analytics</p>
+                            <div class="step-resources">
+                                <a href="#" class="resource-link premium-button"><i class="fas fa-lock"></i> Unlock Premium</a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="path-step locked">
+                        <div class="step-number">5</div>
+                        <div class="step-content">
+                            <h3>Videography</h3>
+                            <p>Master AI tools for video editing, generation, and enhancement</p>
+                            <div class="step-resources">
+                                <a href="#" class="resource-link premium-button"><i class="fas fa-lock"></i> Unlock Premium</a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="path-step locked">
+                        <div class="step-number">6</div>
+                        <div class="step-content">
+                            <h3>eCommerce</h3>
+                            <p>Optimize online stores with AI-powered product descriptions, analytics, and customer service</p>
+                            <div class="step-resources">
+                                <a href="#" class="resource-link premium-button"><i class="fas fa-lock"></i> Unlock Premium</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-logo">
+                    <h2>AI Fundamentals</h2>
+                    <p>Your journey to AI mastery starts here</p>
+                </div>
+                <div class="footer-links">
+                    <div class="footer-column">
+                        <h3>Resources</h3>
+                        <ul>
+                            <li><a href="#">Flashcards</a></li>
+                            <li><a href="#">Study Guides</a></li>
+                            <li><a href="#">Video Lessons</a></li>
+                            <li><a href="#">Practice Quizzes</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-column">
+                        <h3>Company</h3>
+                        <ul>
+                            <li><a href="#">About Us</a></li>
+                            <li><a href="#">Contact</a></li>
+                            <li><a href="#">Careers</a></li>
+                            <li><a href="#">Blog</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-column">
+                        <h3>Legal</h3>
+                        <ul>
+                            <li><a href="#">Terms of Service</a></li>
+                            <li><a href="#">Privacy Policy</a></li>
+                            <li><a href="#">Cookie Policy</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 AI Fundamentals. All rights reserved.</p>
+                <div class="social-links">
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                    <a href="#"><i class="fab fa-facebook"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                    <a href="#"><i class="fab fa-linkedin"></i></a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/script.js"></script>
+    <script src="js/auth-integration.js"></script>
+    <script src="js/access-control.js"></script>
+    <script>
+        // Firebase configuration 
+        const firebaseConfig = {
+            apiKey: "AIzaSyDjMisQkMgdA6qNg7gnXDumhNOOWOD-Y00",
+            authDomain: "ai-fundamentals-ad37d.firebaseapp.com",
+            projectId: "ai-fundamentals-ad37d",
+            storageBucket: "ai-fundamentals-ad37d.appspot.com",
+            messagingSenderId: "668115447112",
+            appId: "1:668115447112:web:c0772e9f8c6a498737977d",
+            measurementId: "G-2D5V39EQ3T"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+
+        // Auth state observer
+        firebase.auth().onAuthStateChanged((user) => {
+            const signInBtn = document.getElementById('sign-in-btn');
+            const userMenu = document.getElementById('user-menu');
+            const userAvatar = document.getElementById('user-avatar');
+            const userEmail = document.getElementById('user-email');
+            
+            if (user) {
+                // User is signed in
+                signInBtn.style.display = 'none';
+                userMenu.style.display = 'block';
+                
+                // Set user email and avatar
+                userEmail.textContent = user.email;
+                userAvatar.textContent = user.email[0].toUpperCase();
+                
+                // Update premium content visibility
+                document.querySelectorAll('.premium-content').forEach(elem => {
+                    elem.classList.add('unlocked');
+                });
+            } else {
+                // User is signed out
+                signInBtn.style.display = 'flex';
+                userMenu.style.display = 'none';
+                
+                // Update premium content visibility
+                document.querySelectorAll('.premium-content').forEach(elem => {
+                    elem.classList.remove('unlocked');
+                });
+            }
+        });
+
+        // Sign out functionality
+        document.getElementById('sign-out-btn').addEventListener('click', (e) => {
+            e.preventDefault();
+            firebase.auth().signOut().then(() => {
+                window.location.href = '/';
+            }).catch((error) => {
+                console.error('Sign out error:', error);
+            });
+        });
+
+        // Mobile menu toggle
+        const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+        const header = document.querySelector('header');
+        
+        if (mobileMenuToggle) {
+            mobileMenuToggle.addEventListener('click', function() {
+                header.classList.toggle('mobile-menu-active');
+                // Change hamburger icon to X when menu is open
+                const icon = mobileMenuToggle.querySelector('i');
+                if (header.classList.contains('mobile-menu-active')) {
+                    icon.classList.remove('fa-bars');
+                    icon.classList.add('fa-times');
+                } else {
+                    icon.classList.remove('fa-times');
+                    icon.classList.add('fa-bars');
+                }
+            });
+            
+            // Close mobile menu when clicking on a menu item
+            document.querySelectorAll('#main-nav a').forEach(link => {
+                link.addEventListener('click', function() {
+                    header.classList.remove('mobile-menu-active');
+                    const icon = mobileMenuToggle.querySelector('i');
+                    icon.classList.remove('fa-times');
+                    icon.classList.add('fa-bars');
+                });
+            });
+        }
+        
+        // Premium toggle logic
+        const monthlyBtn = document.getElementById('monthly-btn');
+        const annualBtn = document.getElementById('annual-btn');
+        const premiumPrice = document.getElementById('premium-price');
+        const premiumUpgradeBtn = document.getElementById('premium-upgrade-btn');
+        if (monthlyBtn && annualBtn && premiumPrice && premiumUpgradeBtn) {
+            monthlyBtn.addEventListener('click', function() {
+                monthlyBtn.classList.add('active');
+                annualBtn.classList.remove('active');
+                premiumPrice.innerHTML = '$9.99<span>/month</span>';
+                premiumUpgradeBtn.textContent = 'Upgrade Now';
+                premiumUpgradeBtn.href = 'payment.html?plan=premium';
+            });
+            annualBtn.addEventListener('click', function() {
+                annualBtn.classList.add('active');
+                monthlyBtn.classList.remove('active');
+                premiumPrice.innerHTML = '$90<span>/year</span>';
+                premiumUpgradeBtn.textContent = 'Upgrade & Save';
+                premiumUpgradeBtn.href = 'payment.html?plan=premium-annual';
+            });
+        }
+    </script>
+</body>
+</html> 
