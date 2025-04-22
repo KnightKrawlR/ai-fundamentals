@@ -40,6 +40,10 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-functions-compat.js"></script>
 
+    <!-- React and ReactDOM -->
+    <script src="https://unpkg.com/react@17/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@17/umd/react-dom.production.min.js"></script>
+
     <style>
       /* Override styles for React components */
       #my-game-plan-root {
@@ -374,14 +378,21 @@
     <script>
         // Make Firebase accessible to the React component
         window.firebase = firebase;
+        
+        // Add debugging info
+        console.log('Firebase initialized:', typeof firebase !== 'undefined');
+        console.log('React available:', typeof React !== 'undefined');
+        console.log('ReactDOM available:', typeof ReactDOM !== 'undefined');
     </script>
 
     <!-- Include the bundled React application -->
-    <script src="dist/my-game-plan-bundle.js"></script>
+    <script src="my-game-plan/my-game-plan-bundle.js" onerror="console.error('Failed to load my-game-plan bundle!'); document.getElementById('loading-fallback').innerHTML = '<div style=\'text-align: center; padding: 20px;\'><h2 style=\'color: #e53e3e; margin-bottom: 10px;\'>Bundle Loading Error</h2><p>Failed to load the game plan bundle. Check browser console for details.</p><button onclick=\'window.location.reload()\' style=\'background: #5D3FD3; color: white; border: none; padding: 8px 16px; border-radius: 4px; margin-top: 16px; cursor: pointer;\'>Refresh Page</button></div>';"></script>
     
     <script>
       // Check if bundle loaded correctly
       window.addEventListener('load', function() {
+        console.log('Page loaded, checking React app initialization...');
+        
         // Give the app some time to render
         setTimeout(function() {
           // If loading indicator is still visible after 5 seconds, show error
