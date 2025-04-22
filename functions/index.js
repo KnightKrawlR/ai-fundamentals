@@ -38,61 +38,90 @@ const MODEL_NAME = functions.config().vertexai?.model || 'gemini-pro';
 // Log configuration for debugging
 console.log(`Initializing Vertex AI with: Project=${PROJECT_ID}, Location=${LOCATION}, Model=${MODEL_NAME}`);
 
-// Initialize with better error handling - with two different approaches
-let vertexAI;
-let vertexClient;
-try {
-  const { VertexAI } = require('@google-cloud/vertexai');
-  vertexAI = new VertexAI({
-    project: PROJECT_ID, 
-    location: LOCATION,
-    credentials: process.env.GOOGLE_APPLICATION_CREDENTIALS ? undefined : 'application_default_credentials'
-  });
-  
-  // Try to create a model client directly - this provides a backup approach
-  try {
-    const generativeClient = vertexAI.preview.getGenerativeModel({ 
-      model: MODEL_NAME,
-      generation_config: {
-        max_output_tokens: 1024,
-        temperature: 0.7,
-        top_p: 0.8,
-        top_k: 40
-      }
-    });
-    
-    if (generativeClient) {
-      console.log('Successfully created generative model client using preview API');
-      vertexClient = generativeClient;
-    }
-  } catch (previewError) {
-    console.error('Error creating generative client using preview API:', previewError);
-    // Check if non-preview API works
+// For older versions of the vertexai library (0.1.3), we need to use a simpler approach
+// We'll initialize clients on demand in each function to avoid deployment timeouts
+let vertexAI = null;
+let vertexClient = null;
+
+// Create a wrapper function that will initialize the client on first use
+const getVertexClient = async () => {
+  if (!vertexClient) {
     try {
-      const generativeClient = vertexAI.getGenerativeModel({ 
-        model: MODEL_NAME,
-        generation_config: {
-          max_output_tokens: 1024,
-          temperature: 0.7,
-          top_p: 0.8,
-          top_k: 40
-        }
+      // Import the legacy version of Vertex AI APIs
+      const {PredictionServiceClient} = require('@google-cloud/aiplatform');
+      
+      // Initialize the PredictionServiceClient
+      const predictionClient = new PredictionServiceClient({
+        projectId: PROJECT_ID
       });
       
-      if (generativeClient) {
-        console.log('Successfully created generative model client using standard API');
-        vertexClient = generativeClient;
-      }
-    } catch (standardError) {
-      console.error('Error creating generative client using standard API:', standardError);
+      // Create a wrapper for the vertexAI interface
+      vertexAI = {
+        getGenerativeModel: ({model, generation_config}) => {
+          return {
+            generateContent: async ({contents}) => {
+              try {
+                // Format the request for the prediction API
+                const request = {
+                  endpoint: `projects/${PROJECT_ID}/locations/${LOCATION}/publishers/google/models/${model || MODEL_NAME}`,
+                  instances: [
+                    {
+                      content: contents
+                    }
+                  ],
+                  parameters: {
+                    temperature: generation_config?.temperature || 0.7,
+                    maxOutputTokens: generation_config?.max_output_tokens || 1024,
+                    topK: generation_config?.top_k || 40,
+                    topP: generation_config?.top_p || 0.9
+                  }
+                };
+                
+                // Make the actual API call
+                const [response] = await predictionClient.predict(request);
+                
+                // Format the response to match what our code expects
+                return {
+                  response: {
+                    candidates: [
+                      {
+                        content: {
+                          parts: [
+                            {
+                              text: response.predictions[0]
+                            }
+                          ]
+                        }
+                      }
+                    ],
+                    usageMetadata: {
+                      promptTokenCount: 0, // Not available in this API
+                      candidatesTokenCount: 0, // Not available in this API
+                      totalTokenCount: 0 // Not available in this API
+                    }
+                  }
+                };
+              } catch (error) {
+                console.error('Error in generateContent wrapper:', error);
+                throw error;
+              }
+            }
+          };
+        }
+      };
+      
+      // Also provide direct access to the prediction client
+      vertexClient = predictionClient;
+      
+      console.log('Vertex AI client initialized successfully');
+    } catch (error) {
+      console.error('Error initializing Vertex AI client:', error);
+      throw error;
     }
   }
   
-  console.log('Vertex AI initialized successfully in index.js');
-} catch (error) {
-  console.error('Error initializing Vertex AI in index.js:', error);
-  // We'll handle errors in the individual functions
-}
+  return vertexAI;
+};
 
 // Create a wrapper for callable functions that properly sets CORS headers
 const createCallableFunction = (handler) => {
@@ -294,10 +323,7 @@ What would you like to know more about or what would you like to do next?`;
       
       // Update the game session in Firestore
       await admin.firestore().collection('gameSessions').doc(sessionId).update({
-        messages: [
-          ...updatedMessages,
-          { role: 'assistant', content: aiResponse }
-        ],
+        messages: updatedMessages,
         lastUpdatedAt: admin.firestore.FieldValue.serverTimestamp()
       });
       
@@ -1390,27 +1416,7 @@ exports.initGameHttp = functions.https.onRequest((req, res) => {
   
   return cors(req, res, async () => {
     try {
-      // Debug vertexAI initialization
-      console.log('vertexClient available:', !!vertexClient);
-      console.log('PROJECT_ID:', PROJECT_ID);
-      console.log('LOCATION:', LOCATION);
-      console.log('MODEL_NAME:', MODEL_NAME);
-      
-      // Check if we have a working client
-      if (!vertexClient) {
-        console.log('No vertexClient available, returning fallback response');
-        return res.status(200).json({
-          sessionId: `temp-${Date.now()}`,
-          initialPrompt: "Welcome! I'm here to help you learn. What would you like to know?",
-          conversationHistory: [{
-            role: 'assistant',
-            content: "Welcome! I'm here to help you learn. What would you like to know?"
-          }],
-          success: true,
-          isFallback: true
-        });
-      }
-      
+      // Extract parameters
       const { topicId, difficulty, model = MODEL_NAME, options = {} } = req.body;
       
       if (!topicId) {
@@ -1423,9 +1429,6 @@ exports.initGameHttp = functions.https.onRequest((req, res) => {
       // Generate a unique session ID
       const sessionId = admin.firestore().collection('gameSessions').doc().id;
       
-      // Debug logging
-      console.log(`initGameHttp - Using model: ${model}, Topic: ${topicId}`);
-      
       // Create a prompt for the AI based on the topic and difficulty
       const prompt = `You are an AI guide for learning about ${topicId} at a ${difficulty || 'beginner'} level. 
       Create an introduction to this topic that engages the learner. 
@@ -1435,26 +1438,22 @@ exports.initGameHttp = functions.https.onRequest((req, res) => {
       // Generate content using Vertex AI
       let introText = '';
       try {
-        // Use the successful vertexClient created during initialization
-        console.log('Using vertexClient for content generation');
-        const result = await vertexClient.generateContent({
-          contents: [{ role: 'user', parts: [{ text: prompt }] }],
+        // Get or initialize the Vertex client
+        const client = await getVertexClient();
+        
+        // Use our vertexClient wrapper
+        const result = await client.generateContent({
+          contents: [{ role: 'user', parts: [{ text: prompt }] }]
         });
         
-        if (result && result.response && result.response.candidates && 
-            result.response.candidates[0] && 
-            result.response.candidates[0].content &&
-            result.response.candidates[0].content.parts &&
-            result.response.candidates[0].content.parts[0]) {
+        if (result?.response?.candidates?.[0]?.content?.parts?.[0]?.text) {
           introText = result.response.candidates[0].content.parts[0].text;
-          console.log('Generated AI introduction using vertexClient');
         } else {
           throw new Error('Invalid response structure from vertexClient');
         }
       } catch (aiError) {
         console.error('Error generating AI introduction:', aiError);
         introText = `Welcome to your learning session about ${topicId}! I'll be your AI guide for exploring its concepts. What specific aspects would you like to learn about?`;
-        console.log('Using fallback introduction text due to error');
       }
       
       // Create conversation history
@@ -1496,25 +1495,13 @@ exports.sendMessageHttp = functions.https.onRequest((req, res) => {
   
   return cors(req, res, async () => {
     try {
+      // Extract parameters
       const { sessionId, message, topicId, difficulty, model = MODEL_NAME, options = {} } = req.body;
       
       if (!message) {
         return res.status(400).json({
           error: 'Message is required',
           success: false
-        });
-      }
-      
-      // Debug logging
-      console.log(`sendMessageHttp - Using model: ${model}, Message: ${message.substring(0, 50)}...`);
-      
-      // Check if we have a working client
-      if (!vertexClient) {
-        console.log('No vertexClient available, returning fallback response');
-        return res.status(200).json({
-          aiResponse: `I'm having difficulty connecting to our AI service right now. Your message was about "${message}". Please try again in a moment.`,
-          success: true,
-          isFallback: true
         });
       }
       
@@ -1525,35 +1512,28 @@ exports.sendMessageHttp = functions.https.onRequest((req, res) => {
       Keep your answers informative but concise (under 150 words unless specifics are requested).
       If you don't know something, say so rather than making up information.`;
       
-      // Format the conversation for Vertex AI
-      const contents = [
-        { role: 'user', parts: [{ text: systemPrompt }] },
-        { role: 'user', parts: [{ text: message }] }
-      ];
+      // Format the conversation for Vertex AI - combine system prompt and user message
+      const combinedPrompt = `${systemPrompt}\n\nUser question: ${message}`;
       
       // Generate content using Vertex AI
       let aiResponse = '';
       try {
-        // Use the successful vertexClient created during initialization
-        console.log('Using vertexClient for message response');
-        const result = await vertexClient.generateContent({
-          contents: contents,
+        // Get or initialize the Vertex client
+        const client = await getVertexClient();
+        
+        // Use the vertexClient wrapper
+        const result = await client.generateContent({
+          contents: [{ role: 'user', parts: [{ text: combinedPrompt }] }]
         });
         
-        if (result && result.response && result.response.candidates && 
-            result.response.candidates[0] && 
-            result.response.candidates[0].content &&
-            result.response.candidates[0].content.parts &&
-            result.response.candidates[0].content.parts[0]) {
+        if (result?.response?.candidates?.[0]?.content?.parts?.[0]?.text) {
           aiResponse = result.response.candidates[0].content.parts[0].text;
-          console.log('Generated AI response using vertexClient');
         } else {
           throw new Error('Invalid response structure from vertexClient');
         }
       } catch (aiError) {
         console.error('Error generating AI response:', aiError);
         aiResponse = `Thank you for your message about "${message}". I'm having trouble generating a specific response at the moment. Could you try rephrasing your question or asking about a different aspect of this topic?`;
-        console.log('Using fallback response due to error');
       }
       
       // Return success response
@@ -1586,101 +1566,47 @@ exports.testVertexAI = functions.https.onRequest((req, res) => {
 
   return cors(req, res, async () => {
     try {
-      // Log all the relevant information
-      console.log('Testing Vertex AI integration');
-      console.log('vertexClient available:', !!vertexClient);
-      console.log('vertexAI available:', !!vertexAI);
-      console.log('PROJECT_ID:', PROJECT_ID);
-      console.log('LOCATION:', LOCATION);
-      console.log('MODEL_NAME:', MODEL_NAME);
-      
-      // Start with a simple health check response
+      // Build a simple health response
       const healthResponse = {
         status: 'ok',
-        vertexClientAvailable: !!vertexClient,
-        vertexAIAvailable: !!vertexAI,
         config: {
           projectId: PROJECT_ID,
           location: LOCATION,
           model: MODEL_NAME
         },
+        apiVersion: "@google-cloud/aiplatform version for PredictionServiceClient",
         timestamp: new Date().toISOString()
       };
       
-      // Try a very simple Vertex AI call if client is available
-      if (vertexClient) {
-        try {
-          // Use a minimal prompt
-          const simplePrompt = "Hello, can you respond with just the words 'Vertex AI test successful'?";
-          
-          console.log('Attempting simple Vertex AI call with prompt:', simplePrompt);
-          
-          // Try with minimal configuration
-          const result = await vertexClient.generateContent({
-            contents: [{ role: 'user', parts: [{ text: simplePrompt }] }],
-            safetySettings: [],  // No safety settings
-            generationConfig: {
-              maxOutputTokens: 20,  // Very small response
-              temperature: 0.2,     // Very deterministic
-            }
-          });
-          
-          console.log('Vertex AI call successful, result:', JSON.stringify(result));
-          
-          // Extract the response text
-          let responseText = '';
-          if (result?.response?.candidates?.[0]?.content?.parts?.[0]?.text) {
-            responseText = result.response.candidates[0].content.parts[0].text;
-          }
-          
-          healthResponse.aiTest = {
-            success: true,
-            response: responseText
-          };
-        } catch (aiError) {
-          console.error('Error during Vertex AI test call:', aiError);
-          
-          // Capture detailed error information
-          healthResponse.aiTest = {
-            success: false,
-            error: aiError.message,
-            stack: aiError.stack,
-            details: JSON.stringify(aiError)
-          };
+      // Try to get and use the Vertex client
+      try {
+        const client = await getVertexClient();
+        
+        // Use a minimal prompt
+        const simplePrompt = "Hello, can you respond with just the words 'Vertex AI test successful'?";
+        
+        // Try with minimal configuration
+        const result = await client.generateContent({
+          contents: [{ role: 'user', parts: [{ text: simplePrompt }] }]
+        });
+        
+        // Extract the response text
+        let responseText = '';
+        if (result?.response?.candidates?.[0]?.content?.parts?.[0]?.text) {
+          responseText = result.response.candidates[0].content.parts[0].text;
         }
-      } else {
+        
+        healthResponse.aiTest = {
+          success: true,
+          response: responseText
+        };
+      } catch (aiError) {
+        console.error('Error during Vertex AI test call:', aiError);
+        
         healthResponse.aiTest = {
           success: false,
-          error: 'Vertex AI client not available'
+          error: aiError.message
         };
-        
-        // Try to reinitialize the client
-        try {
-          console.log('Attempting to reinitialize Vertex AI client...');
-          const { VertexAI } = require('@google-cloud/vertexai');
-          const tempVertexAI = new VertexAI({
-            project: PROJECT_ID, 
-            location: LOCATION
-          });
-          
-          // Try the preview API first
-          const tempClient = tempVertexAI.preview.getGenerativeModel({ 
-            model: MODEL_NAME
-          });
-          
-          // If we reach here without error, update the response
-          healthResponse.reinitialization = {
-            success: true,
-            message: 'New client created but not used for this response'
-          };
-        } catch (initError) {
-          console.error('Error reinitializing Vertex AI client:', initError);
-          healthResponse.reinitialization = {
-            success: false,
-            error: initError.message,
-            stack: initError.stack
-          };
-        }
       }
       
       // Return the health response
@@ -1690,7 +1616,6 @@ exports.testVertexAI = functions.https.onRequest((req, res) => {
       return res.status(500).json({
         status: 'error',
         message: error.message,
-        stack: error.stack,
         timestamp: new Date().toISOString()
       });
     }
