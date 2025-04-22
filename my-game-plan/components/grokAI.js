@@ -1,12 +1,17 @@
-// grokAI.js - Enhanced integration with Grok AI via Vercel's xAI integration
+// grokAI.js - Direct integration with Grok AI via X.AI API
 import firebase from '../firebase';
 
-// Base URL for HTTP functions
+// Grok API configuration - MATCHING EXACTLY the implementation from My Games
+const GROK_API_KEY = "xai-U4MUdbjklO1fx8fkxiXxHoVvwRbqwtNPpeMXy1WCFhqMtdMzKwfHDFuvuPF1Y5az9jR6QB23FZuHY3ik";
+const GROK_API_URL = "https://api.x.ai/v1";
+const GROK_MODEL = "grok-2-latest";
+
+// Base URL for HTTP functions (as fallback only)
 const FUNCTION_BASE_URL = 'https://us-central1-ai-fundamentals-ad37d.cloudfunctions.net';
 
 class GrokAI {
   constructor() {
-    this._defaultModel = 'grok-2-instruct';
+    this._defaultModel = GROK_MODEL;
     this._firebaseInitialized = false;
     this._clientFallbackMode = false;
     
@@ -18,99 +23,165 @@ class GrokAI {
   }
   
   /**
-   * Generates a game plan using Grok AI - first tries the HTTP endpoint, then falls back to callable,
-   * and finally generates a fake response client-side if everything fails
+   * Makes a direct call to the Grok API
+   * @param {Object} messages - The messages to send to the Grok API
+   * @param {Object} options - Additional options
+   * @returns {Promise<Object>} - The response from Grok API
+   * @private
+   */
+  async _callGrokAPI(messages, options = {}) {
+    try {
+      console.log('Making direct Grok API call with messages:', messages);
+      
+      const response = await fetch(`${GROK_API_URL}/chat/completions`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${GROK_API_KEY}`
+        },
+        body: JSON.stringify({
+          model: this._defaultModel,
+          messages: messages,
+          temperature: options.temperature || 0.7,
+          max_tokens: options.max_tokens || 2000,
+          top_p: options.top_p || 0.9
+        })
+      });
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Grok API error: ${response.status} - ${errorText}`);
+      }
+      
+      const data = await response.json();
+      console.log('Grok API response:', data);
+      
+      // Extract response text
+      const responseText = data.choices[0].message.content;
+      return responseText;
+    } catch (error) {
+      console.error('Error calling Grok API:', error);
+      throw error;
+    }
+  }
+  
+  /**
+   * Generates a game plan using Grok AI - direct API call with client-side fallback
    * @param {string} projectDescription - Description of the project
    * @param {string} category - Optional category for the project
    * @param {string} topic - Optional topic within the category
    * @returns {Promise<Object>} - The generated game plan
    */
   async generateGamePlan(projectDescription, category = '', topic = '') {
-    if (!this._firebaseInitialized && !this._clientFallbackMode) {
-      console.warn('Firebase not initialized, using client-side fallback mode');
-      this._clientFallbackMode = true;
-    }
-    
-    const requestData = {
-      projectDescription,
-      category,
-      topic,
-      model: this._defaultModel
-    };
-    
-    // If server is failing, use client-side fallback after first attempt
-    if (this._clientFallbackMode) {
-      console.log('Using client-side fallback to generate response');
-      return this._generateClientSideFallback(requestData);
-    }
-    
+    // Always use direct API now
     try {
-      // First try health check endpoint to see if functions are working
-      try {
-        console.log('Checking Firebase functions health');
-        const healthCheck = await fetch(`${FUNCTION_BASE_URL}/healthCheck`, {
-          method: 'GET'
-        });
+      console.log('Generating game plan with Grok API directly');
+      
+      // Create enhanced prompt for game plan generation with category and topic
+      const promptContent = `
+        Create a detailed implementation plan for the following project:
+        "${projectDescription || 'A project in the selected category'}"
         
-        if (!healthCheck.ok) {
-          console.warn(`Health check failed with status: ${healthCheck.status}. Using client-side fallback.`);
-          this._clientFallbackMode = true;
-          return this._generateClientSideFallback(requestData);
+        ${category ? `Category: ${category}` : ''}
+        ${topic ? `Topic: ${topic}` : ''}
+        
+        Provide the following:
+        1. A step-by-step implementation plan (at least 5 steps)
+        2. Recommended technologies with brief descriptions
+        3. Learning resources (tutorials, documentation, courses)
+        
+        Format the response as a structured JSON object with these fields:
+        {
+          "plan": ["step 1", "step 2", ...],
+          "technologies": [{"name": "Tech Name", "description": "Brief description"}, ...],
+          "resources": [{"title": "Resource Title", "url": "URL", "type": "Tutorial/Documentation/Course"}, ...]
         }
+      `;
+      
+      // System message with guardrails
+      const systemMessage = `
+        You are a helpful AI assistant that creates detailed project implementation plans. 
+        Only respond to questions about project planning, technology selection, and implementation strategies.
+        For off-topic questions or casual conversation, politely redirect the user to describe their project instead.
+        Always format your response as a valid JSON object with the specified structure.
+        Ensure all URLs in resources are valid and point to reputable sources.
+        For each technology recommended, provide a clear and concise description of its purpose and benefits.
+      `;
+      
+      const messages = [
+        { role: "system", content: systemMessage },
+        { role: "user", content: promptContent }
+      ];
+      
+      // Make the direct API call
+      const responseText = await this._callGrokAPI(messages);
+      
+      // Parse the JSON from the response
+      let parsedResponse;
+      try {
+        // Extract JSON from the response
+        const jsonMatch = responseText.match(/```json\n([\s\S]*?)\n```/) || 
+                        responseText.match(/{[\s\S]*}/);
         
-        console.log('Health check passed, continuing with function calls');
-      } catch (healthError) {
-        console.warn('Health check failed, using client-side fallback:', healthError);
-        this._clientFallbackMode = true;
-        return this._generateClientSideFallback(requestData);
+        const jsonString = jsonMatch ? jsonMatch[1] || jsonMatch[0] : responseText;
+        parsedResponse = JSON.parse(jsonString);
+      } catch (parseError) {
+        console.error('Error parsing Grok AI response:', parseError);
+        return this._generateClientSideFallback({
+          projectDescription, 
+          category, 
+          topic
+        });
       }
       
-      // First try HTTP endpoint
-      try {
-        console.log('Trying HTTP endpoint for generateGamePlan');
-        const response = await fetch(`${FUNCTION_BASE_URL}/generateGamePlanHttp`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(requestData)
-        });
-        
-        // Capture the status code for better error reporting
-        const statusCode = response.status;
-        
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${statusCode}`);
-        }
-        
-        const data = await response.json();
-        if (!data.success) {
-          throw new Error(data.error || 'Unknown error in HTTP response');
-        }
-        
-        return data;
-      } catch (httpError) {
-        // Log HTTP error and try callable function as fallback
-        console.warn('HTTP endpoint failed, falling back to callable function:', httpError);
-        
-        try {
-          // Call Firebase Function to generate game plan
-          const generateGamePlan = this._functions.httpsCallable('generateGamePlan');
-          const response = await generateGamePlan(requestData);
-          
-          return response.data;
-        } catch (callableError) {
-          console.error('Callable function also failed:', callableError);
-          // Both HTTP and callable failed, switch to client-side fallback mode
-          this._clientFallbackMode = true;
-          return this._generateClientSideFallback(requestData);
-        }
+      // Validate the response structure and provide fallbacks if needed
+      if (!parsedResponse.plan || !Array.isArray(parsedResponse.plan) || parsedResponse.plan.length === 0) {
+        parsedResponse.plan = ["Please provide more specific details about your project to get a customized implementation plan."];
       }
+      
+      if (!parsedResponse.technologies || !Array.isArray(parsedResponse.technologies) || parsedResponse.technologies.length === 0) {
+        parsedResponse.technologies = [
+          {
+            name: "Recommended Technologies",
+            description: "Please provide more specific project details to get technology recommendations."
+          }
+        ];
+      }
+      
+      if (!parsedResponse.resources || !Array.isArray(parsedResponse.resources) || parsedResponse.resources.length === 0) {
+        parsedResponse.resources = [
+          {
+            title: "AI Fundamentals Learning Resources",
+            url: "https://ai-fundamentals.me/learning.html",
+            type: "Learning Path"
+          }
+        ];
+      }
+      
+      // Ensure all resources have valid URLs
+      parsedResponse.resources = parsedResponse.resources.map(resource => {
+        if (!resource.url || !resource.url.startsWith('http')) {
+          resource.url = `https://ai-fundamentals.me/search.html?q=${encodeURIComponent(resource.title || 'learning resources')}`;
+        }
+        return resource;
+      });
+      
+      return {
+        success: true,
+        plan: parsedResponse.plan,
+        technologies: parsedResponse.technologies,
+        resources: parsedResponse.resources
+      };
     } catch (error) {
-      console.error('All methods for generating game plan failed:', error);
-      // Enable client-side fallback mode for future requests
-      this._clientFallbackMode = true;
-      return this._generateClientSideFallback(requestData);
+      console.error('Error with direct Grok API call:', error);
+      
+      // If direct API fails, use client-side fallback
+      console.log('Using client-side fallback after API failure');
+      return this._generateClientSideFallback({
+        projectDescription,
+        category,
+        topic
+      });
     }
   }
   
@@ -152,6 +223,16 @@ class GrokAI {
         "Test on both iOS and Android devices.",
         "Prepare for app store submission."
       ];
+    } else if (projectType.toLowerCase().includes('data')) {
+      steps = [
+        "Set up your data analysis environment with Python and tools like Pandas/NumPy.",
+        "Collect and clean the relevant data sets.",
+        "Perform exploratory data analysis to understand patterns.",
+        "Build visualizations to communicate insights.",
+        "Develop predictive models if applicable.",
+        "Test and validate your analysis.",
+        "Create a report or dashboard to share findings."
+      ];
     } else {
       steps = [
         "Define the project requirements and user stories.",
@@ -184,6 +265,13 @@ class GrokAI {
         { name: "Redux", description: "State management library for JavaScript applications" },
         { name: "Firebase", description: "Backend-as-a-Service platform for mobile and web apps" },
         { name: "Jest", description: "JavaScript testing framework for unit and integration tests" }
+      ];
+    } else if (projectType.toLowerCase().includes('data')) {
+      technologies = [
+        { name: "Python", description: "Popular programming language for data analysis and machine learning" },
+        { name: "Pandas", description: "Data manipulation and analysis library for Python" },
+        { name: "Matplotlib/Seaborn", description: "Visualization libraries for creating informative plots" },
+        { name: "Scikit-learn", description: "Machine learning library for classification, regression, and clustering" }
       ];
     } else {
       technologies = [
@@ -228,29 +316,34 @@ class GrokAI {
   }
   
   /**
-   * Processes a chat conversation
+   * Processes a chat conversation with the Grok API
    * @param {Array} messages - Array of message objects {role: 'user'|'assistant', content: string}
    * @param {Object} options - Generation options
    * @returns {Promise<Object>} - The generated response and metadata
    */
   async processChat(messages, options = {}) {
-    if (!this._firebaseInitialized) {
-      return {
-        error: 'Firebase not initialized',
-        success: false
-      };
-    }
-    
     try {
-      const processChatConversation = this._functions.httpsCallable('processChatConversation');
+      // Format messages for Grok API
+      const formattedMessages = messages.map(msg => ({
+        role: msg.role === 'user' ? 'user' : 'assistant',
+        content: msg.content
+      }));
       
-      const response = await processChatConversation({
-        messages,
-        model: this._defaultModel,
-        options
-      });
+      // Add a system message if none exists
+      if (!formattedMessages.some(m => m.role === 'system')) {
+        formattedMessages.unshift({
+          role: 'system',
+          content: 'You are a helpful AI assistant.'
+        });
+      }
       
-      return response.data;
+      // Call the Grok API directly
+      const responseText = await this._callGrokAPI(formattedMessages, options);
+      
+      return {
+        text: responseText,
+        success: true
+      };
     } catch (error) {
       console.error('Error processing chat:', error);
       return {
@@ -267,23 +360,20 @@ class GrokAI {
    * @returns {Promise<Object>} - The generated text and metadata
    */
   async generateText(prompt, options = {}) {
-    if (!this._firebaseInitialized) {
-      return {
-        error: 'Firebase not initialized',
-        success: false
-      };
-    }
-    
     try {
-      const generateText = this._functions.httpsCallable('generateText');
+      // Format as a simple user message
+      const messages = [
+        { role: 'system', content: 'You are a helpful AI assistant.' },
+        { role: 'user', content: prompt }
+      ];
       
-      const response = await generateText({
-        prompt,
-        model: this._defaultModel,
-        options
-      });
+      // Call the Grok API directly
+      const responseText = await this._callGrokAPI(messages, options);
       
-      return response.data;
+      return {
+        text: responseText,
+        success: true
+      };
     } catch (error) {
       console.error('Error generating text:', error);
       return {
