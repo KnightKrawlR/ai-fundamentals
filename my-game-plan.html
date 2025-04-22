@@ -320,6 +320,7 @@
             
             if (user) {
                 // User is signed in
+                console.log('User authenticated, proceeding to render Game Plan');
                 signInBtn.style.display = 'none';
                 userMenu.style.display = 'block';
                 
@@ -331,8 +332,13 @@
                 document.querySelectorAll('.premium-content').forEach(elem => {
                     elem.classList.add('unlocked');
                 });
+                
+                // --- Render the React component ONLY if user is logged in ---
+                renderGamePlanComponent(); 
+                // ---------
             } else {
                 // User is signed out
+                console.log('User not authenticated, redirecting to login');
                 signInBtn.style.display = 'flex';
                 userMenu.style.display = 'none';
                 
@@ -400,20 +406,23 @@
 
     <!-- Game Plan Component - Inline Script -->
     <script>
-      // Enhanced game plan component with three-dropdown structure
-      (function() {
-        console.log("Game Plan Enhanced Script Loaded!");
-        
-        // Wait for the DOM to be fully loaded
-        document.addEventListener('DOMContentLoaded', function() {
-          console.log("DOM Loaded, initializing game plan component");
-          
+      // Function to render the Game Plan component
+      function renderGamePlanComponent() {
+          console.log("Attempting to render Game Plan component...");
+      
           // Verify React and ReactDOM are available
           if (typeof React === 'undefined' || typeof ReactDOM === 'undefined') {
             console.error('React or ReactDOM is not available!');
             return;
           }
           
+          // Check if component already rendered (prevent double render)
+          const rootElement = document.getElementById('my-game-plan-root');
+          if (rootElement && rootElement.hasChildNodes()) {
+              console.log("Game Plan component already rendered.");
+              return;
+          }
+
           // Simple Game Plan Component with three dropdowns
           function GamePlanApp() {
             // State hooks for form inputs
@@ -630,7 +639,6 @@
           }
           
           // Render the app to the DOM
-          const rootElement = document.getElementById('my-game-plan-root');
           if (rootElement) {
             // Hide the loading indicator
             const loadingEl = document.getElementById('loading-fallback');
@@ -644,10 +652,12 @@
             
             console.log('Game Plan component rendered successfully!');
           } else {
-            console.error('Root element not found!');
+            console.error('Root element #my-game-plan-root not found!');
           }
-        });
-      })();
+      }
+      
+      // NOTE: We no longer immediately invoke the script or use DOMContentLoaded.
+      // Rendering is now triggered by the onAuthStateChanged callback.
     </script>
 </body>
 </html>
