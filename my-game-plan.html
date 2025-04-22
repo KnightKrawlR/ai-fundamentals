@@ -384,161 +384,21 @@
         console.log('React available:', typeof React !== 'undefined');
         console.log('ReactDOM available:', typeof ReactDOM !== 'undefined');
         
-        // Try to render a simple test component to verify React is working
-        document.addEventListener('DOMContentLoaded', function() {
+        // Clear any inline React components to avoid conflicts
+        window.addEventListener('DOMContentLoaded', function() {
           try {
-            const testDiv = document.createElement('div');
-            testDiv.id = 'react-test-root';
-            testDiv.style.display = 'none'; // Hide this test component
-            document.body.appendChild(testDiv);
-            
-            const TestComponent = React.createElement('div', null, 'React is working!');
-            ReactDOM.render(TestComponent, testDiv);
-            console.log('Test React component rendered successfully!');
-            
-            // Also try to create a minimal game plan component
-            const SimpleGamePlan = () => {
-              const [counter, setCounter] = React.useState(0);
-              
-              return React.createElement('div', {
-                style: {
-                  padding: '20px',
-                  border: '1px solid #cbd5e0',
-                  borderRadius: '8px',
-                  backgroundColor: '#f7fafc',
-                  maxWidth: '600px',
-                  margin: '0 auto'
-                }
-              }, [
-                React.createElement('h2', {
-                  style: { color: '#4a5568', marginBottom: '16px' }
-                }, 'Simple Game Plan Component'),
-                React.createElement('p', null, 'This is a minimal React component to verify React is working.'),
-                React.createElement('p', null, `Counter: ${counter}`),
-                React.createElement('button', {
-                  onClick: () => setCounter(counter + 1),
-                  style: {
-                    background: '#5D3FD3',
-                    color: 'white',
-                    border: 'none',
-                    padding: '8px 16px',
-                    borderRadius: '4px',
-                    marginTop: '16px',
-                    cursor: 'pointer'
-                  }
-                }, 'Increment Counter')
-              ]);
-            };
-            
-            // Get the actual game plan root
-            const gamePlanRoot = document.getElementById('my-game-plan-root');
-            if (gamePlanRoot) {
-              // Hide the loading element since we'll render our own component
-              const loadingEl = document.getElementById('loading-fallback');
-              if (loadingEl) loadingEl.style.display = 'none';
-              
-              // Render our simple component
-              ReactDOM.render(
-                React.createElement(SimpleGamePlan, null),
-                gamePlanRoot
-              );
-              console.log('Simple game plan component rendered!');
+            const rootElement = document.getElementById('my-game-plan-root');
+            if (rootElement) {
+              // Remove any existing content to ensure a clean mount
+              rootElement.innerHTML = '';
             }
           } catch (error) {
-            console.error('Error in inline React test component:', error);
+            console.error('Error clearing root element:', error);
           }
         });
     </script>
 
-    <!-- Include the bundled React application -->
-    <script src="my-game-plan-minimal.js" onerror="console.error('Failed to load minimal game plan bundle!'); renderFallbackComponent();"></script>
-    
-    <!-- Try the original bundle as fallback -->
-    <script>
-      // Fallback component rendering function
-      function renderFallbackComponent() {
-        console.log('Rendering fallback component manually...');
-        const loadingEl = document.getElementById('loading-fallback');
-        if (loadingEl) {
-          loadingEl.innerHTML = '<div style="text-align: center; padding: 20px;">' +
-            '<h2 style="color: #e53e3e; margin-bottom: 10px;">Bundle Loading Error</h2>' +
-            '<p>Failed to load the game plan bundle. This could be due to a network issue or server configuration problem.</p>' +
-            '<button onclick="window.location.reload()" style="background: #5D3FD3; color: white; border: none; padding: 8px 16px; border-radius: 4px; margin-top: 16px; cursor: pointer;">Refresh Page</button>' +
-            '</div>';
-        }
-        
-        // Try to directly render a minimal React component as fallback
-        try {
-          if (typeof React !== 'undefined' && typeof ReactDOM !== 'undefined') {
-            const root = document.getElementById('my-game-plan-root');
-            if (root) {
-              const FallbackComponent = React.createElement('div', {
-                style: {
-                  padding: '20px',
-                  border: '1px solid #e53e3e',
-                  borderRadius: '8px',
-                  backgroundColor: '#fff5f5',
-                  maxWidth: '600px',
-                  margin: '0 auto'
-                }
-              }, [
-                React.createElement('h2', {
-                  style: { color: '#e53e3e', marginBottom: '16px' }
-                }, 'My Game Plan'),
-                React.createElement('p', null, 'The interactive game plan experience is currently unavailable.'),
-                React.createElement('p', null, 'Please try again later or contact support if the issue persists.'),
-                React.createElement('button', {
-                  onClick: () => window.location.reload(),
-                  style: {
-                    background: '#5D3FD3',
-                    color: 'white',
-                    border: 'none',
-                    padding: '8px 16px',
-                    borderRadius: '4px',
-                    marginTop: '16px',
-                    cursor: 'pointer'
-                  }
-                }, 'Refresh Page')
-              ]);
-              
-              ReactDOM.render(FallbackComponent, root);
-              // Hide loading indicator since we've rendered something
-              if (loadingEl) loadingEl.style.display = 'none';
-            }
-          }
-        } catch (error) {
-          console.error('Failed to render fallback React component:', error);
-        }
-      }
-      
-      // If the minimal version fails, try the original bundle as a fallback
-      window.addEventListener('error', function(e) {
-        if (e.target && e.target.src && e.target.src.includes('my-game-plan-minimal.js')) {
-          console.log('Minimal bundle failed, trying original bundle as fallback...');
-          const script = document.createElement('script');
-          script.src = 'my-game-plan-bundle.js';
-          script.onerror = function() {
-            console.error('Original bundle also failed to load!');
-            renderFallbackComponent();
-          };
-          document.body.appendChild(script);
-        }
-      }, true);
-      
-      // Check if anything rendered after a timeout
-      window.addEventListener('load', function() {
-        console.log('Page loaded, checking React app initialization...');
-        
-        // Give the app some time to render
-        setTimeout(function() {
-          // If loading indicator is still visible after 5 seconds, show error
-          const loadingEl = document.getElementById('loading-fallback');
-          if (loadingEl && loadingEl.style.display !== 'none') {
-            console.error('React app failed to hide loading indicator');
-            renderFallbackComponent();
-          }
-        }, 8000);
-      });
-    </script>
+    <!-- Include the bundled React application - with cache-busting timestamp -->
+    <script src="my-game-plan-enhanced.js?v=1"></script>
 </body>
 </html>
