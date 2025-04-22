@@ -1,6 +1,9 @@
 // grokAI.js - Enhanced integration with Grok AI via Vercel's xAI integration
 import firebase from '../firebase';
 
+// Base URL for HTTP functions
+const FUNCTION_BASE_URL = 'https://us-central1-ai-fundamentals-ad37d.cloudfunctions.net';
+
 class GrokAI {
   constructor() {
     this._defaultModel = 'grok-2-instruct';
@@ -14,7 +17,7 @@ class GrokAI {
   }
   
   /**
-   * Generates a game plan using Grok AI
+   * Generates a game plan using Grok AI - first tries the HTTP endpoint, then falls back to callable
    * @param {string} projectDescription - Description of the project
    * @param {string} category - Optional category for the project
    * @param {string} topic - Optional topic within the category
@@ -28,20 +31,47 @@ class GrokAI {
       };
     }
     
+    const requestData = {
+      projectDescription,
+      category,
+      topic,
+      model: this._defaultModel
+    };
+    
     try {
-      // Call Firebase Function to generate game plan
-      const generateGamePlan = this._functions.httpsCallable('generateGamePlan');
-      
-      const response = await generateGamePlan({
-        projectDescription,
-        category,
-        topic,
-        model: this._defaultModel
-      });
-      
-      return response.data;
+      // First try HTTP endpoint
+      try {
+        console.log('Trying HTTP endpoint for generateGamePlan');
+        const response = await fetch(`${FUNCTION_BASE_URL}/generateGamePlanHttp`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(requestData)
+        });
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        if (!data.success) {
+          throw new Error(data.error || 'Unknown error in HTTP response');
+        }
+        
+        return data;
+      } catch (httpError) {
+        // Log HTTP error and try callable function as fallback
+        console.warn('HTTP endpoint failed, falling back to callable function:', httpError);
+        
+        // Call Firebase Function to generate game plan
+        const generateGamePlan = this._functions.httpsCallable('generateGamePlan');
+        const response = await generateGamePlan(requestData);
+        
+        return response.data;
+      }
     } catch (error) {
-      console.error('Error generating game plan:', error);
+      console.error('All methods for generating game plan failed:', error);
       return {
         error: error.message || 'Error generating game plan',
         success: false
