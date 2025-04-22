@@ -1690,7 +1690,7 @@ exports.generateGamePlan = functions.https.onCall(async (data, context) => {
     const response = await axios.post(
       GROK_API_URL,
       {
-        model: data.model || 'grok-2-instruct',
+        model: data.model || 'grok-2-latest',
         messages: [
           { role: 'system', content: systemMessage },
           { role: 'user', content: prompt }
@@ -1806,7 +1806,7 @@ exports.generateGamePlanHttp = functions.https.onRequest((req, res) => {
   return cors(req, res, async () => {
     try {
       // Extract parameters
-      const { category, topic, projectDescription, model = 'grok-2-instruct' } = req.body;
+      const { category, topic, projectDescription, model = 'grok-2-latest' } = req.body;
       
       if (!projectDescription && !category) {
         return res.status(400).json({
