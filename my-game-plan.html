@@ -486,10 +486,15 @@
               setError(null);
               setGamePlan(null);
               
-              // Construct the prompt
-              const prompt = `Generate a detailed project implementation game plan for the following:\nTopic: ${selectedTopic}\nChallenge: ${selectedChallenge}\nProject Type: ${selectedProjectType}\nDescription: ${description || 'None provided'}\n\nPlease provide a step-by-step plan including potential tools, resources, and milestones.`;
+              // Construct the data object to send to the function
+              const requestData = {
+                topic: selectedTopic,
+                challenge: selectedChallenge,
+                projectType: selectedProjectType,
+                description: description || '' // Send empty string if no description
+              };
               
-              console.log("Calling generateGamePlan with prompt:", prompt);
+              console.log("Calling generateGamePlan with data:", requestData);
               
               try {
                 // Ensure Firebase functions is available
@@ -499,7 +504,8 @@
                 
                 // Update the function name to the one that actually exists
                 const actualGamePlanFunction = firebase.functions().httpsCallable('generateGamePlan');
-                const result = await actualGamePlanFunction({ prompt: prompt });
+                // Send the structured data object instead of just the prompt string
+                const result = await actualGamePlanFunction(requestData);
                 
                 console.log("Received response from generateGamePlan function:", result);
                 
