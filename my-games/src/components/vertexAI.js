@@ -1,7 +1,8 @@
 // vertexAI.js - Firebase Vertex AI Integration for My Games Feature
+import { AI_MODELS, getModelClient, grokAI } from './AIModels';
 
 /**
- * Class to handle Vertex AI interactions for the My Games feature
+ * Class to handle AI interactions for the My Games feature
  */
 class VertexAIGameEngine {
   constructor() {
@@ -10,6 +11,10 @@ class VertexAIGameEngine {
     this.currentTopic = null;
     this.difficultyLevel = 'easy'; // Default difficulty
     this.conversationHistory = [];
+    this.selectedModel = 'grok'; // Default to Grok
+    
+    // Get the appropriate client based on selected model
+    this.modelClient = getModelClient(this.selectedModel);
     
     // Get Firebase instance - prefer global one
     this.firebase = (typeof window !== 'undefined' && window.firebase) ? window.firebase : null;
@@ -52,6 +57,18 @@ class VertexAIGameEngine {
     this.processImageInput = this.processImageInput.bind(this);
     this.processAudioInput = this.processAudioInput.bind(this);
     this.calculateCreditCost = this.calculateCreditCost.bind(this);
+    this.setModel = this.setModel.bind(this);
+  }
+
+  /**
+   * Set the AI model to use
+   * @param {string} modelId - The model ID ('grok' or 'vertex')
+   */
+  setModel(modelId) {
+    console.log(`Switching AI model to: ${modelId}`);
+    this.selectedModel = modelId;
+    this.modelClient = getModelClient(modelId);
+    return this.selectedModel;
   }
 
   /**
@@ -61,6 +78,38 @@ class VertexAIGameEngine {
    * @returns {Promise<Object>} - The function response
    */
   async callWithCorsProxy(functionName, data) {
+    // If using Grok, bypass the Firebase functions
+    if (this.selectedModel === 'grok' && this.modelClient) {
+      console.log(`Using direct Grok API call instead of Firebase function: ${functionName}`);
+      
+      if (functionName === 'initializeGameSession') {
+        const result = await this.modelClient.initializeGame(
+          {
+            id: data.topicId, 
+            name: this.currentTopic?.name || data.topicId
+          }, 
+          data.difficulty
+        );
+        return result;
+      }
+      
+      if (functionName === 'sendGameMessage') {
+        const response = await this.modelClient.sendMessage(
+          data.sessionId,
+          data.message,
+          this.conversationHistory
+        );
+        
+        return {
+          aiResponse: response,
+          success: true
+        };
+      }
+      
+      throw new Error(`Unsupported Grok function: ${functionName}`);
+    }
+    
+    // Continue with existing Vertex AI implementation
     console.log(`Calling ${functionName} with data:`, data);
     
     // Use our HTTP endpoints which have proper CORS headers
@@ -209,29 +258,56 @@ class VertexAIGameEngine {
   }
 
   /**
-   * Test the connection to Vertex AI
+   * Test the connection to the AI service
    * @returns {Promise<Object>} Test results
    */
-  async testVertexAIConnection() {
+  async testAIConnection() {
     try {
-      console.log('Testing Vertex AI connection...');
-      const response = await fetch('https://us-central1-ai-fundamentals-ad37d.cloudfunctions.net/testVertexAI', {
-        method: 'GET',
-        mode: 'cors'
-      });
+      console.log(`Testing AI connection for ${this.selectedModel}...`);
       
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('TestVertexAI error response:', errorText);
-        throw new Error(`HTTP error! status: ${response.status}`);
+      if (this.selectedModel === 'grok' && this.modelClient) {
+        try {
+          // Test the Grok API with a simple prompt
+          const response = await this.modelClient.generateResponse("Hello, this is a test.");
+          return {
+            status: 'ok',
+            message: 'Grok AI connection successful',
+            aiTest: {
+              success: true,
+              response: response
+            }
+          };
+        } catch (error) {
+          console.error('Error testing Grok connection:', error);
+          return {
+            status: 'error',
+            message: 'Grok AI connection failed',
+            aiTest: {
+              success: false,
+              error: error.message
+            }
+          };
+        }
+      } else {
+        // Test Vertex AI connection
+        const response = await fetch('https://us-central1-ai-fundamentals-ad37d.cloudfunctions.net/testVertexAI', {
+          method: 'GET',
+          mode: 'cors'
+        });
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('TestVertexAI error response:', errorText);
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const result = await response.json();
+        console.log('TestVertexAI result:', result);
+        
+        return result;
       }
-      
-      const result = await response.json();
-      console.log('TestVertexAI result:', result);
-      
-      return result;
     } catch (error) {
-      console.error('Error testing Vertex AI connection:', error);
+      console.error('Error testing AI connection:', error);
       throw error;
     }
   }
@@ -245,7 +321,11 @@ class VertexAIGameEngine {
    */
   async initializeGame(topic, difficulty = 'intermediate') {
     try {
-      console.log('Initializing game with topic:', topic, 'and difficulty:', difficulty);
+      console.log('Initializing game with topic:', topic, 'and difficulty:', difficulty, 'using model:', this.selectedModel);
+      
+      // Store the current topic
+      this.currentTopic = topic;
+      this.difficultyLevel = difficulty;
       
       // Check if user has enough credits
       const initialCreditCost = this.calculateCreditCost('initialize');
@@ -253,28 +333,28 @@ class VertexAIGameEngine {
         throw new Error(`Insufficient credits (${this.userProfile.credits}/${initialCreditCost})`);
       }
       
-      // First test if Vertex AI is working
+      // First test if AI is working
       try {
-        const testResult = await this.testVertexAIConnection();
-        console.log('Vertex AI test result:', testResult);
+        const testResult = await this.testAIConnection();
+        console.log('AI test result:', testResult);
         
         // If the test shows issues, we'll note it but continue with the fallback path
         if (!testResult.aiTest || !testResult.aiTest.success) {
-          console.warn('Vertex AI test failed, will use fallback responses');
+          console.warn('AI test failed, will use fallback responses');
         }
       } catch (testError) {
-        console.error('Error testing Vertex AI:', testError);
+        console.error('Error testing AI:', testError);
         // Continue with fallback if test fails
       }
       
       try {
-        console.log('Attempting to initialize game session with Vertex AI');
+        console.log('Attempting to initialize game session with AI');
         
-        // Use our HTTP endpoint with proper CORS support
+        // Use our HTTP endpoint with proper CORS support for Vertex or direct Grok call
         const proxyResponse = await this.callWithCorsProxy('initializeGameSession', {
           topicId: topic.id,
           difficulty: difficulty,
-          model: 'gemini-pro',
+          model: this.selectedModel === 'vertex' ? 'gemini-pro' : 'grok-2-latest',
           options: {
             temperature: 0.7,
             maxTokens: 1024
@@ -288,10 +368,10 @@ class VertexAIGameEngine {
             topicId: topic.id,
             difficulty: difficulty,
             creditsUsed: initialCreditCost,
-            isFallback: proxyResponse.isFallback || false
+            isFallback: proxyResponse.isFallback || false,
+            model: this.selectedModel
           };
           
-          this.currentTopic = topic;
           this.conversationHistory = proxyResponse.conversationHistory || [{
             role: 'assistant',
             content: proxyResponse.initialPrompt
@@ -307,13 +387,14 @@ class VertexAIGameEngine {
             initialPrompt: this.conversationHistory[0].content,
             creditsUsed: initialCreditCost,
             remainingCredits: this.userProfile.credits,
-            isFallback: proxyResponse.isFallback || false
+            isFallback: proxyResponse.isFallback || false,
+            model: this.selectedModel
           };
         } else {
           throw new Error('Invalid response from initialization');
         }
       } catch (error) {
-        console.error('Error initializing game with Vertex AI:', error);
+        console.error('Error initializing game with AI:', error);
         
         // Connectivity issue fallback
         const introText = `I'll be your guide to learning about ${topic.name}. We're currently experiencing a connection issue with our AI service. Please try again in a moment, or let me know what specific aspects of ${topic.name} you're interested in, and I'll do my best to help once connectivity is restored.`;
@@ -324,10 +405,10 @@ class VertexAIGameEngine {
           topicId: topic.id,
           difficulty: difficulty,
           creditsUsed: initialCreditCost,
-          connectivityIssue: true
+          connectivityIssue: true,
+          model: this.selectedModel
         };
         
-        this.currentTopic = topic;
         this.conversationHistory = [{
           role: 'assistant',
           content: introText
@@ -341,7 +422,8 @@ class VertexAIGameEngine {
           initialPrompt: introText,
           creditsUsed: initialCreditCost,
           remainingCredits: this.userProfile.credits,
-          connectivityIssue: true
+          connectivityIssue: true,
+          model: this.selectedModel
         };
       }
     } catch (error) {
@@ -376,7 +458,7 @@ class VertexAIGameEngine {
 
   /**
    * Generate the initial prompt based on topic and difficulty
-   * @returns {string} - The initial prompt for Vertex AI
+   * @returns {string} - The initial prompt for the AI
    */
   generateInitialPrompt() {
     const difficultyDescriptions = {
@@ -402,7 +484,7 @@ Start by introducing yourself and asking the user what specific aspect of ${this
    * @returns {Promise<Object>} - The AI response and updated game state
    */
   async sendUserInput(userInput, inputType = 'text', additionalData = null) {
-    console.log('sendUserInput called with', { userInput, inputType });
+    console.log('sendUserInput called with', { userInput, inputType, model: this.selectedModel });
     try {
       if (!this.currentGameSession) {
         throw new Error('No active game session');
@@ -441,16 +523,32 @@ Start by introducing yourself and asking the user what specific aspect of ${this
       });
       
       try {
-        // Use the HTTP endpoint for game messages
-        const response = await this.callWithCorsProxy('sendGameMessage', {
-          sessionId: this.currentGameSession.sessionId,
-          message: userInput,
-          model: 'gemini-pro',
-          options: {
-            temperature: 0.7,
-            maxTokens: 1024
-          }
-        });
+        // Use the appropriate method for the selected model
+        let response;
+        if (this.selectedModel === 'grok' && this.modelClient) {
+          console.log('Using Grok for message handling');
+          const aiResponse = await this.modelClient.sendMessage(
+            this.currentGameSession.sessionId,
+            userInput,
+            this.conversationHistory
+          );
+          
+          response = {
+            aiResponse: aiResponse,
+            success: true
+          };
+        } else {
+          // Use the HTTP endpoint for Vertex AI messages
+          response = await this.callWithCorsProxy('sendGameMessage', {
+            sessionId: this.currentGameSession.sessionId,
+            message: userInput,
+            model: 'gemini-pro',
+            options: {
+              temperature: 0.7,
+              maxTokens: 1024
+            }
+          });
+        }
         
         console.log('Game message response:', response);
         
@@ -474,7 +572,8 @@ Start by introducing yourself and asking the user what specific aspect of ${this
           creditsUsed: creditCost,
           remainingCredits: this.userProfile.credits,
           conversationHistory: this.conversationHistory,
-          isFallback: response.isFallback || false
+          isFallback: response.isFallback || false,
+          model: this.selectedModel
         };
       } catch (error) {
         console.error('Error with sendGameMessage:', error);
@@ -493,7 +592,8 @@ Start by introducing yourself and asking the user what specific aspect of ${this
           creditsUsed: creditCost,
           remainingCredits: this.userProfile.credits,
           conversationHistory: this.conversationHistory,
-          isError: true
+          isError: true,
+          model: this.selectedModel
         };
       }
     } catch (error) {
@@ -504,7 +604,8 @@ Start by introducing yourself and asking the user what specific aspect of ${this
         success: false,
         errorType: 'api_error',
         message: 'Error connecting to AI service. Please try again in a moment.',
-        error: error.message
+        error: error.message,
+        model: this.selectedModel
       };
     }
   }
@@ -517,7 +618,11 @@ Start by introducing yourself and asking the user what specific aspect of ${this
   async generateAIResponse(prompt) {
     console.log('generateAIResponse called with prompt length:', prompt.length);
     try {
-      // Call Firebase Function that interfaces with Vertex AI
+      if (this.selectedModel === 'grok' && this.modelClient) {
+        return await this.modelClient.generateResponse(prompt);
+      }
+      
+      // Use Vertex AI via Firebase Functions
       const generateResponse = this.firebase.functions().httpsCallable('generateVertexAIResponse');
       
       const result = await generateResponse({
@@ -529,7 +634,7 @@ Start by introducing yourself and asking the user what specific aspect of ${this
         }
       });
       
-      console.log('VertexAI response received:', result.data);
+      console.log('AI response received:', result.data);
       return result.data.text;
     } catch (error) {
       console.error('Error generating AI response:', error);

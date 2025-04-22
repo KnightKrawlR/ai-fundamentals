@@ -6,6 +6,30 @@ import VertexAIGameEngine from './vertexAI';
 import LowCreditsWarning from './LowCreditsWarning';
 import CreditPurchaseModal from './CreditPurchaseModal';
 import { checkCreditsThreshold } from '../services/creditService';
+import { AI_MODELS } from './AIModels';
+import '../styles/toggle.css';
+
+// Enhanced AI Model Toggle Component
+const AIModelToggle = ({ selectedModel, onModelChange }) => {
+  return (
+    <div className="toggle-container">
+      <div className={`model-display ${selectedModel === 'grok' ? 'active' : 'inactive'}`}>
+        <span className="model-name">AI Model:</span>
+        <span className={`model-badge ${selectedModel === 'grok' ? 'grok' : 'vertex'}`}>
+          {selectedModel === 'grok' ? 'Grok' : 'Vertex'}
+        </span>
+      </div>
+      <label className="toggle-switch">
+        <input
+          type="checkbox"
+          checked={selectedModel === 'vertex'}
+          onChange={() => onModelChange(selectedModel === 'grok' ? 'vertex' : 'grok')}
+        />
+        <span className="toggle-slider"></span>
+      </label>
+    </div>
+  );
+};
 
 const CreditManagement = ({ credits, onAddCredits }) => {
   const [showModal, setShowModal] = useState(false);
@@ -170,6 +194,7 @@ const MyGames = ({ firebaseProp }) => {
   const [insufficientCreditsData, setInsufficientCreditsData] = useState(null);
   const [isPurchaseModalOpen, setIsPurchaseModalOpen] = useState(false);
   const [showInsufficientCreditsPrompt, setShowInsufficientCreditsPrompt] = useState(false);
+  const [selectedModel, setSelectedModel] = useState('grok'); // Default to Grok
   
   const chatContainerRef = useRef(null);
   
@@ -669,6 +694,15 @@ const MyGames = ({ firebaseProp }) => {
     }
   };
   
+  // Handle model change
+  const handleModelChange = (modelId) => {
+    console.log('Changing AI model to:', modelId);
+    setSelectedModel(modelId);
+    if (gameEngine) {
+      gameEngine.setModel(modelId);
+    }
+  };
+  
   // Render main content
   return (
     <div className="flex flex-col space-y-4">
@@ -686,6 +720,10 @@ const MyGames = ({ firebaseProp }) => {
               Add Credits
             </button>
           </div>
+          <AIModelToggle 
+            selectedModel={selectedModel}
+            onModelChange={handleModelChange}
+          />
           <select
             value={difficulty}
             onChange={(e) => setDifficulty(e.target.value)}
