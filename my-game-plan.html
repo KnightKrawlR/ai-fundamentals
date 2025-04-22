@@ -4,92 +4,399 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Game Plan | AI Fundamentals</title>
-    <link rel="stylesheet" href="styles/main.css">
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-functions.js"></script>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/game-styles.css">
+    <link rel="stylesheet" href="css/header-redesign.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- Add Tailwind CSS for the React app -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              primary: {
+                50: '#f0f9ff',
+                100: '#e0f2fe',
+                200: '#bae6fd',
+                300: '#7dd3fc',
+                400: '#38bdf8',
+                500: '#0ea5e9',
+                600: '#0284c7',
+                700: '#0369a1',
+                800: '#075985',
+                900: '#0c4a6e',
+              },
+            },
+          },
+        },
+      }
+    </script>
+    
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-functions-compat.js"></script>
+
+    <style>
+      /* Override styles for React components */
+      #my-game-plan-root {
+        min-height: 500px;
+        padding: 20px 0;
+      }
+      
+      /* Fix for primary color classes */
+      .bg-primary-500 {
+        background-color: #0ea5e9;
+      }
+      .bg-primary-600 {
+        background-color: #0284c7;
+      }
+      .bg-primary-700 {
+        background-color: #0369a1;
+      }
+      .text-primary-600 {
+        color: #0284c7;
+      }
+      .border-primary-500 {
+        border-color: #0ea5e9;
+      }
+      .bg-primary-100 {
+        background-color: #e0f2fe;
+      }
+      .bg-primary-50 {
+        background-color: #f0f9ff;
+      }
+      
+      /* Basic utility classes that might be missing */
+      .flex { display: flex; }
+      .flex-1 { flex: 1; }
+      .flex-col { flex-direction: column; }
+      .items-center { align-items: center; }
+      .justify-center { justify-content: center; }
+      .space-y-4 > * + * { margin-top: 1rem; }
+      .min-h-\[500px\] { min-height: 500px; }
+      .rounded-lg { border-radius: 0.5rem; }
+      .rounded-md { border-radius: 0.375rem; }
+      .rounded { border-radius: 0.25rem; }
+      .p-4 { padding: 1rem; }
+      .border { border-width: 1px; }
+
+      /* User menu styles */
+      .user-menu {
+          position: relative;
+          display: inline-block;
+      }
+
+      .user-menu-content {
+          display: none;
+          position: absolute;
+          right: 0;
+          background-color: white;
+          min-width: 200px;
+          box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+          border-radius: 4px;
+          padding: 8px 0;
+          z-index: 1000;
+      }
+
+      .user-menu:hover .user-menu-content {
+          display: block;
+      }
+
+      .user-menu-item {
+          display: block;
+          padding: 8px 16px;
+          color: #333;
+          text-decoration: none;
+          transition: background-color 0.3s;
+      }
+
+      .user-menu-item:hover {
+          background-color: #f5f5f5;
+      }
+
+      .user-menu-divider {
+          height: 1px;
+          background-color: #eee;
+          margin: 8px 0;
+      }
+
+      .user-profile-btn {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          padding: 8px 16px;
+          border: none;
+          background: none;
+          cursor: pointer;
+          color: white;
+      }
+
+      .user-avatar {
+          width: 32px;
+          height: 32px;
+          border-radius: 50%;
+          background-color: #6c5ce7;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: white;
+          font-weight: 500;
+      }
+
+      .sign-in-btn {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          color: white;
+          background: none;
+          border: none;
+          cursor: pointer;
+          font-size: 1rem;
+          text-decoration: none;
+      }
+
+      .sign-in-btn i {
+          font-size: 20px;
+      }
+    </style>
 </head>
 <body>
     <header>
-        <nav class="navbar">
-            <div class="container">
-                <a href="/" class="navbar-brand">AI Fundamentals</a>
-                <div class="navbar-menu">
-                    <a href="/learning.html">Learning</a>
-                    <a href="/ai-tools.html">AI Tools</a>
-                    <a href="/premium.html">Premium</a>
-                </div>
-                <div class="navbar-end">
-                    <div class="user-menu">
-                        <!-- User menu will be populated by JavaScript -->
+        <div class="container">
+            <a href="/" class="logo">
+                <i class="fas fa-brain"></i>
+                <h1>AI Fundamentals</h1>
+            </a>
+            <nav>
+                <ul>
+                    <li><a href="/learning.html">Learning</a></li>
+                    <li><a href="/ai-tools.html">AI Tools</a></li>
+                    <li><a href="/premium.html">Premium</a></li>
+                </ul>
+            </nav>
+            <div id="auth-container">
+                <a href="login.html" class="sign-in-btn" id="sign-in-btn">
+                    <i class="fas fa-sign-in-alt"></i>
+                    <span>Sign In</span>
+                </a>
+                <div class="user-menu" id="user-menu" style="display: none;">
+                    <button class="user-profile-btn">
+                        <div class="user-avatar" id="user-avatar"></div>
+                        <span id="user-email"></span>
+                    </button>
+                    <div class="user-menu-content">
+                        <a href="/account.html" class="user-menu-item">
+                            <i class="fas fa-user"></i> My Account
+                        </a>
+                        <a href="/my-learning.html" class="user-menu-item">
+                            <i class="fas fa-graduation-cap"></i> My Learning
+                        </a>
+                        <a href="/my-games.html" class="user-menu-item premium-item">
+                            <i class="fas fa-gamepad"></i> My Games
+                        </a>
+                        <a href="/my-game-plan.html" class="user-menu-item premium-item">
+                            <i class="fas fa-clipboard-list"></i> My Game Plan
+                        </a>
+                        <a href="/settings.html" class="user-menu-item">
+                            <i class="fas fa-cog"></i> Settings
+                        </a>
+                        <div class="user-menu-divider"></div>
+                        <a href="#" class="user-menu-item" id="sign-out-btn">
+                            <i class="fas fa-sign-out-alt"></i> Sign Out
+                        </a>
                     </div>
                 </div>
             </div>
-        </nav>
+        </div>
     </header>
 
     <main>
-        <div id="my-game-plan-root">
-            <!-- React app will be mounted here -->
-            <div class="loading-spinner">Loading...</div>
+        <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 20px;">
+            <div class="page-header">
+                <h1>My Game Plan</h1>
+                <p>Generate personalized AI project implementation plans to guide your learning journey</p>
+            </div>
+            
+            <div id="my-game-plan-root"></div>
+            
+            <!-- Fallback if React fails to load -->
+            <div id="loading-fallback" style="display: flex; justify-content: center; align-items: center; height: 300px;">
+                <div style="text-align: center;">
+                    <div class="spinner" style="border: 4px solid rgba(0,0,0,.1); width: 36px; height: 36px; border-radius: 50%; border-left-color: #5D3FD3; animation: spin 1s linear infinite; margin: 0 auto;"></div>
+                    <p style="margin-top: 16px;">Loading Game Plan generator...</p>
+                </div>
+            </div>
         </div>
     </main>
 
     <footer>
         <div class="container">
-            <p>&copy; 2025 AI Fundamentals. All rights reserved.</p>
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>AI Fundamentals</h3>
+                    <p>Your journey to AI mastery starts here</p>
+                </div>
+                <div class="footer-section">
+                    <h3>Resources</h3>
+                    <ul>
+                        <li><a href="#">Flashcards</a></li>
+                        <li><a href="#">Study Guides</a></li>
+                        <li><a href="#">Video Lessons</a></li>
+                        <li><a href="#">Practice Quizzes</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>Company</h3>
+                    <ul>
+                        <li><a href="#">About Us</a></li>
+                        <li><a href="#">Contact</a></li>
+                        <li><a href="#">Careers</a></li>
+                        <li><a href="#">Blog</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>Legal</h3>
+                    <ul>
+                        <li><a href="#">Terms of Service</a></li>
+                        <li><a href="#">Privacy Policy</a></li>
+                        <li><a href="#">Cookie Policy</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 AI Fundamentals. All rights reserved.</p>
+                <div class="social-icons">
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                    <a href="#"><i class="fab fa-facebook"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                    <a href="#"><i class="fab fa-linkedin"></i></a>
+                </div>
+            </div>
         </div>
     </footer>
 
-    <script src="my-game-plan/my-game-plan-bundle.js"></script>
+    <style>
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+    </style>
+
+    <!-- Auth Integration -->
+    <script src="js/auth-integration.js"></script>
+    <script src="js/stripe-integration.js"></script>
+    <script src="js/access-control.js"></script>
+
+    <!-- Firebase Configuration -->
     <script>
-        // Check if user is logged in
-        document.addEventListener('DOMContentLoaded', function() {
-            // Initialize Firebase
-            const firebaseConfig = {
-                // Your Firebase config will be here
-            };
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyDjMisQkMgdA6qNg7gnXDumhNOOWOD-Y00",
+            authDomain: "ai-fundamentals-ad37d.firebaseapp.com",
+            projectId: "ai-fundamentals-ad37d",
+            storageBucket: "ai-fundamentals-ad37d.appspot.com",
+            messagingSenderId: "668115447112",
+            appId: "1:668115447112:web:c0772e9f8c6a498737977d",
+            measurementId: "G-2D5V39EQ3T"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+
+        // Auth state observer
+        firebase.auth().onAuthStateChanged((user) => {
+            const signInBtn = document.getElementById('sign-in-btn');
+            const userMenu = document.getElementById('user-menu');
+            const userAvatar = document.getElementById('user-avatar');
+            const userEmail = document.getElementById('user-email');
             
-            if (!firebase.apps.length) {
-                firebase.initializeApp(firebaseConfig);
+            if (user) {
+                // User is signed in
+                signInBtn.style.display = 'none';
+                userMenu.style.display = 'block';
+                
+                // Set user email and avatar
+                userEmail.textContent = user.email;
+                userAvatar.textContent = user.email[0].toUpperCase();
+                
+                // Update premium content visibility
+                document.querySelectorAll('.premium-content').forEach(elem => {
+                    elem.classList.add('unlocked');
+                });
+            } else {
+                // User is signed out
+                signInBtn.style.display = 'flex';
+                userMenu.style.display = 'none';
+                
+                // Update premium content visibility
+                document.querySelectorAll('.premium-content').forEach(elem => {
+                    elem.classList.remove('unlocked');
+                });
+                
+                // Redirect to login page since this is a premium feature
+                window.location.href = 'login.html?redirect=my-game-plan.html';
             }
-            
-            // Check authentication state
-            firebase.auth().onAuthStateChanged(function(user) {
-                if (user) {
-                    // User is signed in, update UI
-                    const userMenu = document.querySelector('.user-menu');
-                    userMenu.innerHTML = `
-                        <div class="dropdown">
-                            <button class="dropdown-toggle">
-                                ${user.displayName || user.email}
-                            </button>
-                            <div class="dropdown-menu">
-                                <a href="/my-learning.html">My Learning</a>
-                                <a href="/my-games.html">My Games</a>
-                                <a href="/my-game-plan.html">My Game Plan</a>
-                                <a href="/settings.html">Settings</a>
-                                <a href="#" id="logout-button">Logout</a>
-                            </div>
-                        </div>
-                    `;
-                    
-                    // Add logout functionality
-                    document.getElementById('logout-button').addEventListener('click', function(e) {
-                        e.preventDefault();
-                        firebase.auth().signOut().then(function() {
-                            window.location.href = '/';
-                        }).catch(function(error) {
-                            console.error('Error signing out:', error);
-                        });
-                    });
-                } else {
-                    // User is not signed in, redirect to login page
-                    window.location.href = '/login.html';
-                }
+        });
+
+        // Sign out functionality
+        document.getElementById('sign-out-btn').addEventListener('click', (e) => {
+            e.preventDefault();
+            firebase.auth().signOut().then(() => {
+                window.location.href = 'index.html';
+            }).catch((error) => {
+                console.error('Sign out error:', error);
             });
         });
+        
+        // Initialize user credits if needed
+        function initializeUserCreditsIfNeeded(userId) {
+            const db = firebase.firestore();
+            
+            // First check if user document exists
+            db.collection('users').doc(userId).get().then((doc) => {
+                if (!doc.exists) {
+                    // Create the user document first with initial data
+                    return db.collection('users').doc(userId).set({
+                        credits: 10, // Initial credits for new users
+                    });
+                }
+            }).catch((error) => {
+                console.error('Error checking/initializing user credits:', error);
+            });
+        }
+    </script>
+
+    <!-- Make Firebase available to the React app -->
+    <script>
+        // Make Firebase accessible to the React component
+        window.firebase = firebase;
+    </script>
+
+    <!-- Include the bundled React application -->
+    <script src="dist/my-game-plan-bundle.js"></script>
+    
+    <script>
+      // Check if bundle loaded correctly
+      window.addEventListener('load', function() {
+        // Give the app some time to render
+        setTimeout(function() {
+          // If loading indicator is still visible after 5 seconds, show error
+          const loadingEl = document.getElementById('loading-fallback');
+          if (loadingEl && loadingEl.style.display !== 'none') {
+            console.error('React app failed to hide loading indicator');
+            loadingEl.innerHTML = 
+              '<div style="text-align: center; padding: 20px;">' +
+              '<h2 style="color: #e53e3e; margin-bottom: 10px;">Unable to load game plan content</h2>' +
+              '<p>We\'re having trouble loading the My Game Plan experience. Please try refreshing the page.</p>' +
+              '<button onclick="window.location.reload()" style="background: #5D3FD3; color: white; border: none; padding: 8px 16px; border-radius: 4px; margin-top: 16px; cursor: pointer;">Refresh Page</button>' +
+              '</div>';
+          }
+        }, 8000);
+      });
     </script>
 </body>
 </html>
