@@ -14,6 +14,10 @@ const cors = require('cors')({
 });
 const { VertexAI } = require('@google-cloud/vertexai');
 
+// Import Vercel AI SDK components
+const { xai } = require("@ai-sdk/xai");
+const { generateText } = require("ai");
+
 // Initialize Firebase Admin SDK
 admin.initializeApp();
 
@@ -1629,7 +1633,7 @@ const GROK_API_URL = functions.config().grok?.apiurl || process.env.GROK_API_URL
 // Log the URL being used for verification
 console.log('Using Grok API URL:', GROK_API_URL);
 
-// Generate Game Plan using Grok
+// Generate Game Plan using Vercel AI SDK
 exports.generateGamePlan = functions.https.onCall(async (data, context) => {
   // Ensure user is authenticated
   if (!context.auth) {
@@ -1648,8 +1652,8 @@ exports.generateGamePlan = functions.https.onCall(async (data, context) => {
       );
     }
     
-    // Create enhanced prompt for game plan generation with topic, challenge, and project type
-    const prompt = `
+    // Create enhanced prompt for game plan generation
+    const userPrompt = `
       Create a detailed implementation plan for the following project:
       "${data.projectDescription || 'A project in the selected category'}"
       
@@ -1662,141 +1666,73 @@ exports.generateGamePlan = functions.https.onCall(async (data, context) => {
       2. Recommended technologies with brief descriptions
       3. Learning resources (tutorials, documentation, courses)
       
-      Format the response as a structured JSON object with these fields:
+      Format the response ONLY as a valid JSON object with these fields:
       {
         "plan": ["step 1", "step 2", ...],
-        "technologies": [{"name": "Tech Name", "description": "Brief description"}, ...],
-        "resources": [{"title": "Resource Title", "url": "URL", "type": "Tutorial/Documentation/Course"}, ...]
+        "technologies": [{"name": "Tech Name", "description": "Brief description"}],
+        "resources": [{"title": "Resource Title", "url": "URL", "type": "Tutorial/Documentation/Course"}],
       }
     `;
-    
+
     // Enhanced system message with guardrails
     const systemMessage = `
       You are a helpful AI assistant that creates detailed project implementation plans. 
       Only respond to questions about project planning, technology selection, and implementation strategies.
       For off-topic questions or casual conversation, politely redirect the user to describe their project instead.
-      Always format your response as a valid JSON object with the specified structure.
+      Always format your response as a single, valid JSON object adhering strictly to the specified structure. DO NOT include markdown formatting like \`\`\`json.
       Ensure all URLs in resources are valid and point to reputable sources.
       For each technology recommended, provide a clear and concise description of its purpose and benefits.
-      
       Tailor your response to the specific topic, challenge, and project type provided.
-      For example:
-      - If the topic is "Videography" and the challenge is "Video Editing", focus on video editing tools and workflows.
-      - If the project type is "Personal Project", keep recommendations accessible for individuals.
-      - If the project type is "Enterprise Solution", include considerations for scalability and team collaboration.
     `;
-    
-    // Initialize axios if not available
-    const axios = require('axios');
-    
-    // Construct the full API endpoint URL
-    let endpointUrl = GROK_API_URL;
-    if (!endpointUrl.includes('/chat/completions')) {
-        endpointUrl = `${GROK_API_URL.replace(/\/$/, '')}/chat/completions`; // Append path if missing
-    }
-    
-    console.log('Attempting to POST to:', endpointUrl); // Log the actual endpoint
 
-    // Call Grok API using the constructed endpoint URL
-    const response = await axios.post(
-      endpointUrl,
-      {
-        model: data.model || 'grok-2-latest',
-        messages: [
-          { role: 'system', content: systemMessage },
-          { role: 'user', content: prompt }
-        ],
-        temperature: 0.7,
-        max_tokens: 2000
-      },
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${GROK_API_KEY}`
-        }
-      }
-    );
-    
-    // Parse the response
-    const responseText = response.data.choices[0].message.content;
-    let parsedResponse;
-    
-    try {
-      // Extract JSON from the response
-      const jsonMatch = responseText.match(/```json\n([\s\S]*?)\n```/) || 
-                      responseText.match(/{[\s\S]*}/);
-      
-      const jsonString = jsonMatch ? jsonMatch[1] || jsonMatch[0] : responseText;
-      parsedResponse = JSON.parse(jsonString);
-    } catch (parseError) {
-      console.error('Error parsing AI response:', parseError);
-      // Provide a fallback structured response based on the selected topic and challenge
-      return {
-        success: true,
-        plan: [
-          `Please provide more specific details about your ${data.topic || 'project'}.`,
-          `Consider the specific challenges you're facing with ${data.challenge || 'your project'}.`,
-          `Think about the requirements for your ${data.projectType || 'project type'}.`,
-          "Describe what you're trying to build and what problem it solves.",
-          "Include any specific technologies you're interested in using."
-        ],
-        technologies: [
-          {
-            name: "Recommended Technologies",
-            description: `Select specific details for your ${data.topic || 'project'} to get tailored technology recommendations.`
-          }
-        ],
-        resources: [
-          {
-            title: "AI Fundamentals Learning Resources",
-            url: "https://ai-fundamentals.me/learning.html",
-            type: "Learning Path"
-          }
-        ]
-      };
-    }
-    
-    // Validate the response structure and provide fallbacks if needed
-    if (!parsedResponse.plan || !Array.isArray(parsedResponse.plan) || parsedResponse.plan.length === 0) {
-      parsedResponse.plan = [`Please provide more specific details about your ${data.topic || 'project'} to get a customized implementation plan.`];
-    }
-    
-    if (!parsedResponse.technologies || !Array.isArray(parsedResponse.technologies) || parsedResponse.technologies.length === 0) {
-      parsedResponse.technologies = [
-        {
-          name: "Recommended Technologies",
-          description: `Please provide more specific details about your ${data.topic || 'project'} to get technology recommendations.`
-        }
-      ];
-    }
-    
-    if (!parsedResponse.resources || !Array.isArray(parsedResponse.resources) || parsedResponse.resources.length === 0) {
-      parsedResponse.resources = [
-        {
-          title: "AI Fundamentals Learning Resources",
-          url: "https://ai-fundamentals.me/learning.html",
-          type: "Learning Path"
-        }
-      ];
-    }
-    
-    // Ensure all resources have valid URLs
-    parsedResponse.resources = parsedResponse.resources.map(resource => {
-      if (!resource.url || !resource.url.startsWith('http')) {
-        resource.url = `https://ai-fundamentals.me/search.html?q=${encodeURIComponent(resource.title || 'learning resources')}`;
-      }
-      return resource;
+    console.log(`Generating game plan for topic: ${data.topic}, challenge: ${data.challenge}, type: ${data.projectType}`);
+
+    // Call Grok using Vercel AI SDK
+    const { text } = await generateText({
+      model: xai('grok-2-1212'), // Using the correct model from your Vercel example
+      system: systemMessage,
+      prompt: userPrompt,
+      // Pass the API key explicitly if needed, though SDK might auto-detect
+      // apiKey: GROK_API_KEY 
     });
-    
+
+    console.log("Raw response from AI SDK:", text);
+
+    // Attempt to parse the JSON response
+    let parsedResponse;
+    try {
+      parsedResponse = JSON.parse(text);
+      
+      // Basic validation of parsed structure
+      if (!parsedResponse || !Array.isArray(parsedResponse.plan) || !Array.isArray(parsedResponse.technologies) || !Array.isArray(parsedResponse.resources)) {
+           throw new Error('Parsed response does not match expected structure.');
+      }
+      
+    } catch (parseError) {
+      console.error('Error parsing AI response JSON:', parseError, "Raw text was:", text);
+      // Provide a more helpful fallback or re-throw
+      throw new functions.https.HttpsError(
+        'internal',
+        'The AI response was not in the expected JSON format. Please try again.' + (parseError.message ? ` (${parseError.message})` : '')
+      );
+    }
+
+    // Return the successfully parsed plan structure
     return {
       success: true,
       plan: parsedResponse.plan,
       technologies: parsedResponse.technologies,
       resources: parsedResponse.resources
     };
+
   } catch (error) {
-    console.error('Error calling Grok API:', error);
-    throw new functions.https.HttpsError('internal', error.message);
+    console.error('Error in generateGamePlan function:', error);
+    // Handle specific HttpsError or general errors
+    if (error instanceof functions.https.HttpsError) {
+      throw error;
+    }
+    // Log and throw a generic internal error for other cases
+    throw new functions.https.HttpsError('internal', 'An unexpected error occurred while generating the game plan.' + (error.message ? ` (${error.message})` : ''));
   }
 });
 
@@ -1842,8 +1778,8 @@ exports.generateGamePlanHttp = functions.https.onRequest((req, res) => {
         Format the response as a structured JSON object with these fields:
         {
           "plan": ["step 1", "step 2", ...],
-          "technologies": [{"name": "Tech Name", "description": "Brief description"}, ...],
-          "resources": [{"title": "Resource Title", "url": "URL", "type": "Tutorial/Documentation/Course"}, ...]
+          "technologies": [{"name": "Tech Name", "description": "Brief description"}],
+          "resources": [{"title": "Resource Title", "url": "URL", "type": "Tutorial/Documentation/Course"}],
         }
       `;
       
@@ -1852,7 +1788,7 @@ exports.generateGamePlanHttp = functions.https.onRequest((req, res) => {
         You are a helpful AI assistant that creates detailed project implementation plans. 
         Only respond to questions about project planning, technology selection, and implementation strategies.
         For off-topic questions or casual conversation, politely redirect the user to describe their project instead.
-        Always format your response as a valid JSON object with the specified structure.
+        Always format your response as a single, valid JSON object adhering strictly to the specified structure. DO NOT include markdown formatting like \`\`\`json.
         Ensure all URLs in resources are valid and point to reputable sources.
         For each technology recommended, provide a clear and concise description of its purpose and benefits.
       `;
@@ -1877,9 +1813,7 @@ exports.generateGamePlanHttp = functions.https.onRequest((req, res) => {
             messages: [
               { role: 'system', content: systemMessage },
               { role: 'user', content: prompt }
-            ],
-            temperature: 0.7,
-            max_tokens: 2000
+            ]
           },
           {
             headers: {
