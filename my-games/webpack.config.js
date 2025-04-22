@@ -51,10 +51,8 @@ module.exports = {
       "tls": false
     }
   },
-  // Externalize dependencies
+  // Externalize dependencies - only Firebase now
   externals: {
-    'react': 'React',
-    'react-dom': 'ReactDOM',
     'firebase/app': 'firebase',
     'firebase/auth': 'firebase',
     'firebase/firestore': 'firebase',
