@@ -1689,9 +1689,17 @@ exports.generateGamePlan = functions.https.onCall(async (data, context) => {
     // Initialize axios if not available
     const axios = require('axios');
     
-    // Call Grok API
+    // Construct the full API endpoint URL
+    let endpointUrl = GROK_API_URL;
+    if (!endpointUrl.includes('/chat/completions')) {
+        endpointUrl = `${GROK_API_URL.replace(/\/$/, '')}/chat/completions`; // Append path if missing
+    }
+    
+    console.log('Attempting to POST to:', endpointUrl); // Log the actual endpoint
+
+    // Call Grok API using the constructed endpoint URL
     const response = await axios.post(
-      GROK_API_URL,
+      endpointUrl,
       {
         model: data.model || 'grok-2-latest',
         messages: [
@@ -1853,9 +1861,17 @@ exports.generateGamePlanHttp = functions.https.onRequest((req, res) => {
       const axios = require('axios');
       
       try {
-        // Call Grok API
+        // Construct the full API endpoint URL
+        let endpointUrl = GROK_API_URL;
+        if (!endpointUrl.includes('/chat/completions')) {
+            endpointUrl = `${GROK_API_URL.replace(/\/$/, '')}/chat/completions`; // Append path if missing
+        }
+        
+        console.log('Attempting to POST to:', endpointUrl); // Log the actual endpoint
+
+        // Call Grok API using the constructed endpoint URL
         const response = await axios.post(
-          GROK_API_URL,
+          endpointUrl,
           {
             model: model,
             messages: [
