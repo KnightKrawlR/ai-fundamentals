@@ -491,7 +491,7 @@
                 topic: selectedTopic,
                 challenge: selectedChallenge,
                 projectType: selectedProjectType,
-                description: description || '' // Send empty string if no description
+                projectDescription: description || '' // <-- Changed field name to match function
               };
               
               console.log("Calling generateGamePlan with data:", requestData);
