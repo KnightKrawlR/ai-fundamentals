@@ -30,6 +30,11 @@ module.exports = {
   },
   resolve: {
     extensions: ['.js', '.jsx'],
+    alias: {
+      // Ensure React is resolved consistently
+      'react': path.resolve(__dirname, 'node_modules/react'),
+      'react-dom': path.resolve(__dirname, 'node_modules/react-dom'),
+    },
     fallback: {
       // Node.js polyfills
       "stream": false,
@@ -46,8 +51,10 @@ module.exports = {
       "tls": false
     }
   },
-  // Externalize Firebase - it will be loaded from CDN
+  // Externalize dependencies
   externals: {
+    'react': 'React',
+    'react-dom': 'ReactDOM',
     'firebase/app': 'firebase',
     'firebase/auth': 'firebase',
     'firebase/firestore': 'firebase',

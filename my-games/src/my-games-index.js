@@ -1,6 +1,6 @@
 // Enhanced my-games-index.js with better error handling and debugging
 import React from 'react';
-import { createRoot } from 'react-dom/client';
+import ReactDOM from 'react-dom';
 import MyGames from './components/MyGames';
 import ErrorBoundary from './components/ErrorBoundary';
 import './styles/tailwind.css';
@@ -139,16 +139,16 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('Initializing React for games component');
     showDebugOnPage('Initializing React for games component');
     
-    const root = createRoot(rootElement);
-    
-    // Pass Firebase instance to MyGames component
-    root.render(
+    // React 17 way of rendering components
+    ReactDOM.render(
       <React.StrictMode>
         <ErrorBoundary>
           <MyGames firebaseProp={firebase} />
         </ErrorBoundary>
-      </React.StrictMode>
+      </React.StrictMode>,
+      rootElement
     );
+    
     console.log('React component rendered successfully for games');
     showDebugOnPage('React component rendered successfully');
   } catch (error) {
