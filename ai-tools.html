@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Tools - AI Fundamentals</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .tools-hero {
+            background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url('images/ai-tools-bg.jpg');
+            background-size: cover;
+            background-position: center;
+            color: white;
+            padding: 120px 0;
+            text-align: center;
+        }
+        .tools-hero h1 {
+            font-size: 3.5rem;
+            margin-bottom: 20px;
+        }
+        .tools-hero p {
+            font-size: 1.2rem;
+            max-width: 700px;
+            margin: 0 auto 30px;
+        }
+        .tool-categories {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 30px;
+            gap: 10px;
+        }
+        .category-tag {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 50px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .category-tag:hover, .category-tag.active {
+            background: white;
+            color: #333;
+        }
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+        .tool-card {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .tool-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+        }
+        .tool-image {
+            height: 200px;
+            overflow: hidden;
+        }
+        .tool-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+        .tool-card:hover .tool-image img {
+            transform: scale(1.1);
+        }
+        .tool-content {
+            padding: 25px;
+        }
+        .tool-tags {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        .tool-tag {
+            background: #f0f4ff;
+            color: #6e8efb;
+            padding: 4px 10px;
+            border-radius: 50px;
+            font-size: 0.8rem;
+        }
+        .tool-tag.premium {
+            background: #fff0e0;
+            color: #ff9800;
+        }
+        .tool-title {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+            color: #333;
+        }
+        .tool-description {
+            color: #666;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+        .tool-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .tool-credits {
+            color: #6e8efb;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        .tool-button {
+            background: #6e8efb;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: background 0.3s ease;
+        }
+        .tool-button:hover {
+            background: #5a7aea;
+        }
+        .premium-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+        .tool-card.premium-locked:hover .premium-overlay {
+            opacity: 1;
+        }
+        .premium-overlay-content {
+            text-align: center;
+            color: white;
+            padding: 20px;
+        }
+        .premium-overlay-content h3 {
+            margin-bottom: 10px;
+        }
+        .premium-overlay-content p {
+            margin-bottom: 20px;
+        }
+        .premium-locked {
+            position: relative;
+        }
+        .premium-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: linear-gradient(135deg, #ffb347, #ffcc33);
+            color: #333;
+            font-weight: bold;
+            padding: 5px 10px;
+            border-radius: 50px;
+            font-size: 0.8rem;
+            z-index: 1;
+        }
+        .featured-tools {
+            padding: 80px 0;
+            background: #f9f9f9;
+        }
+        .how-it-works {
+            padding: 80px 0;
+        }
+        .steps-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+        .step-card {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+        .step-number {
+            width: 50px;
+            height: 50px;
+            background: #6e8efb;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin: 0 auto 20px;
+        }
+        .step-title {
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            color: #333;
+        }
+        .step-description {
+            color: #666;
+            line-height: 1.6;
+        }
+        .tools-section {
+            padding: 80px 0;
+        }
+        .usage-examples {
+            padding: 80px 0;
+            background: linear-gradient(135deg, #6e8efb, #a777e3);
+            color: white;
+        }
+        .example-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+        .example-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+        }
+        .example-title {
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+        }
+        .example-description {
+            opacity: 0.9;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+        .example-link {
+            color: white;
+            text-decoration: underline;
+        }
+        @media (max-width: 768px) {
+            .tools-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    <script src="firebase-config.js"></script>
+    
+    <header>
+        <div class="logo">
+            <a href="index.html">AI Fundamentals</a>
+        </div>
+        <nav>
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="ai-tools.html" class="active">AI Tools</a></li>
+                <li><a href="learning-paths.html">Learning Paths</a></li>
+                <li><a href="premium.html">Premium</a></li>
+                <li><a href="#" id="login-button">Login</a></li>
+                <li><a href="#" id="profile-button" style="display: none;">My Profile</a></li>
+            </ul>
+        </nav>
+        <div class="menu-toggle">
+            <i class="fas fa-bars"></i>
+        </div>
+    </header>
+
+    <section class="tools-hero">
+        <div class="container">
+            <h1>AI Tools for Every Need</h1>
+            <p>Explore our collection of powerful AI tools for text generation, image creation, code assistance, and more.</p>
+            <div class="tool-categories">
+                <div class="category-tag active">All</div>
+                <div class="category-tag">Text Generation</div>
+                <div class="category-tag">Image Creation</div>
+                <div class="category-tag">Code Assistance</div>
+                <div class="category-tag">Data Analysis</div>
+                <div class="category-tag">Audio Processing</div>
+            </div>
+        </div>
+    </section>
+
+    <section class="featured-tools">
+        <div class="container">
+            <h2 class="section-title">Featured Tools</h2>
+            <p class="section-subtitle">Our most popular AI tools to help you create, analyze, and innovate</p>
+            
+            <div class="tools-grid">
+                <div class="tool-card">
+                    <div class="tool-image">
+                        <img src="images/text-generator.jpg" alt="AI Text Generator">
+                    </div>
+                    <div class="tool-content">
+                        <div class="tool-tags">
+                            <span class="tool-tag">Text Generation</span>
+                            <span class="tool-tag">Content Creation</span>
+                        </div>
+                        <h3 class="tool-title">AI Text Generator</h3>
+                        <p class="tool-description">Generate high-quality, creative content for blogs, articles, marketing copy, and more with our advanced text generation tool.</p>
+                        <div class="tool-footer">
+                            <span class="tool-credits">5 credits per use</span>
+                            <a href="tools/text-generator.html" class="tool-button">Try it</a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="tool-card premium-locked">
+                    <div class="premium-badge">Premium</div>
+                    <div class="tool-image">
+                        <img src="images/image-creator.jpg" alt="AI Image Creator">
+                    </div>
+                    <div class="tool-content">
+                        <div class="tool-tags">
+                            <span class="tool-tag">Image Creation</span>
+                            <span class="tool-tag premium">Premium</span>
+                        </div>
+                        <h3 class="tool-title">AI Image Creator</h3>
+                        <p class="tool-description">Generate stunning, unique images from text descriptions using our state-of-the-art diffusion models. Perfect for design, marketing, and creative projects.</p>
+                        <div class="tool-footer">
+                            <span class="tool-credits">20 credits per image</span>
+                            <a href="#" class="tool-button premium-tool-btn">Unlock</a>
+                        </div>
+                    </div>
+                    <div class="premium-overlay">
+                        <div class="premium-overlay-content">
+                            <h3>Premium Feature</h3>
+                            <p>Unlock this tool with a premium membership</p>
+                            <a href="premium.html" class="cta-button">Go Premium</a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="tool-card">
+                    <div class="tool-image">
+                        <img src="images/code-assistant.jpg" alt="Code Assistant">
+                    </div>
+                    <div class="tool-content">
+                        <div class="tool-tags">
+                            <span class="tool-tag">Code</span>
+                            <span class="tool-tag">Development</span>
+                        </div>
+                        <h3 class="tool-title">Code Assistant</h3>
+                        <p class="tool-description">Get coding help, generate functions, debug issues, and optimize your code across multiple programming languages.</p>
+                        <div class="tool-footer">
+                            <span class="tool-credits">3 credits per query</span>
+                            <a href="tools/code-assistant.html" class="tool-button">Try it</a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="tool-card premium-locked">
+                    <div class="premium-badge">Premium</div>
+                    <div class="tool-image">
+                        <img src="images/data-analyzer.jpg" alt="Data Analyzer">
+                    </div>
+                    <div class="tool-content">
+                        <div class="tool-tags">
+                            <span class="tool-tag">Data Analysis</span>
+                            <span class="tool-tag premium">Premium</span>
+                        </div>
+                        <h3 class="tool-title">Data Analyzer</h3>
+                        <p class="tool-description">Upload datasets and get instant insights, visualizations, and actionable recommendations to inform decision-making.</p>
+                        <div class="tool-footer">
+                            <span class="tool-credits">15 credits per analysis</span>
+                            <a href="#" class="tool-button premium-tool-btn">Unlock</a>
+                        </div>
+                    </div>
+                    <div class="premium-overlay">
+                        <div class="premium-overlay-content">
+                            <h3>Premium Feature</h3>
+                            <p>Unlock this tool with a premium membership</p>
+                            <a href="premium.html" class="cta-button">Go Premium</a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="tool-card">
+                    <div class="tool-image">
+                        <img src="images/text-summarizer.jpg" alt="Text Summarizer">
+                    </div>
+                    <div class="tool-content">
+                        <div class="tool-tags">
+                            <span class="tool-tag">Text Processing</span>
+                            <span class="tool-tag">Research</span>
+                        </div>
+                        <h3 class="tool-title">Text Summarizer</h3>
+                        <p class="tool-description">Condense long articles, research papers, or reports into concise, coherent summaries while preserving key information.</p>
+                        <div class="tool-footer">
+                            <span class="tool-credits">2 credits per summary</span>
+                            <a href="tools/text-summarizer.html" class="tool-button">Try it</a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="tool-card premium-locked">
+                    <div class="premium-badge">Premium</div>
+                    <div class="tool-image">
+                        <img src="images/voice-converter.jpg" alt="Voice Converter">
+                    </div>
+                    <div class="tool-content">
+                        <div class="tool-tags">
+                            <span class="tool-tag">Audio</span>
+                            <span class="tool-tag premium">Premium</span>
+                        </div>
+                        <h3 class="tool-title">Voice Converter</h3>
+                        <p class="tool-description">Transform text into natural-sounding speech in multiple languages and voices. Perfect for content creation, accessibility, and learning.</p>
+                        <div class="tool-footer">
+                            <span class="tool-credits">10 credits per minute</span>
+                            <a href="#" class="tool-button premium-tool-btn">Unlock</a>
+                        </div>
+                    </div>
+                    <div class="premium-overlay">
+                        <div class="premium-overlay-content">
+                            <h3>Premium Feature</h3>
+                            <p>Unlock this tool with a premium membership</p>
+                            <a href="premium.html" class="cta-button">Go Premium</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="how-it-works">
+        <div class="container">
+            <h2 class="section-title">How It Works</h2>
+            <p class="section-subtitle">Quick and easy steps to start using our AI tools</p>
+            
+            <div class="steps-container">
+                <div class="step-card">
+                    <div class="step-number">1</div>
+                    <h3 class="step-title">Choose a Tool</h3>
+                    <p class="step-description">Browse our collection of AI tools and select the one that fits your needs.</p>
+                </div>
+                
+                <div class="step-card">
+                    <div class="step-number">2</div>
+                    <h3 class="step-title">Input Your Request</h3>
+                    <p class="step-description">Provide the necessary information or prompts required by the tool.</p>
+                </div>
+                
+                <div class="step-card">
+                    <div class="step-number">3</div>
+                    <h3 class="step-title">Process & Generate</h3>
+                    <p class="step-description">Our AI processes your request and generates high-quality outputs in seconds.</p>
+                </div>
+                
+                <div class="step-card">
+                    <div class="step-number">4</div>
+                    <h3 class="step-title">Use & Share Results</h3>
+                    <p class="step-description">Download, copy, or share your AI-generated content for your projects.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="tools-section">
+        <div class="container">
+            <h2 class="section-title">All Tools</h2>
+            <p class="section-subtitle">Discover our complete collection of AI-powered tools</p>
+            
+            <div class="tools-grid" id="all-tools-grid">
+                <!-- Additional tool cards will be loaded here -->
+            </div>
+        </div>
+    </section>
+
+    <section class="usage-examples">
+        <div class="container">
+            <h2 class="section-title">What You Can Create</h2>
+            <p class="section-subtitle">Real-world applications and examples from our users</p>
+            
+            <div class="example-grid">
+                <div class="example-card">
+                    <h3 class="example-title">Marketing Content</h3>
+                    <p class="example-description">Create engaging social media posts, email campaigns, and ad copy that resonates with your audience using our Text Generator.</p>
+                    <a href="#" class="example-link">View Example</a>
+                </div>
+                
+                <div class="example-card">
+                    <h3 class="example-title">Web Development</h3>
+                    <p class="example-description">Generate clean, efficient code for web applications, fix bugs, and optimize performance with our Code Assistant.</p>
+                    <a href="#" class="example-link">View Example</a>
+                </div>
+                
+                <div class="example-card">
+                    <h3 class="example-title">Data Visualization</h3>
+                    <p class="example-description">Transform complex datasets into insightful charts and reports that help drive business decisions with our Data Analyzer.</p>
+                    <a href="#" class="example-link">View Example</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="cta-section">
+        <div class="container">
+            <h2>Ready to Create with AI?</h2>
+            <p>Get started with our free tools or unlock all premium features</p>
+            <div class="cta-buttons">
+                <a href="#featured-tools" class="cta-button">Try Free Tools</a>
+                <a href="premium.html" class="cta-button secondary">Go Premium</a>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>Resources</h3>
+                    <ul>
+                        <li><a href="#">Documentation</a></li>
+                        <li><a href="#">API Reference</a></li>
+                        <li><a href="#">Tutorials</a></li>
+                        <li><a href="#">Community Forum</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>Company</h3>
+                    <ul>
+                        <li><a href="#">About Us</a></li>
+                        <li><a href="#">Careers</a></li>
+                        <li><a href="#">Blog</a></li>
+                        <li><a href="#">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>Legal</h3>
+                    <ul>
+                        <li><a href="#">Terms of Service</a></li>
+                        <li><a href="#">Privacy Policy</a></li>
+                        <li><a href="#">Cookie Policy</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>Connect</h3>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-facebook"></i></a>
+                        <a href="#"><i class="fab fa-linkedin"></i></a>
+                        <a href="#"><i class="fab fa-github"></i></a>
+                    </div>
+                    <p>Subscribe to our newsletter</p>
+                    <form>
+                        <input type="email" placeholder="Enter your email">
+                        <button type="submit">Subscribe</button>
+                    </form>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2023 AI Fundamentals. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Additional tool data
+        const allTools = [
+            {
+                name: "AI Text Generator",
+                description: "Generate high-quality, creative content for blogs, articles, marketing copy, and more with our advanced text generation tool.",
+                image: "images/text-generator.jpg",
+                categories: ["Text Generation", "Content Creation"],
+                credits: 5,
+                link: "tools/text-generator.html",
+                premium: false
+            },
+            {
+                name: "AI Image Creator",
+                description: "Generate stunning, unique images from text descriptions using our state-of-the-art diffusion models. Perfect for design, marketing, and creative projects.",
+                image: "images/image-creator.jpg",
+                categories: ["Image Creation"],
+                credits: 20,
+                link: "#",
+                premium: true
+            },
+            {
+                name: "Code Assistant",
+                description: "Get coding help, generate functions, debug issues, and optimize your code across multiple programming languages.",
+                image: "images/code-assistant.jpg",
+                categories: ["Code Assistance", "Development"],
+                credits: 3,
+                link: "tools/code-assistant.html",
+                premium: false
+            },
+            {
+                name: "Data Analyzer",
+                description: "Upload datasets and get instant insights, visualizations, and actionable recommendations to inform decision-making.",
+                image: "images/data-analyzer.jpg",
+                categories: ["Data Analysis"],
+                credits: 15,
+                link: "#",
+                premium: true
+            },
+            {
+                name: "Text Summarizer",
+                description: "Condense long articles, research papers, or reports into concise, coherent summaries while preserving key information.",
+                image: "images/text-summarizer.jpg",
+                categories: ["Text Generation", "Research"],
+                credits: 2,
+                link: "tools/text-summarizer.html",
+                premium: false
+            },
+            {
+                name: "Voice Converter",
+                description: "Transform text into natural-sounding speech in multiple languages and voices. Perfect for content creation, accessibility, and learning.",
+                image: "images/voice-converter.jpg",
+                categories: ["Audio Processing"],
+                credits: 10,
+                link: "#",
+                premium: true
+            },
+            {
+                name: "Language Translator",
+                description: "Translate text between 100+ languages with high accuracy and natural-sounding results.",
+                image: "images/translator.jpg",
+                categories: ["Text Generation", "Language"],
+                credits: 1,
+                link: "tools/translator.html",
+                premium: false
+            },
+            {
+                name: "Audio Transcriber",
+                description: "Convert audio recordings into accurate text transcriptions with speaker detection and timestamp options.",
+                image: "images/transcriber.jpg",
+                categories: ["Audio Processing", "Text Generation"],
+                credits: 8,
+                link: "#",
+                premium: true
+            },
+            {
+                name: "Chart Generator",
+                description: "Create professional charts and graphs from your data with customizable designs and export options.",
+                image: "images/chart-generator.jpg",
+                categories: ["Data Analysis"],
+                credits: 4,
+                link: "tools/chart-generator.html",
+                premium: false
+            },
+            {
+                name: "Email Writer",
+                description: "Generate professional and personalized emails for various purposes, from business inquiries to networking.",
+                image: "images/email-writer.jpg",
+                categories: ["Text Generation", "Business"],
+                credits: 3,
+                link: "tools/email-writer.html",
+                premium: false
+            },
+            {
+                name: "Resume Builder",
+                description: "Create a professional resume tailored to your industry with AI-generated content and formatting.",
+                image: "images/resume-builder.jpg",
+                categories: ["Text Generation", "Career"],
+                credits: 10,
+                link: "#",
+                premium: true
+            },
+            {
+                name: "Social Media Caption Generator",
+                description: "Generate engaging social media captions with hashtag suggestions optimized for different platforms.",
+                image: "images/caption-generator.jpg",
+                categories: ["Text Generation", "Social Media"],
+                credits: 2,
+                link: "tools/caption-generator.html",
+                premium: false
+            }
+        ];
+
+        // Function to create tool card HTML
+        function createToolCard(tool) {
+            return `
+                <div class="tool-card ${tool.premium ? 'premium-locked' : ''}">
+                    ${tool.premium ? '<div class="premium-badge">Premium</div>' : ''}
+                    <div class="tool-image">
+                        <img src="${tool.image}" alt="${tool.name}">
+                    </div>
+                    <div class="tool-content">
+                        <div class="tool-tags">
+                            ${tool.categories.map(category => 
+                                `<span class="tool-tag${category === 'Premium' ? ' premium' : ''}">${category}</span>`
+                            ).join('')}
+                            ${tool.premium ? '<span class="tool-tag premium">Premium</span>' : ''}
+                        </div>
+                        <h3 class="tool-title">${tool.name}</h3>
+                        <p class="tool-description">${tool.description}</p>
+                        <div class="tool-footer">
+                            <span class="tool-credits">${tool.credits} credit${tool.credits !== 1 ? 's' : ''} per use</span>
+                            <a href="${tool.link}" class="tool-button${tool.premium ? ' premium-tool-btn' : ''}">
+                                ${tool.premium ? 'Unlock' : 'Try it'}
+                            </a>
+                        </div>
+                    </div>
+                    ${tool.premium ? `
+                    <div class="premium-overlay">
+                        <div class="premium-overlay-content">
+                            <h3>Premium Feature</h3>
+                            <p>Unlock this tool with a premium membership</p>
+                            <a href="premium.html" class="cta-button">Go Premium</a>
+                        </div>
+                    </div>
+                    ` : ''}
+                </div>
+            `;
+        }
+
+        // Populate all tools grid
+        function populateAllTools(category = 'All') {
+            const toolsGrid = document.getElementById('all-tools-grid');
+            toolsGrid.innerHTML = '';
+            
+            const filteredTools = category === 'All' 
+                ? allTools 
+                : allTools.filter(tool => tool.categories.includes(category));
+            
+            filteredTools.forEach(tool => {
+                toolsGrid.innerHTML += createToolCard(tool);
+            });
+        }
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            // Populate all tools on page load
+            populateAllTools();
+            
+            // Category filter functionality
+            const categoryTags = document.querySelectorAll('.category-tag');
+            categoryTags.forEach(tag => {
+                tag.addEventListener('click', function() {
+                    // Update active state
+                    categoryTags.forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // Filter tools
+                    populateAllTools(this.textContent);
+                });
+            });
+            
+            // Handle premium tool buttons
+            document.addEventListener('click', function(e) {
+                if (e.target.classList.contains('premium-tool-btn')) {
+                    e.preventDefault();
+                    // Check if user is logged in before redirecting
+                    firebase.auth().onAuthStateChanged(function(user) {
+                        window.location.href = 'premium.html';
+                    });
+                }
+            });
+            
+            // Firebase auth state change
+            firebase.auth().onAuthStateChanged(function(user) {
+                const loginButton = document.getElementById('login-button');
+                const profileButton = document.getElementById('profile-button');
+                
+                if (user) {
+                    loginButton.style.display = 'none';
+                    profileButton.style.display = 'block';
+                    profileButton.addEventListener('click', function() {
+                        window.location.href = 'profile.html';
+                    });
+                } else {
+                    loginButton.style.display = 'block';
+                    profileButton.style.display = 'none';
+                    loginButton.addEventListener('click', function() {
+                        window.location.href = 'login.html';
+                    });
+                }
+            });
+            
+            // Mobile menu toggle
+            const menuToggle = document.querySelector('.menu-toggle');
+            const nav = document.querySelector('nav');
+
+            menuToggle.addEventListener('click', () => {
+                nav.classList.toggle('active');
+            });
+        });
+    </script>
+</body>
+</html> 
