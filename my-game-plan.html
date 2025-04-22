@@ -431,6 +431,11 @@
             const [selectedProjectType, setSelectedProjectType] = React.useState('');
             const [description, setDescription] = React.useState('');
             
+            // State for API interaction
+            const [isLoading, setIsLoading] = React.useState(false);
+            const [error, setError] = React.useState(null);
+            const [gamePlan, setGamePlan] = React.useState(null);
+            
             // Sample topics
             const topics = [
               'Introduction to AI',
@@ -475,12 +480,42 @@
             }, [selectedChallenge]);
             
             // Handle form submission
-            const handleSubmit = (e) => {
+            const handleSubmit = async (e) => {
               e.preventDefault();
-              alert(`Selected: ${selectedTopic} - ${selectedChallenge} - ${selectedProjectType}\nDescription: ${description}`);
+              setIsLoading(true);
+              setError(null);
+              setGamePlan(null);
+              
+              // Construct the prompt
+              const prompt = `Generate a detailed project implementation game plan for the following:\nTopic: ${selectedTopic}\nChallenge: ${selectedChallenge}\nProject Type: ${selectedProjectType}\nDescription: ${description || 'None provided'}\n\nPlease provide a step-by-step plan including potential tools, resources, and milestones.`;
+              
+              console.log("Calling callGrokApi with prompt:", prompt);
+              
+              try {
+                // Ensure Firebase functions is available
+                if (!window.firebase || !window.firebase.functions) {
+                    throw new Error("Firebase Functions SDK is not available.");
+                }
+                
+                const callGrokApi = firebase.functions().httpsCallable('callGrokApi');
+                const result = await callGrokApi({ prompt: prompt });
+                
+                console.log("Received response from callGrokApi:", result);
+                
+                if (result.data && result.data.plan) {
+                  setGamePlan(result.data.plan);
+                } else {
+                  throw new Error(result.data.error || 'Invalid response structure from API function.');
+                }
+              } catch (err) {
+                console.error("Error calling callGrokApi:", err);
+                setError(err.message || 'Failed to generate game plan. Please try again.');
+              } finally {
+                setIsLoading(false);
+              }
             };
             
-            // Render the form
+            // Render the form and results
             return React.createElement('div', {
               style: {
                 maxWidth: '800px',
@@ -623,17 +658,87 @@
                 // Submit button
                 React.createElement('button', {
                   type: 'submit',
-                  disabled: !selectedTopic || !selectedChallenge || !selectedProjectType,
+                  disabled: !selectedTopic || !selectedChallenge || !selectedProjectType || isLoading,
                   style: {
                     padding: '12px',
-                    backgroundColor: (!selectedTopic || !selectedChallenge || !selectedProjectType) ? '#ccc' : '#0ea5e9',
+                    backgroundColor: (!selectedTopic || !selectedChallenge || !selectedProjectType || isLoading) ? '#ccc' : '#0ea5e9',
                     color: 'white',
                     border: 'none',
                     borderRadius: '4px',
                     fontWeight: '500',
-                    cursor: (!selectedTopic || !selectedChallenge || !selectedProjectType) ? 'not-allowed' : 'pointer'
+                    cursor: (!selectedTopic || !selectedChallenge || !selectedProjectType || isLoading) ? 'not-allowed' : 'pointer'
                   }
-                }, 'Generate Game Plan')
+                }, isLoading ? 'Generating...' : 'Generate Game Plan')
+              ]),
+              
+              // --- Display Loading State --- 
+              isLoading && React.createElement('div', { 
+                style: { 
+                  marginTop: '20px', 
+                  textAlign: 'center',
+                  padding: '20px',
+                  border: '1px dashed #ccc',
+                  borderRadius: '4px'
+                }
+              }, [
+                React.createElement('div', { 
+                  className: 'spinner', 
+                  style: { 
+                    border: '4px solid rgba(0,0,0,.1)', 
+                    width: '36px', 
+                    height: '36px', 
+                    borderRadius: '50%', 
+                    borderLeftColor: '#0ea5e9', 
+                    animation: 'spin 1s linear infinite', 
+                    margin: '0 auto 10px auto'
+                  } 
+                }),
+                React.createElement('p', null, 'Generating your game plan with AI...')
+              ]),
+              
+              // --- Display Error State --- 
+              error && React.createElement('div', { 
+                style: { 
+                  marginTop: '20px', 
+                  padding: '15px', 
+                  backgroundColor: '#fef2f2', 
+                  color: '#dc2626', 
+                  border: '1px solid #fecaca',
+                  borderRadius: '4px' 
+                }
+              }, [
+                React.createElement('strong', null, 'Error: '),
+                error
+              ]),
+              
+              // --- Display Generated Game Plan --- 
+              gamePlan && React.createElement('div', { 
+                style: { 
+                  marginTop: '30px', 
+                  padding: '20px', 
+                  backgroundColor: '#f9fafb', 
+                  border: '1px solid #e5e7eb',
+                  borderRadius: '8px' 
+                }
+              }, [
+                React.createElement('h3', { 
+                  style: { 
+                    fontSize: '20px', 
+                    marginBottom: '15px', 
+                    color: '#111827' 
+                  } 
+                }, 'Your Generated Game Plan:'),
+                // Render the game plan content (assuming it's plain text for now)
+                // For markdown, you'd need a library like 'marked' or 'react-markdown'
+                React.createElement('pre', { 
+                  style: { 
+                    whiteSpace: 'pre-wrap', 
+                    wordWrap: 'break-word', 
+                    fontFamily: 'monospace', 
+                    lineHeight: '1.6', 
+                    color: '#374151' 
+                  }
+                }, gamePlan)
               ])
             ]);
           }
