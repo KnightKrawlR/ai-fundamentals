@@ -1722,26 +1722,50 @@ Following the original revision request:
 "${data.revisionRequest}"
 
 MERMAID DIAGRAM INSTRUCTIONS:
-Create or revise the Mermaid diagram based on the user's answer to your question. Create a clear, structured diagram that visualizes the solution architecture or process flow. Choose the appropriate diagram type:
-- For workflows and processes: Use flowchart with 'graph TD' (top-down) syntax
-- For sequence of operations: Use 'sequenceDiagram'
-- For system architecture: Use 'graph LR' (left-right) to show components
+Revise the Mermaid **topology diagram** based on the user's answer. Visualize the high-level **tool and process landscape** of the final working setup, giving a "bird's eye view".
 
-Keep the diagram focused on 5-10 key elements with meaningful labels and clear relationships.
-Do NOT use overly complex syntax or exotic Mermaid features.
-Test your diagram visually in your mind before including it.
+- **Focus**: Update relationships between key tools, platforms, data flows, or major process areas based on the answer.
+- **DO NOT**: Visualize the implementation steps. This is about the final system structure.
+- **Diagram Type**: Use \`graph TD\` (top-down) or \`graph LR\` (left-right).
+- **Functions vs. Tools**: If the answer clarifies a tool choice, update the diagram. If not, represent the *function* and optionally list tool examples within the node: \`FunctionName[Function: Description<br>(e.g., ToolX, ToolY)]\`.
+- **Simplicity**: Keep the diagram focused on 5-10 key elements.
+- **Syntax**: Use basic Mermaid syntax.
 
 Your response MUST be a single, valid JSON object with the same structure as the original plan, containing ONLY the following fields:
 {
   "project_summary": "A concise (1-2 sentence) summary interpreting the user's goal.",
-  "key_milestones": [...],
-  "suggested_steps": [...],
-  "recommended_technologies": [...],
-  "learning_resources": [...],
-  "potential_roadblocks": [...],
-  "success_metrics": [...],
-  "mermaid_diagram": "A Mermaid code block visualizing the high-level architecture or process flow. Do not include the triple-backtick markdown syntax, just provide the diagram code itself.",
-  "next_steps_prompt": "A brief suggestion encouraging the user on how to start or refine the plan."
+  "key_milestones": [
+    {"milestone": "High-level milestone 1", "description": "Brief description of what this entails."}, 
+    {"milestone": "High-level milestone 2", "description": "Brief description..."} 
+    // ... (Aim for 3-5 milestones total)
+  ],
+  "suggested_steps": [
+    {"step": "Actionable step 1", "details": "More details about executing this step."}, 
+    {"step": "Actionable step 2", "details": "More details..."} 
+    // ... (Aim for 5-10 detailed steps total, logically ordered)
+  ],
+  "recommended_technologies": [
+    {"name": "Tool/Platform Name 1", "reasoning": "Why this tool is suitable for the project and how it provides an all-in-one solution.", "type": "Core/Supporting/Optional"}, 
+    {"name": "Tool/Platform Name 2", "reasoning": "Why it's suitable and what problem it solves directly...", "type": "Core/Supporting/Optional"} 
+    // ... (Suggest 2-5 relevant tools/platforms total that minimize implementation effort)
+  ],
+  "learning_resources": [
+    {"title": "Resource Title 1", "url": "Valid URL", "type": "Tutorial/Documentation/Course/Example", "relevance": "How this helps with the specific project/steps."}, 
+    {"title": "Resource Title 2", "url": "Valid URL", "type": "Tutorial/Documentation/Course/Example", "relevance": "How it helps..."} 
+    // ... (Suggest 2-5 relevant resources total)
+  ],
+  "potential_roadblocks": [
+    {"roadblock": "Potential issue 1", "mitigation": "Suggestion on how to overcome or prepare for it."}, 
+    {"roadblock": "Potential issue 2", "mitigation": "Suggestion..."} 
+    // ... (Identify 1-3 likely roadblocks total)
+  ],
+  "success_metrics": [
+    {"metric": "Measurable outcome 1", "measurement": "How to track this metric."}, 
+    {"metric": "Measurable outcome 2", "measurement": "How to track..."} 
+    // ... (Define 1-3 key success metrics total)
+  ],
+  "mermaid_diagram": "The revised Mermaid code block visualizing the system topology. Provide only the diagram code itself, without markdown backticks.",
+  "next_steps_prompt": "A brief suggestion encouraging the user on how to start or refine the plan (e.g., 'Focus on Milestone 1 and explore the suggested resources.')."
 }`;
 
       // Override system message for answering questions
@@ -1821,14 +1845,14 @@ For technology recommendations, prioritize ready-made, all-in-one solutions that
 In all cases, prioritize recommending existing tools and platforms that solve most of the problem directly, rather than suggesting technologies the user would need to build solutions with from scratch.
 
 MERMAID DIAGRAM INSTRUCTIONS:
-Create or revise the Mermaid diagram based on user feedback. Create a clear, structured diagram that visualizes the solution architecture or process flow. Choose the appropriate diagram type:
-- For workflows and processes: Use flowchart with 'graph TD' (top-down) syntax
-- For sequence of operations: Use 'sequenceDiagram'
-- For system architecture: Use 'graph LR' (left-right) to show components
+Revise the Mermaid **topology diagram** based on user feedback. Visualize the high-level **tool and process landscape** of the final working setup, giving a "bird's eye view".
 
-Keep the diagram focused on 5-10 key elements with meaningful labels and clear relationships.
-Do NOT use overly complex syntax or exotic Mermaid features.
-Test your diagram visually in your mind before including it.
+- **Focus**: Update relationships between key tools, platforms, data flows, or major process areas based on the feedback.
+- **DO NOT**: Visualize the implementation steps. This is about the final system structure.
+- **Diagram Type**: Use \`graph TD\` (top-down) or \`graph LR\` (left-right).
+- **Functions vs. Tools**: If feedback clarifies a tool choice, update the diagram. If not, represent the *function* and optionally list tool examples within the node: \`FunctionName[Function: Description<br>(e.g., ToolX, ToolY)]\`.
+- **Simplicity**: Keep the diagram focused on 5-10 key elements.
+- **Syntax**: Use basic Mermaid syntax.
 
 Your response MUST be a single, valid JSON object with the same structure as the original plan, containing ONLY the following fields:
 {
@@ -1863,7 +1887,7 @@ Your response MUST be a single, valid JSON object with the same structure as the
     {"metric": "Measurable outcome 2", "measurement": "How to track..."} 
     // ... (Define 1-3 key success metrics total)
   ],
-  "mermaid_diagram": "A Mermaid code block visualizing the high-level architecture or process flow described in the plan. Do not include the triple-backtick markdown syntax, just provide the diagram code itself.",
+  "mermaid_diagram": "The revised Mermaid code block visualizing the system topology. Provide only the diagram code itself, without markdown backticks.",
   "next_steps_prompt": "A brief suggestion encouraging the user on how to start or refine the plan (e.g., 'Focus on Milestone 1 and explore the suggested resources.')."
 }`;
     } else {
@@ -1889,14 +1913,14 @@ For technology recommendations, prioritize ready-made, all-in-one solutions that
 In all cases, prioritize recommending existing tools and platforms that solve most of the problem directly, rather than suggesting technologies the user would need to build solutions with from scratch.
 
 MERMAID DIAGRAM INSTRUCTIONS:
-Create a clear, well-structured Mermaid diagram that visualizes the solution architecture or process flow. Use appropriate diagram type:
-- For workflows and processes: Use flowchart with 'graph TD' (top-down) syntax
-- For sequence of operations: Use 'sequenceDiagram'
-- For system architecture: Use 'graph LR' (left-right) to show components
+Create a **topology diagram** visualizing the high-level **tool and process landscape** of the final working setup. This should give a "bird's eye view" of how components interact.
 
-Keep the diagram focused on 5-10 key elements with meaningful labels and clear relationships.
-Do NOT use overly complex syntax or exotic Mermaid features.
-Test your diagram visually in your mind before including it.
+- **Focus**: Show the relationships between key tools, platforms, data flows, or major process areas.
+- **DO NOT**: Visualize the implementation steps. This is about the final system structure.
+- **Diagram Type**: Use \`graph TD\` (top-down) or \`graph LR\` (left-right) for system architecture/topology.
+- **Functions vs. Tools**: If a specific tool isn't selected for a function (e.g., email marketing), represent the *function* in a node. Optionally, list tool examples within the node like: \`Email_Marketing[Function: Email Marketing<br>(e.g., Mailchimp, Brevo)]\`.
+- **Simplicity**: Keep the diagram focused on 5-10 key elements with clear labels and relationships.
+- **Syntax**: Use basic Mermaid syntax. Avoid overly complex features.
 
 Your response MUST be a single, valid JSON object containing ONLY the following fields:
 {
@@ -1931,8 +1955,8 @@ Your response MUST be a single, valid JSON object containing ONLY the following 
     {"metric": "Measurable outcome 2", "measurement": "How to track..."} 
     // ... (Define 1-3 key success metrics total)
   ],
-  "mermaid_diagram": "A Mermaid code block visualizing the high-level architecture or process flow described in the plan. Do not include the triple-backtick markdown syntax, just provide the diagram code itself.",
-  "next_steps_prompt": "A brief suggestion encouraging the user on how to start or refine the plan (e.g., 'Focus on Milestone 1 and explore the suggested resources.')."
+  "mermaid_diagram": "A Mermaid code block visualizing the system topology. Provide only the diagram code itself, without markdown backticks.",
+  "next_steps_prompt": "A brief suggestion encouraging the user on how to start or refine the plan."
 }`;
     }
   
