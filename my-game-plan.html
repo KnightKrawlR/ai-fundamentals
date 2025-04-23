@@ -652,7 +652,10 @@
             
             // Handle form submission with better error handling
             const handleSubmit = async (e) => {
-              e.preventDefault();
+              if (e) e.preventDefault();
+              console.log("Form submission started");
+              console.log("Current form values:", { topic: selectedTopic, challenge: selectedChallenge, projectType: selectedProjectType });
+              
               setIsLoading(true);
               setError(null);
               
@@ -673,7 +676,10 @@
               if (window.firebase && firebase.auth().currentUser) {
                 try {
                   const userId = firebase.auth().currentUser.uid;
+                  console.log("Authenticated user ID:", userId);
+                  
                   await ensureUserDocumentExists(userId);
+                  console.log("User document confirmed");
                   
                   // Construct the data object to send to the function
                   const requestData = {
@@ -695,71 +701,81 @@
                     throw new Error("User is not authenticated. Please sign in again.");
                   }
                   
-                  // Call the generateGamePlan function
-                  const actualGamePlanFunction = firebase.functions().httpsCallable('generateGamePlan');
-                  const result = await actualGamePlanFunction(requestData);
-                  
-                  console.log("Received response from generateGamePlan function:", result);
-                  
-                  if (result.data && typeof result.data === 'object') {
-                    setGamePlanResult(result.data);
+                  try {
+                    console.log("About to call Firebase function");
+                    // Call the generateGamePlan function
+                    const actualGamePlanFunction = firebase.functions().httpsCallable('generateGamePlan');
+                    console.log("Firebase function retrieved:", actualGamePlanFunction);
                     
-                    // Manually save the game plan to Firestore
-                    try {
-                      // Generate a title from the project summary
-                      let planTitle = 'Game Plan';
-                      if (result.data.project_summary) {
-                        const words = result.data.project_summary.split(' ').slice(0, 6).join(' ');
-                        planTitle = `${words}${words.endsWith('.') ? '' : '...'}`;
-                      } else if (selectedTopic && selectedChallenge) {
-                        planTitle = `${selectedTopic}: ${selectedChallenge}`;
-                      } else if (selectedTopic) {
-                        planTitle = selectedTopic;
-                      }
+                    const result = await actualGamePlanFunction(requestData);
+                    console.log("Received response from generateGamePlan function:", result);
+                    
+                    if (result.data && typeof result.data === 'object') {
+                      console.log("Setting game plan result:", result.data);
+                      setGamePlanResult(result.data);
                       
-                      // Save to Firestore directly
-                      const db = firebase.firestore();
-                      const userDocRef = db.collection('users').doc(userId);
-                      
-                      // Create planData object
-                      const planData = {
-                        title: planTitle,
-                        topic: selectedTopic || '',
-                        challenge: selectedChallenge || '',
-                        projectType: selectedProjectType || '',
-                        description: description || '',
-                        plan: result.data,
-                        revisionHistory: [],
-                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-                      };
-                      
-                      // Save to Firestore and update state with the new plan
-                      const docRef = await userDocRef.collection('gamePlans').add(planData);
-                      console.log('Manually saved game plan with ID:', docRef.id);
-                      
-                      // Reload saved plans after adding a new one
-                      const plansSnapshot = await userDocRef.collection('gamePlans').get();
-                      const updatedPlans = [];
-                      plansSnapshot.forEach(doc => {
-                        updatedPlans.push({
-                          id: doc.id,
-                          ...doc.data()
+                      // Manually save the game plan to Firestore
+                      try {
+                        // Generate a title from the project summary
+                        let planTitle = 'Game Plan';
+                        if (result.data.project_summary) {
+                          const words = result.data.project_summary.split(' ').slice(0, 6).join(' ');
+                          planTitle = `${words}${words.endsWith('.') ? '' : '...'}`;
+                        } else if (selectedTopic && selectedChallenge) {
+                          planTitle = `${selectedTopic}: ${selectedChallenge}`;
+                        } else if (selectedTopic) {
+                          planTitle = selectedTopic;
+                        }
+                        
+                        // Save to Firestore directly
+                        const db = firebase.firestore();
+                        const userDocRef = db.collection('users').doc(userId);
+                        
+                        // Create planData object
+                        const planData = {
+                          title: planTitle,
+                          topic: selectedTopic || '',
+                          challenge: selectedChallenge || '',
+                          projectType: selectedProjectType || '',
+                          description: description || '',
+                          plan: result.data,
+                          revisionHistory: [],
+                          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                          updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                        };
+                        
+                        // Save to Firestore and update state with the new plan
+                        const docRef = await userDocRef.collection('gamePlans').add(planData);
+                        console.log('Manually saved game plan with ID:', docRef.id);
+                        
+                        // Reload saved plans after adding a new one
+                        const plansSnapshot = await userDocRef.collection('gamePlans').get();
+                        const updatedPlans = [];
+                        plansSnapshot.forEach(doc => {
+                          updatedPlans.push({
+                            id: doc.id,
+                            ...doc.data()
+                          });
                         });
-                      });
-                      
-                      // Update the plans in state
-                      setSavedGamePlans(updatedPlans);
-                      setSelectedPlanId(docRef.id);
-                      setViewMode('view');
-                    } catch (saveError) {
-                      console.error('Error saving game plan:', saveError);
+                        
+                        // Update the plans in state
+                        setSavedGamePlans(updatedPlans);
+                        setSelectedPlanId(docRef.id);
+                        setViewMode('view');
+                      } catch (saveError) {
+                        console.error('Error saving game plan:', saveError);
+                      }
+                    } else {
+                      console.error("Invalid response structure:", result);
+                      throw new Error(result.data?.error || result.data || 'Invalid response structure from function.');
                     }
-                  } else {
-                    throw new Error(result.data?.error || result.data || 'Invalid response structure from function.');
+                  } catch (functionError) {
+                    console.error("Firebase function error:", functionError);
+                    throw functionError;
                   }
                 } catch (err) {
                   console.error("Error calling generateGamePlan:", err);
+                  console.error("Error details:", err.code, err.message, err.details);
                   
                   // Enhanced error messages for common issues
                   if (err.code === 'permission-denied' || err.message?.includes('permission')) {
@@ -771,8 +787,10 @@
                   }
                 } finally {
                   setIsLoading(false);
+                  console.log("Form submission completed");
                 }
               } else {
+                console.error("No authenticated user found");
                 setError('You must be signed in to create a game plan.');
                 setIsLoading(false);
               }
@@ -1107,8 +1125,92 @@
                   })
                 ]),
                 
-                // The rest of your existing form code...
-                // ...
+                // Always show form when in create mode and no saved plans
+                (!isFormCollapsed || (viewMode === 'create' && savedGamePlans.length === 0)) && React.createElement('form', {
+                  onSubmit: handleSubmit,
+                  className: 'flex flex-col space-y-5'
+                }, [
+                  // Topic dropdown
+                  React.createElement('div', {}, [
+                    React.createElement('label', {
+                      htmlFor: 'topic',
+                      className: 'block mb-2 font-medium text-gray-700'
+                    }, 'Topic'),
+                    React.createElement('select', {
+                      id: 'topic',
+                      value: selectedTopic,
+                      onChange: (e) => setSelectedTopic(e.target.value),
+                      className: 'w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-300 focus:border-blue-500 transition-all'
+                    }, [
+                      React.createElement('option', { value: '' }, 'Select a topic'),
+                      ...['Introduction to AI', 'Office Productivity', 'Personal Finance', 'Social Media Marketing', 'Videography', 'eCommerce'].map(topic => 
+                        React.createElement('option', { key: topic, value: topic }, topic)
+                      )
+                    ])
+                  ]),
+                  
+                  // Challenge dropdown
+                  React.createElement('div', {}, [
+                    React.createElement('label', {
+                      htmlFor: 'challenge',
+                      className: 'block mb-2 font-medium text-gray-700'
+                    }, 'Challenge'),
+                    React.createElement('select', {
+                      id: 'challenge',
+                      value: selectedChallenge,
+                      onChange: (e) => setSelectedChallenge(e.target.value),
+                      disabled: !selectedTopic,
+                      className: 'w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-300 focus:border-blue-500 transition-all disabled:bg-gray-100 disabled:text-gray-500'
+                    }, [
+                      React.createElement('option', { value: '' }, 'Select a challenge'),
+                      ...['Understanding AI Concepts', 'Machine Learning', 'Natural Language Processing', 'Document Automation', 'Email Management', 'Budgeting'].map(challenge => 
+                        React.createElement('option', { key: challenge, value: challenge }, challenge)
+                      )
+                    ])
+                  ]),
+                  
+                  // Project Type dropdown
+                  React.createElement('div', {}, [
+                    React.createElement('label', {
+                      htmlFor: 'projectType',
+                      className: 'block mb-2 font-medium text-gray-700'
+                    }, 'Project Type'),
+                    React.createElement('select', {
+                      id: 'projectType',
+                      value: selectedProjectType,
+                      onChange: (e) => setSelectedProjectType(e.target.value),
+                      disabled: !selectedChallenge,
+                      className: 'w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-300 focus:border-blue-500 transition-all disabled:bg-gray-100 disabled:text-gray-500'
+                    }, [
+                      React.createElement('option', { value: '' }, 'Select a project type'),
+                      ...['Personal Project', 'Small Business', 'Enterprise Solution'].map(type => 
+                        React.createElement('option', { key: type, value: type }, type)
+                      )
+                    ])
+                  ]),
+                  
+                  // Description textarea
+                  React.createElement('div', {}, [
+                    React.createElement('label', {
+                      htmlFor: 'description',
+                      className: 'block mb-2 font-medium text-gray-700'
+                    }, 'Project Description (Optional)'),
+                    React.createElement('textarea', {
+                      id: 'description',
+                      value: description,
+                      onChange: (e) => setDescription(e.target.value),
+                      placeholder: 'Provide any additional details about your project...',
+                      className: 'w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-300 focus:border-blue-500 transition-all min-h-[120px] resize-y'
+                    })
+                  ]),
+                  
+                  // Submit button
+                  React.createElement('button', {
+                    type: 'submit',
+                    disabled: !selectedTopic || !selectedChallenge || !selectedProjectType || isLoading,
+                    className: 'btn-apple py-3 px-4 font-medium text-white rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed'
+                  }, isLoading ? 'Generating...' : 'Generate Game Plan')
+                ]),
               ]),
               
               // AI Question Section - NEW COMPONENT
