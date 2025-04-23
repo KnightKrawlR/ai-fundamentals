@@ -434,7 +434,7 @@
             // State for API interaction
             const [isLoading, setIsLoading] = React.useState(false);
             const [error, setError] = React.useState(null);
-            const [gamePlan, setGamePlan] = React.useState(null);
+            const [gamePlanResult, setGamePlanResult] = React.useState(null);
             
             // Sample topics
             const topics = [
@@ -484,14 +484,14 @@
               e.preventDefault();
               setIsLoading(true);
               setError(null);
-              setGamePlan(null);
+              setGamePlanResult(null);
               
               // Construct the data object to send to the function
               const requestData = {
                 topic: selectedTopic,
                 challenge: selectedChallenge,
                 projectType: selectedProjectType,
-                projectDescription: description || '' // <-- Changed field name to match function
+                projectDescription: description || ''
               };
               
               console.log("Calling generateGamePlan with data:", requestData);
@@ -508,10 +508,10 @@
                 
                 console.log("Received response from generateGamePlan function:", result);
                 
-                if (result.data && result.data.plan) {
-                  setGamePlan(result.data.plan);
+                if (result.data && typeof result.data === 'object') {
+                  setGamePlanResult(result.data);
                 } else {
-                  throw new Error(result.data.error || 'Invalid response structure from API function.');
+                  throw new Error(result.data?.error || result.data || 'Invalid response structure from function.');
                 }
               } catch (err) {
                 console.error("Error calling generateGamePlan:", err);
@@ -718,33 +718,120 @@
               ]),
               
               // --- Display Generated Game Plan --- 
-              gamePlan && React.createElement('div', { 
-                style: { 
-                  marginTop: '30px', 
-                  padding: '20px', 
-                  backgroundColor: '#f9fafb', 
-                  border: '1px solid #e5e7eb',
-                  borderRadius: '8px' 
-                }
+              gamePlanResult && React.createElement('div', { 
+                  className: 'game-plan-results mt-8 p-6 bg-gray-50 border border-gray-200 rounded-lg shadow-sm'
               }, [
-                React.createElement('h3', { 
-                  style: { 
-                    fontSize: '20px', 
-                    marginBottom: '15px', 
-                    color: '#111827' 
-                  } 
-                }, 'Your Generated Game Plan:'),
-                // Render the game plan content (assuming it's plain text for now)
-                // For markdown, you'd need a library like 'marked' or 'react-markdown'
-                React.createElement('pre', { 
-                  style: { 
-                    whiteSpace: 'pre-wrap', 
-                    wordWrap: 'break-word', 
-                    fontFamily: 'monospace', 
-                    lineHeight: '1.6', 
-                    color: '#374151' 
-                  }
-                }, gamePlan)
+                  // Project Summary
+                  gamePlanResult.project_summary && React.createElement('div', { className: 'mb-6 border-b pb-4' }, [
+                      React.createElement('h3', { className: 'text-xl font-semibold text-gray-800 mb-2' }, 'Project Summary'),
+                      React.createElement('p', { className: 'text-gray-700' }, gamePlanResult.project_summary)
+                  ]),
+                  
+                  // Key Milestones
+                  gamePlanResult.key_milestones && gamePlanResult.key_milestones.length > 0 && React.createElement('div', { className: 'mb-6 border-b pb-4' }, [
+                      React.createElement('h3', { className: 'text-xl font-semibold text-gray-800 mb-3' }, 'Key Milestones'),
+                      React.createElement('ul', { className: 'list-none space-y-3' }, 
+                          gamePlanResult.key_milestones.map((item, index) => 
+                              React.createElement('li', { key: 'milestone-' + index, className: 'flex items-start' }, [
+                                  React.createElement('span', { className: 'flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-700 rounded-full flex items-center justify-center font-bold mr-3 mt-1' }, index + 1),
+                                  React.createElement('div', null, [
+                                      React.createElement('strong', { className: 'block text-gray-900' }, item.milestone),
+                                      React.createElement('p', { className: 'text-gray-600' }, item.description)
+                                  ])
+                              ])
+                          )
+                      )
+                  ]),
+
+                  // Suggested Steps
+                  gamePlanResult.suggested_steps && gamePlanResult.suggested_steps.length > 0 && React.createElement('div', { className: 'mb-6 border-b pb-4' }, [
+                      React.createElement('h3', { className: 'text-xl font-semibold text-gray-800 mb-3' }, 'Suggested Steps'),
+                      React.createElement('ol', { className: 'list-decimal list-inside space-y-3 text-gray-700' }, 
+                          gamePlanResult.suggested_steps.map((item, index) => 
+                              React.createElement('li', { key: 'step-' + index }, [
+                                  React.createElement('strong', { className: 'text-gray-900' }, item.step),
+                                  item.details && React.createElement('p', { className: 'pl-4 text-sm text-gray-600' }, item.details)
+                              ])
+                          )
+                      )
+                  ]),
+                  
+                  // Recommended Technologies
+                  gamePlanResult.recommended_technologies && gamePlanResult.recommended_technologies.length > 0 && React.createElement('div', { className: 'mb-6 border-b pb-4' }, [
+                      React.createElement('h3', { className: 'text-xl font-semibold text-gray-800 mb-3' }, 'Recommended Technologies'),
+                      React.createElement('div', { className: 'grid grid-cols-1 md:grid-cols-2 gap-4' }, 
+                          gamePlanResult.recommended_technologies.map((item, index) => 
+                              React.createElement('div', { key: 'tech-' + index, className: 'p-4 border rounded-md bg-white' }, [
+                                  React.createElement('strong', { className: 'block text-gray-900 text-lg' }, item.name, 
+                                      item.type && React.createElement('span', { 
+                                          className: `ml-2 text-xs font-medium px-2 py-0.5 rounded ${item.type === 'Core' ? 'bg-green-100 text-green-800' : item.type === 'Supporting' ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100 text-gray-800'}` 
+                                      }, item.type)
+                                  ),
+                                  item.reasoning && React.createElement('p', { className: 'text-gray-600 text-sm mt-1' }, item.reasoning)
+                              ])
+                          )
+                      )
+                  ]),
+
+                  // Learning Resources
+                  gamePlanResult.learning_resources && gamePlanResult.learning_resources.length > 0 && React.createElement('div', { className: 'mb-6 border-b pb-4' }, [
+                      React.createElement('h3', { className: 'text-xl font-semibold text-gray-800 mb-3' }, 'Learning Resources'),
+                      React.createElement('ul', { className: 'space-y-3' }, 
+                          gamePlanResult.learning_resources.map((item, index) => 
+                              React.createElement('li', { key: 'resource-' + index, className: 'p-3 border rounded-md bg-white flex items-start' }, [
+                                  React.createElement('i', { className: 'fas fa-link text-gray-400 mr-3 mt-1' }), // FontAwesome link icon
+                                  React.createElement('div', null, [
+                                      React.createElement('a', { 
+                                          href: item.url, 
+                                          target: '_blank', 
+                                          rel: 'noopener noreferrer', 
+                                          className: 'text-blue-600 hover:underline font-medium' 
+                                      }, item.title),
+                                      item.type && React.createElement('span', { className: 'ml-2 text-xs text-gray-500' }, `(${item.type})`),
+                                      item.relevance && React.createElement('p', { className: 'text-gray-600 text-sm mt-1' }, item.relevance)
+                                  ])
+                              ])
+                          )
+                      )
+                  ]),
+                  
+                  // Potential Roadblocks
+                  gamePlanResult.potential_roadblocks && gamePlanResult.potential_roadblocks.length > 0 && React.createElement('div', { className: 'mb-6 border-b pb-4' }, [
+                      React.createElement('h3', { className: 'text-xl font-semibold text-gray-800 mb-3' }, 'Potential Roadblocks'),
+                      React.createElement('ul', { className: 'list-none space-y-3' }, 
+                          gamePlanResult.potential_roadblocks.map((item, index) => 
+                              React.createElement('li', { key: 'roadblock-' + index, className: 'flex items-start' }, [
+                                  React.createElement('i', { className: 'fas fa-exclamation-triangle text-yellow-500 mr-3 mt-1' }), // FontAwesome warning icon
+                                  React.createElement('div', null, [
+                                      React.createElement('strong', { className: 'block text-gray-900' }, item.roadblock),
+                                      item.mitigation && React.createElement('p', { className: 'text-gray-600 text-sm' }, 'Mitigation: ' + item.mitigation)
+                                  ])
+                              ])
+                          )
+                      )
+                  ]),
+
+                  // Success Metrics
+                  gamePlanResult.success_metrics && gamePlanResult.success_metrics.length > 0 && React.createElement('div', { className: 'mb-6 border-b pb-4' }, [
+                      React.createElement('h3', { className: 'text-xl font-semibold text-gray-800 mb-3' }, 'Success Metrics'),
+                      React.createElement('ul', { className: 'list-none space-y-3' }, 
+                          gamePlanResult.success_metrics.map((item, index) => 
+                              React.createElement('li', { key: 'metric-' + index, className: 'flex items-start' }, [
+                                  React.createElement('i', { className: 'fas fa-check-circle text-green-500 mr-3 mt-1' }), // FontAwesome check icon
+                                  React.createElement('div', null, [
+                                      React.createElement('strong', { className: 'block text-gray-900' }, item.metric),
+                                      item.measurement && React.createElement('p', { className: 'text-gray-600 text-sm' }, 'Measurement: ' + item.measurement)
+                                  ])
+                              ])
+                          )
+                      )
+                  ]),
+                  
+                  // Next Steps Prompt
+                  gamePlanResult.next_steps_prompt && React.createElement('div', { className: 'mt-4 p-4 bg-blue-50 border border-blue-200 rounded-md' }, [
+                      React.createElement('h4', { className: 'text-lg font-semibold text-blue-800 mb-1' }, 'Next Steps'),
+                      React.createElement('p', { className: 'text-blue-700' }, gamePlanResult.next_steps_prompt)
+                  ])
               ])
             ]);
           }

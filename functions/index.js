@@ -418,9 +418,9 @@ const verifyCredits = async (uid, operationType) => {
   const newCredits = currentCredits - cost;
   await userRef.update({ credits: newCredits });
   
-  // Log the transaction
+  // Log the transaction - FIXED: Changed userId to uid
   await admin.firestore().collection('creditTransactions').add({
-    userId,
+    userId: uid,
     operationType,
     creditsCost: cost,
     remainingCredits: newCredits,
@@ -481,6 +481,9 @@ exports.generateVertexAIResponse = createCallableFunction(async (data, context) 
     // Validate authentication
     await validateAuth(context, allowAnonymous);
     
+    // FIXED: Get the Vertex AI client first
+    const vertexAI = await getVertexClient();
+    
     // Initialize the generative model
     const generativeModel = vertexAI.getGenerativeModel({
       model: model,
@@ -498,6 +501,8 @@ exports.generateVertexAIResponse = createCallableFunction(async (data, context) 
     });
 
     const response = result.response;
+    
+    // Extract the generated text
     const generatedText = response.candidates[0].content.parts[0].text;
     
     // Get usage metadata
@@ -547,6 +552,9 @@ exports.processChatConversation = createCallableFunction(async (data, context) =
     
     // Validate authentication
     await validateAuth(context, allowAnonymous);
+    
+    // FIXED: Get the Vertex AI client first
+    const vertexAI = await getVertexClient();
     
     // Initialize the chat model
     const generativeModel = vertexAI.getGenerativeModel({
@@ -928,6 +936,9 @@ exports.generateText = functions.https.onRequest((req, res) => {
         return res.status(400).json({ error: 'Prompt is required' });
       }
 
+      // FIXED: Get the Vertex AI client first
+      const vertexAI = await getVertexClient();
+
       // Generate text using VertexAI
       const generatedText = await vertexAI.generateText(prompt);
       
@@ -958,6 +969,9 @@ exports.processChat = functions.https.onRequest((req, res) => {
         return res.status(400).json({ error: 'Valid messages array is required' });
       }
 
+      // FIXED: Get the Vertex AI client first
+      const vertexAI = await getVertexClient();
+
       // Process chat using VertexAI
       const response = await vertexAI.processChat(messages);
       
@@ -967,9 +981,9 @@ exports.processChat = functions.https.onRequest((req, res) => {
       functions.logger.error('Error in processChat function:', error);
       return res.status(500).json({ error: 'Failed to process chat', details: error.message });
     }
-        });
-      });
-      
+  });
+});
+
 /**
  * Process image with VertexAI Vision
  */
@@ -987,6 +1001,9 @@ exports.processImage = functions.https.onRequest((req, res) => {
       if (!imageUrl) {
         return res.status(400).json({ error: 'Image URL is required' });
       }
+
+      // FIXED: Get the Vertex AI client first
+      const vertexAI = await getVertexClient();
 
       // Process image using VertexAI
       const result = await vertexAI.processImage(imageUrl, prompt);
@@ -1017,6 +1034,9 @@ exports.generateEmbedding = functions.https.onRequest((req, res) => {
       if (!text) {
         return res.status(400).json({ error: 'Text is required' });
       }
+
+      // FIXED: Get the Vertex AI client first
+      const vertexAI = await getVertexClient();
 
       // Generate embedding using VertexAI
       const embedding = await vertexAI.generateEmbedding(text);
@@ -1052,6 +1072,9 @@ exports.processGameMessage = functions.https.onCall(async (data, context) => {
         'Game state and user message are required.'
       );
     }
+
+    // FIXED: Get the Vertex AI client first
+    const vertexAI = await getVertexClient();
 
     // Process game message using VertexAI
     const result = await vertexAI.processGameMessage(gameState, userMessage);
@@ -1127,6 +1150,9 @@ exports.generateTextResponse = functions.https.onRequest((req, res) => {
       // Verify credits for text operation
       const remainingCredits = await verifyCredits(user.uid, 'text');
       
+      // FIXED: Get the Vertex AI client first
+      const vertexAI = await getVertexClient();
+      
       // Generate response
       const response = await vertexAI.generateResponse(prompt, systemInstructions || '');
       
@@ -1167,6 +1193,9 @@ exports.processAudio = functions.https.onRequest((req, res) => {
       // Verify credits for audio operation
       const remainingCredits = await verifyCredits(user.uid, 'audio');
       
+      // FIXED: Get the Vertex AI client first
+      const vertexAI = await getVertexClient();
+      
       // Process the audio
       const result = await vertexAI.processAudio(
         base64Audio, 
@@ -1185,9 +1214,9 @@ exports.processAudio = functions.https.onRequest((req, res) => {
         error: error.message 
       });
     }
-        });
-      });
-      
+  });
+});
+
 /**
  * Get user's credit balance
  */
@@ -1222,7 +1251,7 @@ exports.getUserCredits = functions.https.onRequest((req, res) => {
       });
     }
   });
-  });
+});
 
 /**
  * Add credits to user account (for admins or payment processing)
@@ -1601,7 +1630,7 @@ exports.testVertexAI = functions.https.onRequest((req, res) => {
         }
         
         healthResponse.aiTest = {
-      success: true,
+          success: true,
           response: responseText
         };
       } catch (aiError) {
@@ -1615,7 +1644,7 @@ exports.testVertexAI = functions.https.onRequest((req, res) => {
       
       // Return the health response
       return res.status(200).json(healthResponse);
-  } catch (error) {
+    } catch (error) {
       console.error('Error in testVertexAI function:', error);
       return res.status(500).json({
         status: 'error',
@@ -1652,48 +1681,73 @@ exports.generateGamePlan = functions.https.onCall(async (data, context) => {
       );
     }
     
-    // Create enhanced prompt for game plan generation
-    const userPrompt = `
-      Create a detailed implementation plan for the following project:
-      "${data.projectDescription || 'A project in the selected category'}"
-      
-      ${data.topic ? `Topic: ${data.topic}` : ''}
-      ${data.challenge ? `Challenge: ${data.challenge}` : ''}
-      ${data.projectType ? `Project Type: ${data.projectType}` : ''}
-      
-      Provide the following:
-      1. A step-by-step implementation plan (at least 5 steps)
-      2. Recommended technologies with brief descriptions
-      3. Learning resources (tutorials, documentation, courses)
-      
-      Format the response ONLY as a valid JSON object with these fields:
-      {
-        "plan": ["step 1", "step 2", ...],
-        "technologies": [{"name": "Tech Name", "description": "Brief description"}],
-        "resources": [{"title": "Resource Title", "url": "URL", "type": "Tutorial/Documentation/Course"}],
-      }
+    // Refined prompt for a more comprehensive game plan
+    const userPrompt = `Analyze the following project request and generate a comprehensive, actionable implementation game plan.
+Project Details:
+- Topic: ${data.topic || 'Not specified'}
+- Challenge: ${data.challenge || 'Not specified'}
+- Project Type: ${data.projectType || 'Not specified'}
+- Description: "${data.projectDescription || 'A project in the selected category'}"
+
+Assume standard best practices and make reasonable assumptions where details are missing to provide a valuable starting point.
+
+Your response MUST be a single, valid JSON object containing ONLY the following fields:
+{
+  "project_summary": "A concise (1-2 sentence) summary interpreting the user's goal.",
+  "key_milestones": [
+    {"milestone": "High-level milestone 1", "description": "Brief description of what this entails."}, 
+    {"milestone": "High-level milestone 2", "description": "Brief description..."} 
+    // ... (Aim for 3-5 milestones total)
+  ],
+  "suggested_steps": [
+    {"step": "Actionable step 1", "details": "More details about executing this step."}, 
+    {"step": "Actionable step 2", "details": "More details..."} 
+    // ... (Aim for 5-10 detailed steps total, logically ordered)
+  ],
+  "recommended_technologies": [
+    {"name": "Tech Name 1", "reasoning": "Why this tech is suitable for the project.", "type": "Core/Supporting/Optional"}, 
+    {"name": "Tech Name 2", "reasoning": "Why it's suitable...", "type": "Core/Supporting/Optional"} 
+    // ... (Suggest 2-5 relevant technologies total)
+  ],
+  "learning_resources": [
+    {"title": "Resource Title 1", "url": "Valid URL", "type": "Tutorial/Documentation/Course/Example", "relevance": "How this helps with the specific project/steps."}, 
+    {"title": "Resource Title 2", "url": "Valid URL", "type": "Tutorial/Documentation/Course/Example", "relevance": "How it helps..."} 
+    // ... (Suggest 2-5 relevant resources total)
+  ],
+  "potential_roadblocks": [
+    {"roadblock": "Potential issue 1", "mitigation": "Suggestion on how to overcome or prepare for it."}, 
+    {"roadblock": "Potential issue 2", "mitigation": "Suggestion..."} 
+    // ... (Identify 1-3 likely roadblocks total)
+  ],
+  "success_metrics": [
+    {"metric": "Measurable outcome 1", "measurement": "How to track this metric."}, 
+    {"metric": "Measurable outcome 2", "measurement": "How to track..."} 
+    // ... (Define 1-3 key success metrics total)
+  ],
+  "next_steps_prompt": "A brief suggestion encouraging the user on how to start or refine the plan (e.g., 'Focus on Milestone 1 and explore the suggested resources.')."
+}
     `;
 
-    // Enhanced system message with guardrails
+    // Refined system message
     const systemMessage = `
-      You are a helpful AI assistant that creates detailed project implementation plans. 
-      Only respond to questions about project planning, technology selection, and implementation strategies.
-      For off-topic questions or casual conversation, politely redirect the user to describe their project instead.
-      Always format your response as a single, valid JSON object adhering strictly to the specified structure. DO NOT include markdown formatting like \`\`\`json.
-      Ensure all URLs in resources are valid and point to reputable sources.
-      For each technology recommended, provide a clear and concise description of its purpose and benefits.
-      Tailor your response to the specific topic, challenge, and project type provided.
+      You are an expert project strategist and AI assistant specializing in creating detailed, actionable implementation plans.
+      Your goal is to provide significant value by interpreting user requests, making intelligent assumptions, and outlining a clear path forward.
+      Adhere STRICTLY to the requested JSON output format. Respond ONLY with the valid JSON object, no introductory text, explanations, or markdown formatting (like \`\`\`json).
+      Ensure all provided URLs are valid and relevant.
+      Prioritize clarity, conciseness, and actionable advice.
+      If the request is vague, use the provided details (Topic, Challenge, Type, Description) to infer the user's likely intent and build a relevant plan.
+      Do not ask clarifying questions; instead, make reasonable assumptions and state them if necessary within the plan details.
+      Focus on providing a robust starting point that users will find impressive and helpful.
     `;
 
     console.log(`Generating game plan for topic: ${data.topic}, challenge: ${data.challenge}, type: ${data.projectType}`);
 
     // Call Grok using Vercel AI SDK
     const { text } = await generateText({
-      model: xai('grok-2-1212'), // Using the correct model from your Vercel example
+      model: xai('grok-2-1212'), // Using the correct model
       system: systemMessage,
       prompt: userPrompt,
-      // Pass the API key explicitly if needed, though SDK might auto-detect
-      // apiKey: GROK_API_KEY 
+      // SDK should automatically pick up XAI_API_KEY environment variable
     });
 
     console.log("Raw response from AI SDK:", text);
@@ -1704,35 +1758,28 @@ exports.generateGamePlan = functions.https.onCall(async (data, context) => {
       parsedResponse = JSON.parse(text);
       
       // Basic validation of parsed structure
-      if (!parsedResponse || !Array.isArray(parsedResponse.plan) || !Array.isArray(parsedResponse.technologies) || !Array.isArray(parsedResponse.resources)) {
-           throw new Error('Parsed response does not match expected structure.');
+      if (!parsedResponse || typeof parsedResponse !== 'object') {
+           throw new Error('Parsed response is not a valid object.');
       }
       
     } catch (parseError) {
       console.error('Error parsing AI response JSON:', parseError, "Raw text was:", text);
-      // Provide a more helpful fallback or re-throw
       throw new functions.https.HttpsError(
         'internal',
         'The AI response was not in the expected JSON format. Please try again.' + (parseError.message ? ` (${parseError.message})` : '')
       );
     }
 
-    // Return the successfully parsed plan structure
-    return {
-      success: true,
-      plan: parsedResponse.plan,
-      technologies: parsedResponse.technologies,
-      resources: parsedResponse.resources
-    };
+    // Return the full parsed object from the AI
+    return parsedResponse; 
 
   } catch (error) {
     console.error('Error in generateGamePlan function:', error);
-    // Handle specific HttpsError or general errors
     if (error instanceof functions.https.HttpsError) {
-      throw error;
+      throw error; // Re-throw HttpsError directly
     }
-    // Log and throw a generic internal error for other cases
-    throw new functions.https.HttpsError('internal', 'An unexpected error occurred while generating the game plan.' + (error.message ? ` (${error.message})` : ''));
+    // Wrap other errors as internal HttpsError
+    throw new functions.https.HttpsError('internal', 'An unexpected error occurred generating the plan.' + (error.message ? ` (${error.message})` : ''));
   }
 });
 
@@ -1862,57 +1909,44 @@ exports.generateGamePlanHttp = functions.https.onRequest((req, res) => {
           });
         }
         
-        // Validate the response structure and provide fallbacks if needed
-        if (!parsedResponse.plan || !Array.isArray(parsedResponse.plan) || parsedResponse.plan.length === 0) {
-          parsedResponse.plan = ["Please provide more specific details about your project to get a customized implementation plan."];
-        }
+        // Return the parsed response
+        return res.status(200).json({
+          success: true,
+          ...parsedResponse
+        });
         
-        if (!parsedResponse.technologies || !Array.isArray(parsedResponse.technologies) || parsedResponse.technologies.length === 0) {
-          parsedResponse.technologies = [
+      } catch (apiError) {
+        console.error('Error calling Grok API:', apiError);
+        
+        // Return a fallback response
+        return res.status(200).json({
+          success: true,
+          plan: [
+            "We're experiencing some technical difficulties with our AI service.",
+            "Please try again in a few moments.",
+            "In the meantime, you can browse our learning resources for project ideas."
+          ],
+          technologies: [
             {
-              name: "Recommended Technologies",
-              description: "Please provide more specific project details to get technology recommendations."
+              name: "AI Fundamentals",
+              description: "Our platform offers various learning resources for AI and technology projects."
             }
-          ];
-        }
-        
-        if (!parsedResponse.resources || !Array.isArray(parsedResponse.resources) || parsedResponse.resources.length === 0) {
-          parsedResponse.resources = [
+          ],
+          resources: [
             {
               title: "AI Fundamentals Learning Resources",
               url: "https://ai-fundamentals.me/learning.html",
               type: "Learning Path"
             }
-          ];
-        }
-        
-        // Ensure all resources have valid URLs
-        parsedResponse.resources = parsedResponse.resources.map(resource => {
-          if (!resource.url || !resource.url.startsWith('http')) {
-            resource.url = `https://ai-fundamentals.me/search.html?q=${encodeURIComponent(resource.title || 'learning resources')}`;
-          }
-          return resource;
-        });
-        
-        // Return success response
-        return res.status(200).json({
-          success: true,
-          plan: parsedResponse.plan,
-          technologies: parsedResponse.technologies,
-          resources: parsedResponse.resources
-        });
-      } catch (apiError) {
-        console.error('Error calling Grok API:', apiError);
-        return res.status(500).json({
-          error: apiError.message || 'Failed to generate game plan',
-          success: false
+          ]
         });
       }
+      
     } catch (error) {
       console.error('Error in generateGamePlanHttp:', error);
       return res.status(500).json({
-        error: error.message || 'Internal server error',
-        success: false
+        success: false,
+        error: error.message || 'An unexpected error occurred'
       });
     }
   });
