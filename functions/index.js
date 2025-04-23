@@ -981,9 +981,9 @@ exports.processChat = functions.https.onRequest((req, res) => {
       functions.logger.error('Error in processChat function:', error);
       return res.status(500).json({ error: 'Failed to process chat', details: error.message });
     }
-  });
-});
-
+        });
+      });
+      
 /**
  * Process image with VertexAI Vision
  */
@@ -1214,9 +1214,9 @@ exports.processAudio = functions.https.onRequest((req, res) => {
         error: error.message 
       });
     }
-  });
-});
-
+        });
+      });
+      
 /**
  * Get user's credit balance
  */
@@ -1251,7 +1251,7 @@ exports.getUserCredits = functions.https.onRequest((req, res) => {
       });
     }
   });
-});
+  });
 
 /**
  * Add credits to user account (for admins or payment processing)
@@ -1630,7 +1630,7 @@ exports.testVertexAI = functions.https.onRequest((req, res) => {
         }
         
         healthResponse.aiTest = {
-          success: true,
+      success: true,
           response: responseText
         };
       } catch (aiError) {
@@ -1644,7 +1644,7 @@ exports.testVertexAI = functions.https.onRequest((req, res) => {
       
       // Return the health response
       return res.status(200).json(healthResponse);
-    } catch (error) {
+  } catch (error) {
       console.error('Error in testVertexAI function:', error);
       return res.status(500).json({
         status: 'error',
