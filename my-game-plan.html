@@ -444,17 +444,17 @@
 
             React.useEffect(() => {
               // Reset open states when a new game plan is generated or cleared
-              const initialStates = {};
+              let initialStates = {}; // Define outside if/else
+              const sectionKeys = ['milestones', 'steps', 'technologies', 'resources', 'roadblocks', 'metrics']; // Define outside if/else
+              
               if (gamePlanResult) {
-                  const sectionKeys = ['milestones', 'steps', 'technologies', 'resources', 'roadblocks', 'metrics'];
                   sectionKeys.forEach(key => { initialStates[key] = true; }); // Start results expanded
                   setIsFormCollapsed(true); // Collapse form when results appear
               } else {
                   setIsFormCollapsed(false); // Ensure form is open if no results
-                  const initialStates = {};
-                  sectionKeys.forEach(key => { initialStates[key] = false; }); // Start collapsed
+                  // No result sections to set state for, initialStates remains {}
               }
-              setSectionsOpen(initialStates);
+              setSectionsOpen(initialStates); // Set the state based on whether results exist
             }, [gamePlanResult]);
 
             // Function to toggle section visibility
