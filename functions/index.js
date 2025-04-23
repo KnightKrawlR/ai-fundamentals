@@ -1662,27 +1662,84 @@ const GROK_API_URL = functions.config().grok?.apiurl || process.env.GROK_API_URL
 // Log the URL being used for verification
 console.log('Using Grok API URL:', GROK_API_URL);
 
-// Generate Game Plan using Vercel AI SDK
+// Game Plan generation function using Grok API
 exports.generateGamePlan = functions.https.onCall(async (data, context) => {
-  // Ensure user is authenticated
+  console.log('generateGamePlan called with:', data);
+  
   if (!context.auth) {
-    throw new functions.https.HttpsError(
-      'unauthenticated',
-      'You must be logged in to use this feature.'
-    );
+    throw new functions.https.HttpsError('unauthenticated', 'Authentication required');
   }
   
+  const userId = context.auth.uid;
+  const db = admin.firestore();
+  
   try {
-    // Validate input
-    if (!data.projectDescription && !data.topic) {
-      throw new functions.https.HttpsError(
-        'invalid-argument',
-        'You must provide either a project description or select a topic.'
-      );
+    // Verify user has enough credits
+    const userDoc = await db.collection('users').doc(userId).get();
+    const userData = userDoc.data() || { credits: 0 };
+    
+    if (userData.credits < 1) {
+      throw new functions.https.HttpsError('resource-exhausted', 'Not enough credits');
     }
     
-    // Refined prompt for a more comprehensive game plan
-    const userPrompt = `Analyze the following project request and generate a comprehensive, actionable implementation game plan.
+    // Determine if this is a revision or a new plan
+    const isRevision = data.previousPlan && data.revisionRequest;
+    let userPrompt;
+    
+    if (isRevision) {
+      // Revision prompt
+      userPrompt = `Revise the following AI implementation game plan based on the user's feedback.
+Original Plan: ${data.previousPlan}
+
+User's Revision Request: "${data.revisionRequest}"
+
+Generate a revised version of the plan that addresses the user's feedback while maintaining the comprehensive structure.
+
+Project Details:
+- Topic: ${data.topic || 'Not specified'}
+- Challenge: ${data.challenge || 'Not specified'}
+- Project Type: ${data.projectType || 'Not specified'}
+- Description: "${data.projectDescription || 'A project in the selected category'}"
+
+Your response MUST be a single, valid JSON object with the same structure as the original plan, containing ONLY the following fields:
+{
+  "project_summary": "A concise (1-2 sentence) summary interpreting the user's goal.",
+  "key_milestones": [
+    {"milestone": "High-level milestone 1", "description": "Brief description of what this entails."}, 
+    {"milestone": "High-level milestone 2", "description": "Brief description..."} 
+    // ... (Aim for 3-5 milestones total)
+  ],
+  "suggested_steps": [
+    {"step": "Actionable step 1", "details": "More details about executing this step."}, 
+    {"step": "Actionable step 2", "details": "More details..."} 
+    // ... (Aim for 5-10 detailed steps total, logically ordered)
+  ],
+  "recommended_technologies": [
+    {"name": "Tech Name 1", "reasoning": "Why this tech is suitable for the project.", "type": "Core/Supporting/Optional"}, 
+    {"name": "Tech Name 2", "reasoning": "Why it's suitable...", "type": "Core/Supporting/Optional"} 
+    // ... (Suggest 2-5 relevant technologies total)
+  ],
+  "learning_resources": [
+    {"title": "Resource Title 1", "url": "Valid URL", "type": "Tutorial/Documentation/Course/Example", "relevance": "How this helps with the specific project/steps."}, 
+    {"title": "Resource Title 2", "url": "Valid URL", "type": "Tutorial/Documentation/Course/Example", "relevance": "How it helps..."} 
+    // ... (Suggest 2-5 relevant resources total)
+  ],
+  "potential_roadblocks": [
+    {"roadblock": "Potential issue 1", "mitigation": "Suggestion on how to overcome or prepare for it."}, 
+    {"roadblock": "Potential issue 2", "mitigation": "Suggestion..."} 
+    // ... (Identify 1-3 likely roadblocks total)
+  ],
+  "success_metrics": [
+    {"metric": "Measurable outcome 1", "measurement": "How to track this metric."}, 
+    {"metric": "Measurable outcome 2", "measurement": "How to track..."} 
+    // ... (Define 1-3 key success metrics total)
+  ],
+  "mermaid_diagram": "A Mermaid code block visualizing the high-level architecture or process flow described in the plan. Use graph TD for flow or sequenceDiagram where appropriate.",
+  "next_steps_prompt": "A brief suggestion encouraging the user on how to start or refine the plan (e.g., 'Focus on Milestone 1 and explore the suggested resources.')."
+}`;
+    } else {
+      // Original prompt for a new plan generation (existing code)
+      userPrompt = `Analyze the following project request and generate a comprehensive, actionable implementation game plan.
 Project Details:
 - Topic: ${data.topic || 'Not specified'}
 - Challenge: ${data.challenge || 'Not specified'}
@@ -1727,21 +1784,16 @@ Your response MUST be a single, valid JSON object containing ONLY the following 
   "mermaid_diagram": "A Mermaid code block visualizing the high-level architecture or process flow described in the plan. Use graph TD for flow or sequenceDiagram where appropriate.",
   "next_steps_prompt": "A brief suggestion encouraging the user on how to start or refine the plan (e.g., 'Focus on Milestone 1 and explore the suggested resources.')."
 }`;
-
+    }
+  
     // Refined system message
-    const systemMessage = `
-      You are an expert project strategist and AI assistant specializing in creating detailed, actionable implementation plans.
-      Your goal is to provide significant value by interpreting user requests, making intelligent assumptions, and outlining a clear path forward.
-      Adhere STRICTLY to the requested JSON output format. Respond ONLY with the valid JSON object, no introductory text, explanations, or markdown formatting (like \`\`\`json).
-      Ensure all provided URLs are valid and relevant.
-      Prioritize clarity, conciseness, and actionable advice.
-      If the request is vague, use the provided details (Topic, Challenge, Type, Description) to infer the user's likely intent and build a relevant plan.
-      Do not ask clarifying questions; instead, make reasonable assumptions and state them if necessary within the plan details.
-      Focus on providing a robust starting point that users will find impressive and helpful.
-    `;
-
+    const systemMessage = "You are an expert AI implementation consultant. Your goal is to craft actionable, structured implementation game plans for technology projects that help users understand how to build solutions. Focus on practical steps, relevant technologies, and educational resources. Always maintain the exact JSON structure specified.";
+    
     console.log(`Generating game plan for topic: ${data.topic}, challenge: ${data.challenge}, type: ${data.projectType}`);
-
+    if (isRevision) {
+      console.log('This is a revision request with feedback:', data.revisionRequest);
+    }
+    
     // Call Grok using Vercel AI SDK
     const { text } = await generateText({
       model: xai('grok-2-1212'), // Using the correct model
@@ -1749,9 +1801,9 @@ Your response MUST be a single, valid JSON object containing ONLY the following 
       prompt: userPrompt,
       // SDK should automatically pick up XAI_API_KEY environment variable
     });
-
+    
     console.log("Raw response from AI SDK:", text);
-
+    
     // Attempt to parse the JSON response
     let parsedResponse;
     try {
@@ -1769,10 +1821,14 @@ Your response MUST be a single, valid JSON object containing ONLY the following 
         'The AI response was not in the expected JSON format. Please try again.' + (parseError.message ? ` (${parseError.message})` : '')
       );
     }
-
+    
+    // Deduct one credit from the user
+    await db.collection('users').doc(userId).update({
+      credits: admin.firestore.FieldValue.increment(-1)
+    });
+    
     // Return the full parsed object from the AI
-    return parsedResponse; 
-
+    return parsedResponse;
   } catch (error) {
     console.error('Error in generateGamePlan function:', error);
     if (error instanceof functions.https.HttpsError) {

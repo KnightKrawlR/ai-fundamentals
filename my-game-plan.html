@@ -8,6 +8,8 @@
     <link rel="stylesheet" href="css/game-styles.css">
     <link rel="stylesheet" href="css/header-redesign.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Add SF Pro font for Apple-like aesthetic -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap">
     
     <!-- Add Tailwind CSS for the React app -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -66,6 +68,12 @@
         padding: 20px 0;
       }
       
+      /* Improved styles for Apple-like aesthetic */
+      body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        color: #1a1a1a;
+      }
+      
       /* Fix for primary color classes */
       .bg-primary-500 {
         background-color: #0ea5e9;
@@ -87,6 +95,42 @@
       }
       .bg-primary-50 {
         background-color: #f0f9ff;
+      }
+      
+      /* Apple-like subtle transitions */
+      .transition-all {
+        transition: all 0.2s ease-in-out;
+      }
+      
+      .shadow-subtle {
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.02);
+      }
+      
+      .shadow-card {
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+      }
+      
+      /* Apple-style button */
+      .btn-apple {
+        background-color: #0a84ff;
+        color: white;
+        border-radius: 8px;
+        font-weight: 500;
+        transition: all 0.2s ease;
+      }
+      
+      .btn-apple:hover:not(:disabled) {
+        background-color: #0060df;
+        transform: translateY(-1px);
+      }
+      
+      .btn-apple:active:not(:disabled) {
+        transform: translateY(0);
+      }
+      
+      .btn-apple:disabled {
+        background-color: #b3d1ff;
+        cursor: not-allowed;
       }
       
       /* Basic utility classes that might be missing */
@@ -494,6 +538,11 @@
             const [error, setError] = React.useState(null);
             const [gamePlanResult, setGamePlanResult] = React.useState(null);
             
+            // New state for revision functionality
+            const [revisionText, setRevisionText] = React.useState('');
+            const [isRevising, setIsRevising] = React.useState(false);
+            const [revisionHistory, setRevisionHistory] = React.useState([]);
+            
             // State for form collapse (starts open)
             const [isFormCollapsed, setIsFormCollapsed] = React.useState(false);
 
@@ -613,11 +662,20 @@
               setSelectedProjectType('');
             }, [selectedChallenge]);
             
-            // Handle form submission
+            // Handle form submission - Update to store original plan in history
             const handleSubmit = async (e) => {
               e.preventDefault();
               setIsLoading(true);
               setError(null);
+              
+              // Store previous plan in history if it exists
+              if (gamePlanResult) {
+                setRevisionHistory(prev => [...prev, {
+                  plan: gamePlanResult,
+                  revisionPrompt: null // No revision prompt for initial plan
+                }]);
+              }
+              
               setGamePlanResult(null);
               
               // Construct the data object to send to the function
@@ -655,19 +713,66 @@
               }
             };
             
+            // Handle revision submission
+            const handleRevision = async (e) => {
+              e.preventDefault();
+              if (!revisionText.trim()) return;
+              
+              setIsRevising(true);
+              setError(null);
+              
+              // Store current plan in history
+              setRevisionHistory(prev => [...prev, {
+                plan: gamePlanResult,
+                revisionPrompt: revisionText
+              }]);
+              
+              // Construct the data object with revision info
+              const requestData = {
+                topic: selectedTopic,
+                challenge: selectedChallenge,
+                projectType: selectedProjectType,
+                projectDescription: description || '',
+                previousPlan: JSON.stringify(gamePlanResult),
+                revisionRequest: revisionText
+              };
+              
+              console.log("Calling generateGamePlan with revision:", requestData);
+              
+              try {
+                // Ensure Firebase functions is available
+                if (!window.firebase || !window.firebase.functions) {
+                    throw new Error("Firebase Functions SDK is not available.");
+                }
+                
+                // Call the same function but with revision data
+                const actualGamePlanFunction = firebase.functions().httpsCallable('generateGamePlan');
+                const result = await actualGamePlanFunction(requestData);
+                
+                console.log("Received revised plan:", result);
+                
+                if (result.data && typeof result.data === 'object') {
+                  setGamePlanResult(result.data);
+                  setRevisionText(''); // Clear the revision input
+                } else {
+                  throw new Error(result.data?.error || result.data || 'Invalid response structure from function.');
+                }
+              } catch (err) {
+                console.error("Error calling revision:", err);
+                setError(err.message || 'Failed to revise game plan. Please try again.');
+              } finally {
+                setIsRevising(false);
+              }
+            };
+            
             // Render the form and results
             return React.createElement('div', {
-              style: {
-                maxWidth: '800px',
-                margin: '0 auto',
-                padding: '20px',
-                backgroundColor: 'white',
-                borderRadius: '8px',
-                boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-              }
+              className: 'max-w-4xl mx-auto p-5 font-sans' // Wider container with Apple-like font
             }, [
               // -- Input Form Section (Now Collapsible) --
-              React.createElement('div', { className: 'mb-8 p-6 bg-white border border-gray-200 rounded-lg shadow-sm' }, [
+              React.createElement('div', { 
+                className: 'mb-8 p-6 bg-white border border-gray-200 rounded-lg shadow-card transition-all' 
+              }, [
                   React.createElement('button', { 
                       className: 'w-full text-left text-2xl font-semibold text-gray-800 mb-4 flex justify-between items-center focus:outline-none hover:text-blue-600 transition-colors', 
                       onClick: () => setIsFormCollapsed(!isFormCollapsed)
@@ -680,32 +785,19 @@
                   // Conditionally render the form based on collapse state
                   !isFormCollapsed && React.createElement('form', {
                       onSubmit: handleSubmit,
-                      style: {
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '16px'
-                      }
+                      className: 'flex flex-col space-y-5'
                   }, [
                     // Topic dropdown
                     React.createElement('div', {}, [
                       React.createElement('label', {
                         htmlFor: 'topic',
-                        style: {
-                          display: 'block',
-                          marginBottom: '8px',
-                          fontWeight: '500'
-                        }
+                        className: 'block mb-2 font-medium text-gray-700'
                       }, 'Topic'),
                       React.createElement('select', {
                         id: 'topic',
                         value: selectedTopic,
                         onChange: (e) => setSelectedTopic(e.target.value),
-                        style: {
-                          width: '100%',
-                          padding: '10px',
-                          border: '1px solid #ddd',
-                          borderRadius: '4px'
-                        }
+                        className: 'w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-300 focus:border-blue-500 transition-all'
                       }, [
                         React.createElement('option', { value: '' }, 'Select a topic'),
                         ...topics.map(topic => 
@@ -718,23 +810,14 @@
                     React.createElement('div', {}, [
                       React.createElement('label', {
                         htmlFor: 'challenge',
-                        style: {
-                          display: 'block',
-                          marginBottom: '8px',
-                          fontWeight: '500'
-                        }
+                        className: 'block mb-2 font-medium text-gray-700'
                       }, 'Challenge'),
                       React.createElement('select', {
                         id: 'challenge',
                         value: selectedChallenge,
                         onChange: (e) => setSelectedChallenge(e.target.value),
                         disabled: !selectedTopic,
-                        style: {
-                          width: '100%',
-                          padding: '10px',
-                          border: '1px solid #ddd',
-                          borderRadius: '4px'
-                        }
+                        className: 'w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-300 focus:border-blue-500 transition-all disabled:bg-gray-100 disabled:text-gray-500'
                       }, [
                         React.createElement('option', { value: '' }, 'Select a challenge'),
                         ...getChallenges(selectedTopic).map(challenge => 
@@ -747,23 +830,14 @@
                     React.createElement('div', {}, [
                       React.createElement('label', {
                         htmlFor: 'projectType',
-                        style: {
-                          display: 'block',
-                          marginBottom: '8px',
-                          fontWeight: '500'
-                        }
+                        className: 'block mb-2 font-medium text-gray-700'
                       }, 'Project Type'),
                       React.createElement('select', {
                         id: 'projectType',
                         value: selectedProjectType,
                         onChange: (e) => setSelectedProjectType(e.target.value),
                         disabled: !selectedChallenge,
-                        style: {
-                          width: '100%',
-                          padding: '10px',
-                          border: '1px solid #ddd',
-                          borderRadius: '4px'
-                        }
+                        className: 'w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-300 focus:border-blue-500 transition-all disabled:bg-gray-100 disabled:text-gray-500'
                       }, [
                         React.createElement('option', { value: '' }, 'Select a project type'),
                         ...getProjectTypes(selectedTopic, selectedChallenge).map(type => 
@@ -776,25 +850,14 @@
                     React.createElement('div', {}, [
                       React.createElement('label', {
                         htmlFor: 'description',
-                        style: {
-                          display: 'block',
-                          marginBottom: '8px',
-                          fontWeight: '500'
-                        }
+                        className: 'block mb-2 font-medium text-gray-700'
                       }, 'Project Description (Optional)'),
                       React.createElement('textarea', {
                         id: 'description',
                         value: description,
                         onChange: (e) => setDescription(e.target.value),
                         placeholder: 'Provide any additional details about your project...',
-                        style: {
-                          width: '100%',
-                          padding: '10px',
-                          border: '1px solid #ddd',
-                          borderRadius: '4px',
-                          minHeight: '100px',
-                          resize: 'vertical'
-                        }
+                        className: 'w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-300 focus:border-blue-500 transition-all min-h-[120px] resize-y'
                       })
                     ]),
                     
@@ -802,62 +865,61 @@
                     React.createElement('button', {
                       type: 'submit',
                       disabled: !selectedTopic || !selectedChallenge || !selectedProjectType || isLoading,
-                      style: {
-                        padding: '12px',
-                        backgroundColor: (!selectedTopic || !selectedChallenge || !selectedProjectType || isLoading) ? '#ccc' : '#0ea5e9',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '4px',
-                        fontWeight: '500',
-                        cursor: (!selectedTopic || !selectedChallenge || !selectedProjectType || isLoading) ? 'not-allowed' : 'pointer'
-                      }
+                      className: 'btn-apple py-3 px-4 font-medium text-white rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed'
                     }, isLoading ? 'Generating...' : 'Generate Game Plan')
                   ]),
               ]),
               
               // --- Display Loading State --- 
               isLoading && React.createElement('div', { 
-                style: { 
-                  marginTop: '20px', 
-                  textAlign: 'center',
-                  padding: '20px',
-                  border: '1px dashed #ccc',
-                  borderRadius: '4px'
-                }
+                className: 'mt-8 text-center p-6 border border-gray-100 rounded-lg shadow-subtle bg-white'
               }, [
                 React.createElement('div', { 
-                  className: 'spinner', 
+                  className: 'spinner mx-auto mb-4', 
                   style: { 
                     border: '4px solid rgba(0,0,0,.1)', 
-                    width: '36px', 
-                    height: '36px', 
+                    width: '40px', 
+                    height: '40px', 
                     borderRadius: '50%', 
-                    borderLeftColor: '#0ea5e9', 
-                    animation: 'spin 1s linear infinite', 
-                    margin: '0 auto 10px auto'
+                    borderLeftColor: '#0a84ff', 
+                    animation: 'spin 1s linear infinite'
                   } 
                 }),
-                React.createElement('p', null, 'Generating your game plan with AI...')
+                React.createElement('p', { className: 'text-gray-600' }, 'Generating your game plan with AI...')
+              ]),
+              
+              // --- Display Revising State --- 
+              isRevising && React.createElement('div', { 
+                className: 'mt-8 text-center p-6 border border-gray-100 rounded-lg shadow-subtle bg-white'
+              }, [
+                React.createElement('div', { 
+                  className: 'spinner mx-auto mb-4', 
+                  style: { 
+                    border: '4px solid rgba(0,0,0,.1)', 
+                    width: '40px', 
+                    height: '40px', 
+                    borderRadius: '50%', 
+                    borderLeftColor: '#0a84ff', 
+                    animation: 'spin 1s linear infinite'
+                  } 
+                }),
+                React.createElement('p', { className: 'text-gray-600' }, 'Revising your game plan based on feedback...')
               ]),
               
               // --- Display Error State --- 
               error && React.createElement('div', { 
-                style: { 
-                  marginTop: '20px', 
-                  padding: '15px', 
-                  backgroundColor: '#fef2f2', 
-                  color: '#dc2626', 
-                  border: '1px solid #fecaca',
-                  borderRadius: '4px' 
-                }
+                className: 'mt-8 p-4 bg-red-50 text-red-700 border border-red-100 rounded-lg'
               }, [
-                React.createElement('strong', null, 'Error: '),
-                error
+                React.createElement('div', { className: 'flex items-center mb-2' }, [
+                  React.createElement('i', { className: 'fas fa-exclamation-circle mr-2' }),
+                  React.createElement('strong', null, 'Error')
+                ]),
+                React.createElement('p', null, error)
               ]),
               
               // --- Display Generated Game Plan (Collapsible Sections with Buttons) --- 
               gamePlanResult && React.createElement('div', { 
-                  className: 'game-plan-results mt-8 p-4 md:p-6 bg-gray-50 border border-gray-200 rounded-lg shadow-sm'
+                  className: 'game-plan-results mt-8 p-6 bg-white border border-gray-200 rounded-lg shadow-card transition-all'
               }, [
                   // Project Summary (Always Visible)
                   gamePlanResult.project_summary && React.createElement('div', { className: 'mb-6 border-b border-gray-200 pb-4' }, [
@@ -964,6 +1026,49 @@
                   gamePlanResult.next_steps_prompt && React.createElement('div', { className: 'mt-6 pt-4 border-t border-gray-200' }, [
                       React.createElement('h4', { className: 'text-lg font-semibold text-gray-800 mb-1' }, 'Next Steps'),
                       React.createElement('p', { className: 'text-gray-700' }, gamePlanResult.next_steps_prompt)
+                  ]),
+                  
+                  // NEW: Revision/Chat Input Section
+                  React.createElement('div', { className: 'mt-8 pt-6 border-t border-gray-200' }, [
+                      React.createElement('h4', { className: 'text-lg font-semibold text-gray-800 mb-3' }, 'Refine Your Plan'),
+                      React.createElement('p', { className: 'text-gray-600 mb-4' }, 'Have questions or want to refine your plan? Add your feedback below:'),
+                      
+                      React.createElement('form', { 
+                          onSubmit: handleRevision,
+                          className: 'space-y-4'
+                      }, [
+                          // Textarea for revision input
+                          React.createElement('textarea', {
+                              value: revisionText,
+                              onChange: (e) => setRevisionText(e.target.value),
+                              placeholder: 'Example: "Could you add more details about deployment options?" or "Please focus more on machine learning techniques."',
+                              className: 'w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-300 focus:border-blue-500 transition-all min-h-[120px] resize-y'
+                          }),
+                          
+                          // Submit revision button
+                          React.createElement('button', {
+                              type: 'submit',
+                              disabled: isRevising || !revisionText.trim(),
+                              className: 'btn-apple py-3 px-6 font-medium text-white rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center'
+                          }, [
+                              React.createElement('i', { className: 'fas fa-sync-alt mr-2' }),
+                              isRevising ? 'Revising...' : 'Revise Plan'
+                          ])
+                      ]),
+                      
+                      // Show revision history if it exists
+                      revisionHistory.length > 0 && React.createElement('div', { className: 'mt-6' }, [
+                          React.createElement('h5', { className: 'text-sm font-medium text-gray-500 mb-2' }, 'Revision History'),
+                          React.createElement('div', { className: 'bg-gray-50 p-3 rounded-lg text-sm text-gray-600 max-h-40 overflow-y-auto' }, 
+                              revisionHistory.map((item, index) => 
+                                  React.createElement('div', { key: 'history-' + index, className: 'mb-2 pb-2 border-b border-gray-200 last:border-0' }, 
+                                      item.revisionPrompt 
+                                          ? `Revision ${index + 1}: "${item.revisionPrompt}"` 
+                                          : 'Original plan'
+                                  )
+                              )
+                          )
+                      ])
                   ])
               ])
             ]);
