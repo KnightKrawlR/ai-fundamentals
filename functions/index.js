@@ -1701,6 +1701,17 @@ Project Details:
 - Project Type: ${data.projectType || 'Not specified'}
 - Description: "${data.projectDescription || 'A project in the selected category'}"
 
+IMPORTANT GUIDANCE ON TECHNOLOGY RECOMMENDATIONS:
+For technology recommendations, prioritize ready-made, all-in-one solutions that minimize implementation effort based on the project type:
+
+- For Personal Projects: Recommend user-friendly, affordable tools with minimal setup that an individual can use without extensive technical knowledge. Focus on simple, turnkey solutions that work out of the box.
+
+- For Small Business: Recommend robust tools with good integrations, automation capabilities, and reasonable pricing. Balance ease of use with necessary business features.
+
+- For Enterprise Solutions: Recommend scalable, enterprise-grade platforms with comprehensive features, strong security, and integration capabilities.
+
+In all cases, prioritize recommending existing tools and platforms that solve most of the problem directly, rather than suggesting technologies the user would need to build solutions with from scratch.
+
 Your response MUST be a single, valid JSON object with the same structure as the original plan, containing ONLY the following fields:
 {
   "project_summary": "A concise (1-2 sentence) summary interpreting the user's goal.",
@@ -1715,9 +1726,9 @@ Your response MUST be a single, valid JSON object with the same structure as the
     // ... (Aim for 5-10 detailed steps total, logically ordered)
   ],
   "recommended_technologies": [
-    {"name": "Tech Name 1", "reasoning": "Why this tech is suitable for the project.", "type": "Core/Supporting/Optional"}, 
-    {"name": "Tech Name 2", "reasoning": "Why it's suitable...", "type": "Core/Supporting/Optional"} 
-    // ... (Suggest 2-5 relevant technologies total)
+    {"name": "Tool/Platform Name 1", "reasoning": "Why this tool is suitable for the project and how it provides an all-in-one solution.", "type": "Core/Supporting/Optional"}, 
+    {"name": "Tool/Platform Name 2", "reasoning": "Why it's suitable and what problem it solves directly...", "type": "Core/Supporting/Optional"} 
+    // ... (Suggest 2-5 relevant tools/platforms total that minimize implementation effort)
   ],
   "learning_resources": [
     {"title": "Resource Title 1", "url": "Valid URL", "type": "Tutorial/Documentation/Course/Example", "relevance": "How this helps with the specific project/steps."}, 
@@ -1748,6 +1759,17 @@ Project Details:
 
 Assume standard best practices and make reasonable assumptions where details are missing to provide a valuable starting point.
 
+IMPORTANT GUIDANCE ON TECHNOLOGY RECOMMENDATIONS:
+For technology recommendations, prioritize ready-made, all-in-one solutions that minimize implementation effort based on the project type:
+
+- For Personal Projects: Recommend user-friendly, affordable tools with minimal setup that an individual can use without extensive technical knowledge. Focus on simple, turnkey solutions that work out of the box.
+
+- For Small Business: Recommend robust tools with good integrations, automation capabilities, and reasonable pricing. Balance ease of use with necessary business features.
+
+- For Enterprise Solutions: Recommend scalable, enterprise-grade platforms with comprehensive features, strong security, and integration capabilities.
+
+In all cases, prioritize recommending existing tools and platforms that solve most of the problem directly, rather than suggesting technologies the user would need to build solutions with from scratch.
+
 Your response MUST be a single, valid JSON object containing ONLY the following fields:
 {
   "project_summary": "A concise (1-2 sentence) summary interpreting the user's goal.",
@@ -1762,9 +1784,9 @@ Your response MUST be a single, valid JSON object containing ONLY the following 
     // ... (Aim for 5-10 detailed steps total, logically ordered)
   ],
   "recommended_technologies": [
-    {"name": "Tech Name 1", "reasoning": "Why this tech is suitable for the project.", "type": "Core/Supporting/Optional"}, 
-    {"name": "Tech Name 2", "reasoning": "Why it's suitable...", "type": "Core/Supporting/Optional"} 
-    // ... (Suggest 2-5 relevant technologies total)
+    {"name": "Tool/Platform Name 1", "reasoning": "Why this tool is suitable for the project and how it provides an all-in-one solution.", "type": "Core/Supporting/Optional"}, 
+    {"name": "Tool/Platform Name 2", "reasoning": "Why it's suitable and what problem it solves directly...", "type": "Core/Supporting/Optional"} 
+    // ... (Suggest 2-5 relevant tools/platforms total that minimize implementation effort)
   ],
   "learning_resources": [
     {"title": "Resource Title 1", "url": "Valid URL", "type": "Tutorial/Documentation/Course/Example", "relevance": "How this helps with the specific project/steps."}, 
@@ -1786,8 +1808,8 @@ Your response MUST be a single, valid JSON object containing ONLY the following 
 }`;
     }
   
-    // Refined system message
-    const systemMessage = "You are an expert AI implementation consultant. Your goal is to craft actionable, structured implementation game plans for technology projects that help users understand how to build solutions. Focus on practical steps, relevant technologies, and educational resources. Always maintain the exact JSON structure specified.";
+    // Refined system message to emphasize ready-made solutions
+    const systemMessage = "You are an expert AI implementation consultant. Your goal is to craft actionable implementation game plans for technology projects that help users understand how to implement solutions quickly and effectively. Focus on recommending existing tools and platforms that minimize development work. Prioritize ready-made, all-in-one solutions over technologies that require extensive custom building. Always maintain the exact JSON structure specified.";
     
     console.log(`Generating game plan for topic: ${data.topic}, challenge: ${data.challenge}, type: ${data.projectType}`);
     if (isRevision) {
