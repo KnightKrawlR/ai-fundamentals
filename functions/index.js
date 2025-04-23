@@ -1697,6 +1697,12 @@ exports.generateGamePlan = functions.https.onCall(async (data, context) => {
       throw new functions.https.HttpsError('resource-exhausted', 'Not enough credits');
     }
     
+    // Initialize system message variable upfront to avoid undefined errors
+    let systemMessage = "You are an expert AI implementation consultant. Your goal is to craft actionable implementation game plans for technology projects that help users understand how to implement solutions quickly and effectively. Focus on recommending existing tools and platforms that minimize development work. Prioritize ready-made, all-in-one solutions over technologies that require extensive custom building. Always maintain the exact JSON structure specified.";
+    
+    // Initialize userPrompt variable
+    let userPrompt;
+    
     // Check if this is an answer to a previous AI question
     if (data.aiQuestion && data.aiAnswer) {
       console.log('Processing answer to AI question:', data.aiQuestion);
@@ -1728,7 +1734,7 @@ Your response MUST be a single, valid JSON object with the same structure as the
   "next_steps_prompt": "A brief suggestion encouraging the user on how to start or refine the plan."
 }`;
 
-      // System message focused on using the user's answer
+      // Override system message for answering questions
       systemMessage = "You are an expert AI implementation consultant specializing in revising implementation plans based on user feedback. Incorporate the user's answer to your clarifying question to improve the plan. Focus on recommending existing tools and platforms that minimize development work. Always maintain the exact JSON structure specified.";
     }
     // Check if this is a revision request
@@ -1900,11 +1906,6 @@ Your response MUST be a single, valid JSON object containing ONLY the following 
 }`;
     }
   
-    // Refined system message to emphasize ready-made solutions
-    if (!systemMessage) { // only set if not already set for AI questions
-      systemMessage = "You are an expert AI implementation consultant. Your goal is to craft actionable implementation game plans for technology projects that help users understand how to implement solutions quickly and effectively. Focus on recommending existing tools and platforms that minimize development work. Prioritize ready-made, all-in-one solutions over technologies that require extensive custom building. Always maintain the exact JSON structure specified.";
-    }
-    
     console.log(`Generating game plan for topic: ${data.topic}, challenge: ${data.challenge}, type: ${data.projectType}`);
     if (data.revisionRequest) {
       console.log('This is a revision request with feedback:', data.revisionRequest);

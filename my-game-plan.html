@@ -1163,7 +1163,7 @@
                       className: 'w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-300 focus:border-blue-500 transition-all disabled:bg-gray-100 disabled:text-gray-500'
                     }, [
                       React.createElement('option', { value: '' }, 'Select a challenge'),
-                      ...['Understanding AI Concepts', 'Machine Learning', 'Natural Language Processing', 'Document Automation', 'Email Management', 'Budgeting'].map(challenge => 
+                      ...getChallenges(selectedTopic).map(challenge => 
                         React.createElement('option', { key: challenge, value: challenge }, challenge)
                       )
                     ])
@@ -1183,7 +1183,7 @@
                       className: 'w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-300 focus:border-blue-500 transition-all disabled:bg-gray-100 disabled:text-gray-500'
                     }, [
                       React.createElement('option', { value: '' }, 'Select a project type'),
-                      ...['Personal Project', 'Small Business', 'Enterprise Solution'].map(type => 
+                      ...getProjectTypes(selectedTopic, selectedChallenge).map(type => 
                         React.createElement('option', { key: type, value: type }, type)
                       )
                     ])
@@ -1360,6 +1360,86 @@
       
       // NOTE: We no longer immediately invoke the script or use DOMContentLoaded.
       // Rendering is now triggered by the onAuthStateChanged callback.
+    </script>
+
+    <!-- Sample challenges based on topic - updated with business-focused challenges -->
+    <script>
+      const getChallenges = (topic) => {
+        if (!topic) return [];
+        
+        switch(topic) {
+          case 'eCommerce':
+            return [
+              'Sales Funnel Optimization',
+              'Product Selection & Sourcing',
+              'Payment Processing & Checkout',
+              'Customer Retention & Loyalty',
+              'Inventory Management',
+              'Marketing Automation',
+              'Order Fulfillment',
+              'Abandoned Cart Recovery'
+            ];
+          case 'Introduction to AI':
+            return [
+              'Customer Service Automation',
+              'Content Generation',
+              'Data Analysis & Insights',
+              'Personalization Engines',
+              'Predictive Forecasting'
+            ];
+          case 'Office Productivity':
+            return [
+              'Document Automation',
+              'Meeting Optimization',
+              'Email Management',
+              'Process Streamlining',
+              'Team Collaboration'
+            ];
+          case 'Personal Finance':
+            return [
+              'Budgeting & Expense Tracking',
+              'Investment Planning',
+              'Debt Management',
+              'Retirement Planning',
+              'Tax Optimization'
+            ];
+          case 'Social Media Marketing':
+            return [
+              'Content Calendar Automation',
+              'Audience Growth Strategies',
+              'Engagement Optimization',
+              'Ad Campaign Management',
+              'Performance Analytics'
+            ];
+          case 'Videography':
+            return [
+              'Video Editing Workflow',
+              'Content Distribution',
+              'Audience Growth',
+              'Monetization Strategies',
+              'Equipment Selection'
+            ];
+          default:
+            return [
+              'Workflow Automation',
+              'Customer Engagement',
+              'Revenue Optimization',
+              'Cost Reduction',
+              'Data Analysis'
+            ];
+        }
+      };
+
+      // Sample project types based on business goals
+      const getProjectTypes = (topic, challenge) => {
+        if (!topic || !challenge) return [];
+        
+        return [
+          'Personal Project', 
+          'Small Business', 
+          'Enterprise Solution'
+        ];
+      };
     </script>
 </body>
 </html>
