@@ -515,10 +515,74 @@
             console.error('Error clearing root element:', error);
           }
         });
+
+        // Define the renderGamePlanComponent function that's called by the auth observer
+        function renderGamePlanComponent() {
+          console.log("Rendering game plan component via function...");
+          
+          // This function will be called when a user is authenticated
+          // The actual rendering logic is already in the my-game-plan-enhanced.js file
+          // which uses a DOMContentLoaded event, so we just need to ensure the script is loaded
+          
+          // Check if the script was loaded
+          if (typeof window.renderGamePlanComponent === 'function') {
+            try {
+              // Call the actual implementation from the loaded script
+              window.renderGamePlanComponent();
+            } catch (error) {
+              console.error("Error calling script's renderGamePlanComponent:", error);
+              showFallbackContent();
+            }
+          } else {
+            console.error("Script's renderGamePlanComponent not found");
+            showFallbackContent();
+          }
+        }
+        
+        // Function to show fallback content if the script fails to load
+        function showFallbackContent() {
+          try {
+            const rootElement = document.getElementById('my-game-plan-root');
+            if (rootElement) {
+              rootElement.innerHTML = `
+                <div class="text-center p-6 bg-white border border-gray-200 rounded-lg shadow-lg">
+                  <h2 class="text-2xl font-bold text-gray-800 mb-4">Game Plan Generator</h2>
+                  <p class="text-gray-600 mb-6">There was an issue loading the game plan generator.</p>
+                  <button onclick="window.location.reload()" class="btn-apple py-2 px-6">
+                    <i class="fas fa-sync-alt mr-2"></i> Refresh Page
+                  </button>
+                </div>
+              `;
+              
+              // Hide the loading indicator
+              const loadingEl = document.getElementById('loading-fallback');
+              if (loadingEl) loadingEl.style.display = 'none';
+            }
+          } catch (error) {
+            console.error("Error showing fallback content:", error);
+          }
+        }
+        
+        // Handle script loading errors
+        function handleScriptError(event) {
+          console.error("Error loading game plan script:", event);
+          showFallbackContent();
+        }
     </script>
 
-    <!-- Game Plan Enhanced Bundle -->
-    <script src="my-game-plan-enhanced.js?v=4"></script>
+    <!-- Game Plan Enhanced Bundle - Updated path to ensure it can be found -->
+    <script src="./my-game-plan-enhanced.js?v=6" onerror="handleScriptError(event)"></script>
+
+    <!-- Fallback script if the main one fails to load -->
+    <script>
+        // Check if the main script loaded after a short delay
+        setTimeout(function() {
+          if (typeof window.renderGamePlanComponent !== 'function') {
+            console.error("Main script failed to define renderGamePlanComponent after timeout");
+            handleScriptError({ type: 'timeout' });
+          }
+        }, 2000);
+    </script>
 
     <!-- Sample challenges based on topic - updated with business-focused challenges -->
     <script>

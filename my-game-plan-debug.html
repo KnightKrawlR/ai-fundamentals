@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Plan Debug | AI Fundamentals</title>
+    
+    <!-- Add Tailwind CSS for the React app -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Add Mermaid JS Library -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
+    <script>
+        // Initialize Mermaid with proper configuration
+        mermaid.initialize({
+            startOnLoad: false,  // We'll manually trigger rendering
+            securityLevel: 'loose', // Required for some diagrams
+            theme: 'default'
+        });
+    </script>
+    
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-functions-compat.js"></script>
+
+    <!-- React and ReactDOM -->
+    <script src="https://unpkg.com/react@17/umd/react.development.min.js"></script>
+    <script src="https://unpkg.com/react-dom@17/umd/react-dom.development.min.js"></script>
+
+    <style>
+      /* Base styles */
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        color: #1a1a1a;
+        margin: 0;
+        padding: 0;
+        background-color: #f5f8fa;
+      }
+      
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+      
+      header {
+        background-color: #0a84ff;
+        color: white;
+        padding: 15px 0;
+      }
+      
+      header .container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      
+      header h1 {
+        margin: 0;
+        font-size: 1.8rem;
+      }
+      
+      .debug-panel {
+        background-color: #fff;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        padding: 15px;
+      }
+      
+      .debug-title {
+        color: #0a84ff;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 10px;
+        margin-top: 0;
+      }
+      
+      #my-game-plan-root {
+        min-height: 400px;
+      }
+      
+      #loading-fallback {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 300px;
+      }
+      
+      .spinner {
+        border: 4px solid rgba(0,0,0,.1);
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        border-left-color: #0a84ff;
+        animation: spin 1s linear infinite;
+        margin: 0 auto;
+      }
+      
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+      
+      .console-output {
+        background-color: #282c34;
+        color: #abb2bf;
+        font-family: 'Courier New', monospace;
+        padding: 15px;
+        border-radius: 5px;
+        max-height: 300px;
+        overflow-y: auto;
+        white-space: pre-wrap;
+        margin-top: 20px;
+      }
+      
+      .btn {
+        background-color: #0a84ff;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: 500;
+      }
+      
+      .btn:hover {
+        background-color: #0060df;
+      }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Game Plan Debug Page</h1>
+            <div>
+                <button id="reload-btn" class="btn">Reload Page</button>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="debug-panel">
+            <h2 class="debug-title">Debug Information</h2>
+            <div id="debug-info">
+                <p><strong>React:</strong> <span id="react-status">Checking...</span></p>
+                <p><strong>ReactDOM:</strong> <span id="reactdom-status">Checking...</span></p>
+                <p><strong>Mermaid:</strong> <span id="mermaid-status">Checking...</span></p>
+                <p><strong>Firebase:</strong> <span id="firebase-status">Checking...</span></p>
+                <p><strong>User Authentication:</strong> <span id="auth-status">Checking...</span></p>
+                <p><strong>Script Status:</strong> <span id="script-status">Not loaded</span></p>
+            </div>
+            
+            <div>
+                <h3>Manual Actions:</h3>
+                <button id="manual-render-btn" class="btn">Manual Render</button>
+                <button id="try-debug-btn" class="btn" style="margin-left: 10px;">Try Debug Script</button>
+                <button id="clear-console-btn" class="btn" style="margin-left: 10px;">Clear Console</button>
+            </div>
+            
+            <div class="console-output" id="console-output">Console output will appear here...</div>
+        </div>
+        
+        <div id="my-game-plan-root"></div>
+        
+        <!-- Fallback if React fails to load -->
+        <div id="loading-fallback">
+            <div style="text-align: center;">
+                <div class="spinner"></div>
+                <p style="margin-top: 16px;">Loading Game Plan generator...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase Configuration -->
+    <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyDjMisQkMgdA6qNg7gnXDumhNOOWOD-Y00",
+            authDomain: "ai-fundamentals-ad37d.firebaseapp.com",
+            projectId: "ai-fundamentals-ad37d",
+            storageBucket: "ai-fundamentals-ad37d.appspot.com",
+            messagingSenderId: "668115447112",
+            appId: "1:668115447112:web:c0772e9f8c6a498737977d",
+            measurementId: "G-2D5V39EQ3T"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        
+        // Console logger for debug page
+        const originalConsoleLog = console.log;
+        const originalConsoleError = console.error;
+        
+        console.log = function(...args) {
+            const output = document.getElementById('console-output');
+            if (output) {
+                const message = args.map(arg => 
+                    typeof arg === 'object' ? JSON.stringify(arg, null, 2) : arg
+                ).join(' ');
+                output.innerHTML += message + '\n';
+                output.scrollTop = output.scrollHeight;
+            }
+            originalConsoleLog.apply(console, args);
+        };
+        
+        console.error = function(...args) {
+            const output = document.getElementById('console-output');
+            if (output) {
+                const message = args.map(arg => 
+                    typeof arg === 'object' ? JSON.stringify(arg, null, 2) : arg
+                ).join(' ');
+                output.innerHTML += '<span style="color: #e06c75;">[ERROR] ' + message + '</span>\n';
+                output.scrollTop = output.scrollHeight;
+            }
+            originalConsoleError.apply(console, args);
+        };
+        
+        // Update debug info
+        function updateDebugInfo() {
+            document.getElementById('react-status').textContent = 
+                typeof React !== 'undefined' ? 'Available ✅' : 'Not Available ❌';
+                
+            document.getElementById('reactdom-status').textContent = 
+                typeof ReactDOM !== 'undefined' ? 'Available ✅' : 'Not Available ❌';
+                
+            document.getElementById('mermaid-status').textContent = 
+                typeof mermaid !== 'undefined' ? 'Available ✅' : 'Not Available ❌';
+                
+            document.getElementById('firebase-status').textContent = 
+                typeof firebase !== 'undefined' ? 'Available ✅' : 'Not Available ❌';
+                
+            const authStatus = document.getElementById('auth-status');
+            if (firebase && firebase.auth) {
+                firebase.auth().onAuthStateChanged((user) => {
+                    authStatus.textContent = user ? 'Signed in as ' + user.email + ' ✅' : 'Not signed in ❌';
+                });
+            } else {
+                authStatus.textContent = 'Firebase Auth not available ❌';
+            }
+        }
+        
+        // Initial debug info update
+        updateDebugInfo();
+        
+        // Button event handlers
+        document.getElementById('reload-btn').addEventListener('click', function() {
+            window.location.reload();
+        });
+        
+        document.getElementById('manual-render-btn').addEventListener('click', function() {
+            console.log('Manual render button clicked');
+            if (typeof window.renderGamePlanComponent === 'function') {
+                console.log('Calling renderGamePlanComponent manually');
+                window.renderGamePlanComponent();
+            } else {
+                console.error('renderGamePlanComponent is not available');
+            }
+        });
+        
+        document.getElementById('try-debug-btn').addEventListener('click', function() {
+            console.log('Loading debug script manually');
+            const script = document.createElement('script');
+            script.src = './my-game-plan-debug.js?v=' + Date.now();
+            script.onerror = function() {
+                console.error('Failed to load debug script');
+                document.getElementById('script-status').textContent = 'Failed to load ❌';
+            };
+            script.onload = function() {
+                console.log('Debug script loaded successfully');
+                document.getElementById('script-status').textContent = 'Loaded ✅';
+            };
+            document.head.appendChild(script);
+        });
+        
+        document.getElementById('clear-console-btn').addEventListener('click', function() {
+            document.getElementById('console-output').innerHTML = '';
+        });
+    </script>
+
+    <!-- Game Plan Debug Script -->
+    <script>
+        // Wait for DOM to be fully loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM fully loaded');
+            document.getElementById('script-status').textContent = 'Page loaded, script not yet loaded';
+        });
+    </script>
+</body>
+</html> 
