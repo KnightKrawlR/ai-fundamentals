@@ -1698,7 +1698,7 @@ exports.generateGamePlan = functions.https.onCall(async (data, context) => {
     }
     
     // Initialize system message variable upfront to avoid undefined errors
-    let systemMessage = "You are an expert AI implementation consultant. Your goal is to craft actionable implementation game plans for technology projects that help users understand how to implement solutions quickly and effectively. Focus on recommending existing tools and platforms that minimize development work. Prioritize ready-made, all-in-one solutions over technologies that require extensive custom building. Always maintain the exact JSON structure specified.";
+    let systemMessage = "You are an expert AI implementation consultant. Your goal is to craft actionable implementation game plans for technology projects that help users understand how to implement solutions quickly and effectively. Focus on recommending existing tools and platforms that minimize development work. Prioritize ready-made, all-in-one solutions over technologies that require extensive custom building. IMPORTANT: You MUST respond with valid JSON only, with no explanatory text before or after. Your entire response should be parseable as JSON. Do not include markdown formatting, preambles, or postscripts.";
     
     // Initialize userPrompt variable
     let userPrompt;
@@ -1921,10 +1921,39 @@ Your response MUST be a single, valid JSON object containing ONLY the following 
     
     console.log("Raw response from AI SDK:", text);
     
+    // Preprocess the response to extract JSON
+    // First, attempt to find JSON in the response if it's not already JSON
+    let processedText = text.trim();
+    
+    // If response doesn't start with '{', try to extract JSON portion
+    if (!processedText.startsWith('{')) {
+      console.log("Response doesn't start with JSON, attempting to extract...");
+      
+      // Look for JSON between triple backticks or other common formats
+      const jsonPattern = /```(?:json)?([\s\S]*?)```|(\{[\s\S]*\})/m;
+      const match = processedText.match(jsonPattern);
+      
+      if (match && (match[1] || match[2])) {
+        processedText = (match[1] || match[2]).trim();
+        console.log("Extracted potential JSON:", processedText);
+      } else {
+        console.log("No JSON pattern found in response");
+      }
+    }
+    
+    // Additional cleaning: ensure we have a valid JSON object by checking for opening/closing braces
+    if (!processedText.startsWith('{') || !processedText.endsWith('}')) {
+      console.error("Could not extract valid JSON from response");
+      throw new functions.https.HttpsError(
+        'internal',
+        'The AI provided an invalid response format. Please try again with a more specific request.'
+      );
+    }
+    
     // Attempt to parse the JSON response
     let parsedResponse;
     try {
-      parsedResponse = JSON.parse(text);
+      parsedResponse = JSON.parse(processedText);
       
       // Basic validation of parsed structure
       if (!parsedResponse || typeof parsedResponse !== 'object') {
@@ -1932,7 +1961,7 @@ Your response MUST be a single, valid JSON object containing ONLY the following 
       }
       
     } catch (parseError) {
-      console.error('Error parsing AI response JSON:', parseError, "Raw text was:", text);
+      console.error('Error parsing AI response JSON:', parseError, "Raw text was:", processedText);
       throw new functions.https.HttpsError(
         'internal',
         'The AI response was not in the expected JSON format. Please try again.' + (parseError.message ? ` (${parseError.message})` : '')

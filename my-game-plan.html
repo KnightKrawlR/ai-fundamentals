@@ -14,41 +14,35 @@
     <!-- Add Tailwind CSS for the React app -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Add Mermaid JS Library -->
-    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
     <script>
-      // Initialize Mermaid
-      mermaid.initialize({ 
-        startOnLoad: false, // We will render manually
-        securityLevel: 'loose', // Required for some diagram features
-        theme: 'default',
-        flowchart: {
-          htmlLabels: true,
-          curve: 'linear',
-          diagramPadding: 8
-        },
-        logLevel: 3 // Error level logging only
-      });
-      
-      tailwind.config = {
-        theme: {
-          extend: {
-            colors: {
-              primary: {
-                50: '#f0f9ff',
-                100: '#e0f2fe',
-                200: '#bae6fd',
-                300: '#7dd3fc',
-                400: '#38bdf8',
-                500: '#0ea5e9',
-                600: '#0284c7',
-                700: '#0369a1',
-                800: '#075985',
-                900: '#0c4a6e',
+        // Initialize Mermaid with proper configuration
+        mermaid.initialize({
+            startOnLoad: false,  // We'll manually trigger rendering
+            securityLevel: 'loose', // Required for some diagrams
+            theme: 'default'
+        });
+        
+        tailwind.config = {
+          theme: {
+            extend: {
+              colors: {
+                primary: {
+                  50: '#f0f9ff',
+                  100: '#e0f2fe',
+                  200: '#bae6fd',
+                  300: '#7dd3fc',
+                  400: '#38bdf8',
+                  500: '#0ea5e9',
+                  600: '#0284c7',
+                  700: '#0369a1',
+                  800: '#075985',
+                  900: '#0c4a6e',
+                },
               },
             },
           },
-        },
-      }
+        }
     </script>
     
     <!-- Firebase SDKs -->
@@ -267,6 +261,18 @@
 
       .sign-in-btn i {
           font-size: 20px;
+      }
+
+      /* Mermaid diagram styles */
+      .mermaid-diagram-container {
+          overflow-x: auto;
+      }
+      .mermaid-diagram-render {
+          min-height: 200px;
+      }
+      .mermaid {
+          font-family: 'Roboto', sans-serif;
+          max-width: 100%;
       }
     </style>
 </head>
