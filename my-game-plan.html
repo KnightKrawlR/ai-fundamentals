@@ -562,55 +562,72 @@
             // State for collapsible sections (true = open)
             const [sectionsOpen, setSectionsOpen] = React.useState({});
 
+            // Function to ensure user document exists before accessing gamePlans
+            const ensureUserDocumentExists = async (userId) => {
+              try {
+                const db = firebase.firestore();
+                console.log("Ensuring user document exists for:", userId);
+                
+                // Get the user document
+                const userRef = db.collection('users').doc(userId);
+                const userDoc = await userRef.get();
+                
+                // If user document doesn't exist, create it with default values
+                if (!userDoc.exists) {
+                  console.log("Creating user document for:", userId);
+                  await userRef.set({
+                    credits: 10,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                  });
+                  console.log("User document created successfully");
+                  return true;
+                }
+                
+                console.log("User document already exists");
+                return true;
+              } catch (error) {
+                console.error("Error ensuring user document exists:", error);
+                return false;
+              }
+            };
+
             // Load saved game plans on component mount
             React.useEffect(() => {
               if (window.firebase && firebase.auth().currentUser) {
                 const userId = firebase.auth().currentUser.uid;
-                const db = firebase.firestore();
                 
-                console.log("Attempting to load saved game plans for user:", userId);
-                
-                // Verify user document exists first
-                db.collection('users').doc(userId).get()
-                  .then(doc => {
-                    if (!doc.exists) {
-                      console.log("Creating user document for:", userId);
-                      return db.collection('users').doc(userId).set({
-                        credits: 10,
-                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                      });
-                    }
-                  })
-                  .catch(error => {
-                    console.error("Error checking/creating user document:", error);
-                  });
-                
-                // Subscribe to saved game plans with error recovery
-                try {
-                  const unsubscribe = db.collection('users').doc(userId)
-                    .collection('gamePlans')
-                    .orderBy('createdAt', 'desc')
-                    .onSnapshot((snapshot) => {
-                      const plans = [];
-                      snapshot.forEach((doc) => {
-                        plans.push({
-                          id: doc.id,
-                          ...doc.data()
+                // First ensure the user document exists
+                ensureUserDocumentExists(userId).then(success => {
+                  if (success) {
+                    const db = firebase.firestore();
+                    console.log("Attempting to load saved game plans for user:", userId);
+                    
+                    // Use a simple get() instead of onSnapshot to debug
+                    try {
+                      db.collection('users').doc(userId)
+                        .collection('gamePlans')
+                        .get()
+                        .then(snapshot => {
+                          const plans = [];
+                          snapshot.forEach((doc) => {
+                            plans.push({
+                              id: doc.id,
+                              ...doc.data()
+                            });
+                          });
+                          setSavedGamePlans(plans);
+                          console.log('Loaded saved game plans:', plans);
+                        })
+                        .catch(error => {
+                          console.error('Error loading saved game plans:', error);
+                          setError('Unable to load saved plans: ' + error.message);
                         });
-                      });
-                      setSavedGamePlans(plans);
-                      console.log('Loaded saved game plans:', plans);
-                    }, (error) => {
-                      console.error('Error loading saved game plans:', error);
-                      setError('Unable to load saved plans: ' + error.message);
-                    });
-                  
-                  // Cleanup subscription on unmount
-                  return () => unsubscribe();
-                } catch (err) {
-                  console.error("Error setting up game plans listener:", err);
-                  setError('Error setting up plan loader: ' + err.message);
-                }
+                    } catch (err) {
+                      console.error("Error setting up game plans loader:", err);
+                      setError('Error setting up plan loader: ' + err.message);
+                    }
+                  }
+                });
               }
             }, []);
 
@@ -633,55 +650,131 @@
                 : (topicPart || challengePart || 'Untitled Game Plan');
             };
             
-            // Handle saving the current game plan
-            const handleSavePlan = async () => {
-              if (!gamePlanResult || !window.firebase || !firebase.auth().currentUser) return;
+            // Handle form submission with better error handling
+            const handleSubmit = async (e) => {
+              e.preventDefault();
+              setIsLoading(true);
+              setError(null);
               
-              setIsSaving(true);
-              
-              try {
-                const userId = firebase.auth().currentUser.uid;
-                const db = firebase.firestore();
-                
-                const planData = {
-                  title: generatePlanTitle(),
-                  topic: selectedTopic,
-                  challenge: selectedChallenge,
-                  projectType: selectedProjectType,
-                  description: description,
+              // Store previous plan in history if it exists
+              if (gamePlanResult) {
+                setRevisionHistory(prev => [...prev, {
                   plan: gamePlanResult,
-                  revisionHistory: revisionHistory,
-                  createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                  updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-                };
-                
-                // If we're in view mode, update the existing plan
-                if (viewMode === 'view' && selectedPlanId) {
-                  await db.collection('users').doc(userId)
-                    .collection('gamePlans')
-                    .doc(selectedPlanId)
-                    .update({
-                      plan: gamePlanResult,
-                      revisionHistory: revisionHistory,
-                      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-                    });
+                  revisionPrompt: null, // No revision prompt for initial plan
+                  timestamp: new Date().toISOString()
+                }]);
+              }
+              
+              setGamePlanResult(null);
+              setAiQuestion(null);
+              setAiResponse(null);
+              
+              // First ensure the user document exists
+              if (window.firebase && firebase.auth().currentUser) {
+                try {
+                  const userId = firebase.auth().currentUser.uid;
+                  await ensureUserDocumentExists(userId);
+                  
+                  // Construct the data object to send to the function
+                  const requestData = {
+                    topic: selectedTopic,
+                    challenge: selectedChallenge,
+                    projectType: selectedProjectType,
+                    projectDescription: description || ''
+                  };
+                  
+                  console.log("Calling generateGamePlan with data:", requestData);
+                  
+                  // Ensure Firebase functions is available
+                  if (!window.firebase || !window.firebase.functions) {
+                    throw new Error("Firebase Functions SDK is not available.");
+                  }
+                  
+                  // Ensure user is authenticated
+                  if (!firebase.auth().currentUser) {
+                    throw new Error("User is not authenticated. Please sign in again.");
+                  }
+                  
+                  // Call the generateGamePlan function
+                  const actualGamePlanFunction = firebase.functions().httpsCallable('generateGamePlan');
+                  const result = await actualGamePlanFunction(requestData);
+                  
+                  console.log("Received response from generateGamePlan function:", result);
+                  
+                  if (result.data && typeof result.data === 'object') {
+                    setGamePlanResult(result.data);
                     
-                  console.log('Updated existing game plan:', selectedPlanId);
-                } else {
-                  // Create a new plan
-                  const docRef = await db.collection('users').doc(userId)
-                    .collection('gamePlans')
-                    .add(planData);
-                    
-                  setSelectedPlanId(docRef.id);
-                  setViewMode('view');
-                  console.log('Saved new game plan:', docRef.id);
+                    // Manually save the game plan to Firestore
+                    try {
+                      // Generate a title from the project summary
+                      let planTitle = 'Game Plan';
+                      if (result.data.project_summary) {
+                        const words = result.data.project_summary.split(' ').slice(0, 6).join(' ');
+                        planTitle = `${words}${words.endsWith('.') ? '' : '...'}`;
+                      } else if (selectedTopic && selectedChallenge) {
+                        planTitle = `${selectedTopic}: ${selectedChallenge}`;
+                      } else if (selectedTopic) {
+                        planTitle = selectedTopic;
+                      }
+                      
+                      // Save to Firestore directly
+                      const db = firebase.firestore();
+                      const userDocRef = db.collection('users').doc(userId);
+                      
+                      // Create planData object
+                      const planData = {
+                        title: planTitle,
+                        topic: selectedTopic || '',
+                        challenge: selectedChallenge || '',
+                        projectType: selectedProjectType || '',
+                        description: description || '',
+                        plan: result.data,
+                        revisionHistory: [],
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                      };
+                      
+                      // Save to Firestore and update state with the new plan
+                      const docRef = await userDocRef.collection('gamePlans').add(planData);
+                      console.log('Manually saved game plan with ID:', docRef.id);
+                      
+                      // Reload saved plans after adding a new one
+                      const plansSnapshot = await userDocRef.collection('gamePlans').get();
+                      const updatedPlans = [];
+                      plansSnapshot.forEach(doc => {
+                        updatedPlans.push({
+                          id: doc.id,
+                          ...doc.data()
+                        });
+                      });
+                      
+                      // Update the plans in state
+                      setSavedGamePlans(updatedPlans);
+                      setSelectedPlanId(docRef.id);
+                      setViewMode('view');
+                    } catch (saveError) {
+                      console.error('Error saving game plan:', saveError);
+                    }
+                  } else {
+                    throw new Error(result.data?.error || result.data || 'Invalid response structure from function.');
+                  }
+                } catch (err) {
+                  console.error("Error calling generateGamePlan:", err);
+                  
+                  // Enhanced error messages for common issues
+                  if (err.code === 'permission-denied' || err.message?.includes('permission')) {
+                    setError('Permission denied. Please check that you are properly signed in and have sufficient credits.');
+                  } else if (err.code === 'resource-exhausted') {
+                    setError('You do not have enough credits to generate a game plan. Please purchase more credits.');
+                  } else {
+                    setError(err.message || 'Failed to generate game plan. Please try again.');
+                  }
+                } finally {
+                  setIsLoading(false);
                 }
-              } catch (error) {
-                console.error('Error saving game plan:', error);
-                setError('Failed to save game plan: ' + error.message);
-              } finally {
-                setIsSaving(false);
+              } else {
+                setError('You must be signed in to create a game plan.');
+                setIsLoading(false);
               }
             };
             
@@ -713,73 +806,6 @@
               setSelectedProjectType(selectedPlan.projectType || '');
               setDescription(selectedPlan.description || '');
               setIsFormCollapsed(true);
-            };
-            
-            // Handle form submission with better error handling
-            const handleSubmit = async (e) => {
-              e.preventDefault();
-              setIsLoading(true);
-              setError(null);
-              
-              // Store previous plan in history if it exists
-              if (gamePlanResult) {
-                setRevisionHistory(prev => [...prev, {
-                  plan: gamePlanResult,
-                  revisionPrompt: null, // No revision prompt for initial plan
-                  timestamp: new Date().toISOString()
-                }]);
-              }
-              
-              setGamePlanResult(null);
-              setAiQuestion(null);
-              setAiResponse(null);
-              
-              // Construct the data object to send to the function
-              const requestData = {
-                topic: selectedTopic,
-                challenge: selectedChallenge,
-                projectType: selectedProjectType,
-                projectDescription: description || ''
-              };
-              
-              console.log("Calling generateGamePlan with data:", requestData);
-              
-              try {
-                // Ensure Firebase functions is available
-                if (!window.firebase || !window.firebase.functions) {
-                  throw new Error("Firebase Functions SDK is not available.");
-                }
-                
-                // Ensure user is authenticated
-                if (!firebase.auth().currentUser) {
-                  throw new Error("User is not authenticated. Please sign in again.");
-                }
-                
-                // Call the generateGamePlan function
-                const actualGamePlanFunction = firebase.functions().httpsCallable('generateGamePlan');
-                const result = await actualGamePlanFunction(requestData);
-                
-                console.log("Received response from generateGamePlan function:", result);
-                
-                if (result.data && typeof result.data === 'object') {
-                  setGamePlanResult(result.data);
-                } else {
-                  throw new Error(result.data?.error || result.data || 'Invalid response structure from function.');
-                }
-              } catch (err) {
-                console.error("Error calling generateGamePlan:", err);
-                
-                // Enhanced error messages for common issues
-                if (err.code === 'permission-denied' || err.message?.includes('permission')) {
-                  setError('Permission denied. Please check that you are properly signed in and have sufficient credits.');
-                } else if (err.code === 'resource-exhausted') {
-                  setError('You do not have enough credits to generate a game plan. Please purchase more credits.');
-                } else {
-                  setError(err.message || 'Failed to generate game plan. Please try again.');
-                }
-              } finally {
-                setIsLoading(false);
-              }
             };
             
             // Handle revision submission with AI agent-like interaction
@@ -922,6 +948,74 @@
               } catch (error) {
                 console.error('Error deleting game plan:', error);
                 setError('Failed to delete game plan: ' + error.message);
+              }
+            };
+
+            // Handle saving the current game plan
+            const handleSavePlan = async () => {
+              if (!gamePlanResult || !window.firebase || !firebase.auth().currentUser) return;
+              
+              setIsSaving(true);
+              
+              try {
+                const userId = firebase.auth().currentUser.uid;
+                await ensureUserDocumentExists(userId);
+                const db = firebase.firestore();
+                
+                const planData = {
+                  title: generatePlanTitle(),
+                  topic: selectedTopic,
+                  challenge: selectedChallenge,
+                  projectType: selectedProjectType,
+                  description: description,
+                  plan: gamePlanResult,
+                  revisionHistory: revisionHistory,
+                  createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                  updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                };
+                
+                // If we're in view mode, update the existing plan
+                if (viewMode === 'view' && selectedPlanId) {
+                  await db.collection('users').doc(userId)
+                    .collection('gamePlans')
+                    .doc(selectedPlanId)
+                    .update({
+                      plan: gamePlanResult,
+                      revisionHistory: revisionHistory,
+                      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                    
+                  console.log('Updated existing game plan:', selectedPlanId);
+                } else {
+                  // Create a new plan
+                  const docRef = await db.collection('users').doc(userId)
+                    .collection('gamePlans')
+                    .add(planData);
+                    
+                  setSelectedPlanId(docRef.id);
+                  setViewMode('view');
+                  console.log('Saved new game plan:', docRef.id);
+                }
+                
+                // Reload saved plans
+                const plansSnapshot = await db.collection('users').doc(userId)
+                  .collection('gamePlans')
+                  .get();
+                
+                const updatedPlans = [];
+                plansSnapshot.forEach(doc => {
+                  updatedPlans.push({
+                    id: doc.id,
+                    ...doc.data()
+                  });
+                });
+                
+                setSavedGamePlans(updatedPlans);
+              } catch (error) {
+                console.error('Error saving game plan:', error);
+                setError('Failed to save game plan: ' + error.message);
+              } finally {
+                setIsSaving(false);
               }
             };
 
