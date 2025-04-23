@@ -1721,6 +1721,16 @@ ${data.previousPlan}
 Following the original revision request:
 "${data.revisionRequest}"
 
+MERMAID DIAGRAM INSTRUCTIONS:
+Create or revise the Mermaid diagram based on the user's answer to your question. Create a clear, structured diagram that visualizes the solution architecture or process flow. Choose the appropriate diagram type:
+- For workflows and processes: Use flowchart with 'graph TD' (top-down) syntax
+- For sequence of operations: Use 'sequenceDiagram'
+- For system architecture: Use 'graph LR' (left-right) to show components
+
+Keep the diagram focused on 5-10 key elements with meaningful labels and clear relationships.
+Do NOT use overly complex syntax or exotic Mermaid features.
+Test your diagram visually in your mind before including it.
+
 Your response MUST be a single, valid JSON object with the same structure as the original plan, containing ONLY the following fields:
 {
   "project_summary": "A concise (1-2 sentence) summary interpreting the user's goal.",
@@ -1730,7 +1740,7 @@ Your response MUST be a single, valid JSON object with the same structure as the
   "learning_resources": [...],
   "potential_roadblocks": [...],
   "success_metrics": [...],
-  "mermaid_diagram": "A Mermaid code block visualizing the high-level architecture or process flow.",
+  "mermaid_diagram": "A Mermaid code block visualizing the high-level architecture or process flow. Do not include the triple-backtick markdown syntax, just provide the diagram code itself.",
   "next_steps_prompt": "A brief suggestion encouraging the user on how to start or refine the plan."
 }`;
 
@@ -1810,6 +1820,16 @@ For technology recommendations, prioritize ready-made, all-in-one solutions that
 
 In all cases, prioritize recommending existing tools and platforms that solve most of the problem directly, rather than suggesting technologies the user would need to build solutions with from scratch.
 
+MERMAID DIAGRAM INSTRUCTIONS:
+Create or revise the Mermaid diagram based on user feedback. Create a clear, structured diagram that visualizes the solution architecture or process flow. Choose the appropriate diagram type:
+- For workflows and processes: Use flowchart with 'graph TD' (top-down) syntax
+- For sequence of operations: Use 'sequenceDiagram'
+- For system architecture: Use 'graph LR' (left-right) to show components
+
+Keep the diagram focused on 5-10 key elements with meaningful labels and clear relationships.
+Do NOT use overly complex syntax or exotic Mermaid features.
+Test your diagram visually in your mind before including it.
+
 Your response MUST be a single, valid JSON object with the same structure as the original plan, containing ONLY the following fields:
 {
   "project_summary": "A concise (1-2 sentence) summary interpreting the user's goal.",
@@ -1843,7 +1863,7 @@ Your response MUST be a single, valid JSON object with the same structure as the
     {"metric": "Measurable outcome 2", "measurement": "How to track..."} 
     // ... (Define 1-3 key success metrics total)
   ],
-  "mermaid_diagram": "A Mermaid code block visualizing the high-level architecture or process flow described in the plan. Use graph TD for flow or sequenceDiagram where appropriate.",
+  "mermaid_diagram": "A Mermaid code block visualizing the high-level architecture or process flow described in the plan. Do not include the triple-backtick markdown syntax, just provide the diagram code itself.",
   "next_steps_prompt": "A brief suggestion encouraging the user on how to start or refine the plan (e.g., 'Focus on Milestone 1 and explore the suggested resources.')."
 }`;
     } else {
@@ -1867,6 +1887,16 @@ For technology recommendations, prioritize ready-made, all-in-one solutions that
 - For Enterprise Solutions: Recommend scalable, enterprise-grade platforms with comprehensive features, strong security, and integration capabilities.
 
 In all cases, prioritize recommending existing tools and platforms that solve most of the problem directly, rather than suggesting technologies the user would need to build solutions with from scratch.
+
+MERMAID DIAGRAM INSTRUCTIONS:
+Create a clear, well-structured Mermaid diagram that visualizes the solution architecture or process flow. Use appropriate diagram type:
+- For workflows and processes: Use flowchart with 'graph TD' (top-down) syntax
+- For sequence of operations: Use 'sequenceDiagram'
+- For system architecture: Use 'graph LR' (left-right) to show components
+
+Keep the diagram focused on 5-10 key elements with meaningful labels and clear relationships.
+Do NOT use overly complex syntax or exotic Mermaid features.
+Test your diagram visually in your mind before including it.
 
 Your response MUST be a single, valid JSON object containing ONLY the following fields:
 {
@@ -1901,7 +1931,7 @@ Your response MUST be a single, valid JSON object containing ONLY the following 
     {"metric": "Measurable outcome 2", "measurement": "How to track..."} 
     // ... (Define 1-3 key success metrics total)
   ],
-  "mermaid_diagram": "A Mermaid code block visualizing the high-level architecture or process flow described in the plan. Use graph TD for flow or sequenceDiagram where appropriate.",
+  "mermaid_diagram": "A Mermaid code block visualizing the high-level architecture or process flow described in the plan. Do not include the triple-backtick markdown syntax, just provide the diagram code itself.",
   "next_steps_prompt": "A brief suggestion encouraging the user on how to start or refine the plan (e.g., 'Focus on Milestone 1 and explore the suggested resources.')."
 }`;
     }
@@ -1958,6 +1988,32 @@ Your response MUST be a single, valid JSON object containing ONLY the following 
       // Basic validation of parsed structure
       if (!parsedResponse || typeof parsedResponse !== 'object') {
            throw new Error('Parsed response is not a valid object.');
+      }
+      
+      // Ensure Mermaid diagram exists and is properly formatted
+      if (parsedResponse.mermaid_diagram) {
+        // Clean mermaid_diagram field - remove any lingering markdown code block syntax
+        let diagramText = parsedResponse.mermaid_diagram.trim();
+        
+        // Remove markdown code block tags if present
+        diagramText = diagramText.replace(/^```(?:mermaid)?\s*/, '');
+        diagramText = diagramText.replace(/\s*```$/, '');
+        
+        // Make sure diagrams start with proper syntax indicators
+        if (!diagramText.startsWith('graph ') && 
+            !diagramText.startsWith('sequenceDiagram') && 
+            !diagramText.startsWith('classDiagram') && 
+            !diagramText.startsWith('flowchart ')) {
+          // Default to flowchart if no valid syntax found
+          diagramText = 'graph TD\n' + diagramText;
+        }
+        
+        // Update the diagram in the parsed response
+        parsedResponse.mermaid_diagram = diagramText;
+      } else {
+        // If no diagram provided, add a simple default one
+        parsedResponse.mermaid_diagram = 'graph TD\n  A[Start] --> B[Implementation]\n  B --> C[Completion]';
+        console.log('No mermaid diagram provided, adding simple default');
       }
       
     } catch (parseError) {
