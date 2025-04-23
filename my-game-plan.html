@@ -568,26 +568,49 @@
                 const userId = firebase.auth().currentUser.uid;
                 const db = firebase.firestore();
                 
-                // Subscribe to saved game plans
-                const unsubscribe = db.collection('users').doc(userId)
-                  .collection('gamePlans')
-                  .orderBy('createdAt', 'desc')
-                  .onSnapshot((snapshot) => {
-                    const plans = [];
-                    snapshot.forEach((doc) => {
-                      plans.push({
-                        id: doc.id,
-                        ...doc.data()
+                console.log("Attempting to load saved game plans for user:", userId);
+                
+                // Verify user document exists first
+                db.collection('users').doc(userId).get()
+                  .then(doc => {
+                    if (!doc.exists) {
+                      console.log("Creating user document for:", userId);
+                      return db.collection('users').doc(userId).set({
+                        credits: 10,
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
                       });
-                    });
-                    setSavedGamePlans(plans);
-                    console.log('Loaded saved game plans:', plans);
-                  }, (error) => {
-                    console.error('Error loading saved game plans:', error);
+                    }
+                  })
+                  .catch(error => {
+                    console.error("Error checking/creating user document:", error);
                   });
+                
+                // Subscribe to saved game plans with error recovery
+                try {
+                  const unsubscribe = db.collection('users').doc(userId)
+                    .collection('gamePlans')
+                    .orderBy('createdAt', 'desc')
+                    .onSnapshot((snapshot) => {
+                      const plans = [];
+                      snapshot.forEach((doc) => {
+                        plans.push({
+                          id: doc.id,
+                          ...doc.data()
+                        });
+                      });
+                      setSavedGamePlans(plans);
+                      console.log('Loaded saved game plans:', plans);
+                    }, (error) => {
+                      console.error('Error loading saved game plans:', error);
+                      setError('Unable to load saved plans: ' + error.message);
+                    });
                   
-                // Cleanup subscription on unmount
-                return () => unsubscribe();
+                  // Cleanup subscription on unmount
+                  return () => unsubscribe();
+                } catch (err) {
+                  console.error("Error setting up game plans listener:", err);
+                  setError('Error setting up plan loader: ' + err.message);
+                }
               }
             }, []);
 
@@ -692,10 +715,7 @@
               setIsFormCollapsed(true);
             };
             
-            // Additional React effect for Mermaid and sections...
-            // ... existing React.useEffect code ...
-
-            // Handle form submission - modified to work with view/create modes
+            // Handle form submission with better error handling
             const handleSubmit = async (e) => {
               e.preventDefault();
               setIsLoading(true);
@@ -725,10 +745,38 @@
               console.log("Calling generateGamePlan with data:", requestData);
               
               try {
-                // Rest of existing function call code
-                // ...
+                // Ensure Firebase functions is available
+                if (!window.firebase || !window.firebase.functions) {
+                  throw new Error("Firebase Functions SDK is not available.");
+                }
+                
+                // Ensure user is authenticated
+                if (!firebase.auth().currentUser) {
+                  throw new Error("User is not authenticated. Please sign in again.");
+                }
+                
+                // Call the generateGamePlan function
+                const actualGamePlanFunction = firebase.functions().httpsCallable('generateGamePlan');
+                const result = await actualGamePlanFunction(requestData);
+                
+                console.log("Received response from generateGamePlan function:", result);
+                
+                if (result.data && typeof result.data === 'object') {
+                  setGamePlanResult(result.data);
+                } else {
+                  throw new Error(result.data?.error || result.data || 'Invalid response structure from function.');
+                }
               } catch (err) {
-                // ...
+                console.error("Error calling generateGamePlan:", err);
+                
+                // Enhanced error messages for common issues
+                if (err.code === 'permission-denied' || err.message?.includes('permission')) {
+                  setError('Permission denied. Please check that you are properly signed in and have sufficient credits.');
+                } else if (err.code === 'resource-exhausted') {
+                  setError('You do not have enough credits to generate a game plan. Please purchase more credits.');
+                } else {
+                  setError(err.message || 'Failed to generate game plan. Please try again.');
+                }
               } finally {
                 setIsLoading(false);
               }

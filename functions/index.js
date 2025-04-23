@@ -24,10 +24,16 @@ admin.initializeApp();
 // Reference to Firestore database
 const db = admin.firestore();
 
+// Configuration constants
+const GROK_API_URL = process.env.GROK_API_URL || 'https://api.x.ai/v1';
+const GROK_API_KEY = process.env.GROK_API_KEY || process.env.XAI_API_KEY;
+const DEFAULT_CREDITS = 10;
+
+console.log('Using Grok API URL:', GROK_API_URL);
+
 /**
  * Credit management constants
  */
-const DEFAULT_CREDITS = 10;
 const TEXT_CREDIT_COST = 1;
 const CHAT_CREDIT_COST = 1;
 const IMAGE_CREDIT_COST = 5;
@@ -1655,13 +1661,6 @@ exports.testVertexAI = functions.https.onRequest((req, res) => {
   });
 });
 
-// Get Grok API key and URL from Firebase config/environment variables
-const GROK_API_KEY = functions.config().grok?.apikey || process.env.GROK_API_KEY;
-const GROK_API_URL = functions.config().grok?.apiurl || process.env.GROK_API_URL || 'https://api.x.ai/v1/chat/completions'; // Use env var, fallback if needed
-
-// Log the URL being used for verification
-console.log('Using Grok API URL:', GROK_API_URL);
-
 // Game Plan generation function using Grok API
 exports.generateGamePlan = functions.https.onCall(async (data, context) => {
   console.log('generateGamePlan called with:', data);
@@ -1674,10 +1673,26 @@ exports.generateGamePlan = functions.https.onCall(async (data, context) => {
   const db = admin.firestore();
   
   try {
-    // Verify user has enough credits
-    const userDoc = await db.collection('users').doc(userId).get();
-    const userData = userDoc.data() || { credits: 0 };
+    // Get the user's document from Firestore
+    const userRef = db.collection('users').doc(userId);
+    const userDoc = await userRef.get();
     
+    // If user document doesn't exist, create it with default credits
+    if (!userDoc.exists) {
+      console.log(`Creating new user document for ${userId} with default credits`);
+      await userRef.set({
+        credits: DEFAULT_CREDITS,
+        createdAt: admin.firestore.FieldValue.serverTimestamp()
+      });
+      
+      // Re-fetch the user document
+      const newUserDoc = await userRef.get();
+      var userData = newUserDoc.data();
+    } else {
+      var userData = userDoc.data();
+    }
+    
+    // Verify user has enough credits
     if (userData.credits < 1) {
       throw new functions.https.HttpsError('resource-exhausted', 'Not enough credits');
     }
