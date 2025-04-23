@@ -1682,12 +1682,89 @@ exports.generateGamePlan = functions.https.onCall(async (data, context) => {
       throw new functions.https.HttpsError('resource-exhausted', 'Not enough credits');
     }
     
-    // Determine if this is a revision or a new plan
-    const isRevision = data.previousPlan && data.revisionRequest;
-    let userPrompt;
-    
-    if (isRevision) {
-      // Revision prompt
+    // Check if this is an answer to a previous AI question
+    if (data.aiQuestion && data.aiAnswer) {
+      console.log('Processing answer to AI question:', data.aiQuestion);
+      console.log('User provided answer:', data.aiAnswer);
+      
+      // Special prompt for when AI asked a question and user provided an answer
+      userPrompt = `You previously asked the following clarifying question about revising a game plan:
+"${data.aiQuestion}"
+
+The user has provided this answer:
+"${data.aiAnswer}"
+
+Based on this answer, please revise the original game plan:
+${data.previousPlan}
+
+Following the original revision request:
+"${data.revisionRequest}"
+
+Your response MUST be a single, valid JSON object with the same structure as the original plan, containing ONLY the following fields:
+{
+  "project_summary": "A concise (1-2 sentence) summary interpreting the user's goal.",
+  "key_milestones": [...],
+  "suggested_steps": [...],
+  "recommended_technologies": [...],
+  "learning_resources": [...],
+  "potential_roadblocks": [...],
+  "success_metrics": [...],
+  "mermaid_diagram": "A Mermaid code block visualizing the high-level architecture or process flow.",
+  "next_steps_prompt": "A brief suggestion encouraging the user on how to start or refine the plan."
+}`;
+
+      // System message focused on using the user's answer
+      systemMessage = "You are an expert AI implementation consultant specializing in revising implementation plans based on user feedback. Incorporate the user's answer to your clarifying question to improve the plan. Focus on recommending existing tools and platforms that minimize development work. Always maintain the exact JSON structure specified.";
+    }
+    // Check if this is a revision request
+    else if (data.previousPlan && data.revisionRequest) {
+      console.log('Processing revision request:', data.revisionRequest);
+      
+      // Determine if the AI needs to ask a clarifying question
+      const needsClarification = shouldAskClarifyingQuestion(data.revisionRequest);
+      
+      if (needsClarification) {
+        // Generate a clarifying question instead of a revised plan
+        const clarifyingPrompt = `You are helping a user refine this AI implementation game plan:
+${data.previousPlan}
+
+The user has requested this revision:
+"${data.revisionRequest}"
+
+Based on this request, you need more information before you can provide the best possible revised plan.
+Formulate ONE specific, clear question that would help you better understand what the user needs.
+Ask only the most important question that would help you refine the plan effectively.
+
+Your response must be a valid JSON object with a single field "ai_question" containing your question.
+Example: {"ai_question": "Could you specify which aspect of cloud deployment you'd like more details on?"}`;
+
+        const clarifyingSystemMsg = "You are an expert AI implementation consultant who knows when to ask clarifying questions. Ask only one specific question that would help you refine the plan. Focus on gathering information about technologies, scope, audience, or technical requirements that would significantly impact your recommendations.";
+        
+        // Call Grok to generate a clarifying question
+        const { text: questionText } = await generateText({
+          model: xai('grok-2-1212'),
+          system: clarifyingSystemMsg,
+          prompt: clarifyingPrompt,
+        });
+        
+        console.log("AI generated clarifying question:", questionText);
+        
+        try {
+          const questionResponse = JSON.parse(questionText);
+          if (questionResponse.ai_question) {
+            // Don't deduct a credit for asking a question
+            return { ai_question: questionResponse.ai_question };
+          } else {
+            // Fall through to normal revision if question format is invalid
+            console.log("Question format invalid, falling back to normal revision");
+          }
+        } catch (err) {
+          console.log("Error parsing question response, falling back to normal revision:", err);
+          // Continue with normal revision process
+        }
+      }
+      
+      // Original revision prompt
       userPrompt = `Revise the following AI implementation game plan based on the user's feedback.
 Original Plan: ${data.previousPlan}
 
@@ -1809,10 +1886,12 @@ Your response MUST be a single, valid JSON object containing ONLY the following 
     }
   
     // Refined system message to emphasize ready-made solutions
-    const systemMessage = "You are an expert AI implementation consultant. Your goal is to craft actionable implementation game plans for technology projects that help users understand how to implement solutions quickly and effectively. Focus on recommending existing tools and platforms that minimize development work. Prioritize ready-made, all-in-one solutions over technologies that require extensive custom building. Always maintain the exact JSON structure specified.";
+    if (!systemMessage) { // only set if not already set for AI questions
+      systemMessage = "You are an expert AI implementation consultant. Your goal is to craft actionable implementation game plans for technology projects that help users understand how to implement solutions quickly and effectively. Focus on recommending existing tools and platforms that minimize development work. Prioritize ready-made, all-in-one solutions over technologies that require extensive custom building. Always maintain the exact JSON structure specified.";
+    }
     
     console.log(`Generating game plan for topic: ${data.topic}, challenge: ${data.challenge}, type: ${data.projectType}`);
-    if (isRevision) {
+    if (data.revisionRequest) {
       console.log('This is a revision request with feedback:', data.revisionRequest);
     }
     
@@ -1844,188 +1923,79 @@ Your response MUST be a single, valid JSON object containing ONLY the following 
       );
     }
     
-    // Deduct one credit from the user
-    await db.collection('users').doc(userId).update({
-      credits: admin.firestore.FieldValue.increment(-1)
-    });
+    // Deduct one credit from the user - only if we're not asking a clarifying question
+    if (!parsedResponse.ai_question) {
+      await db.collection('users').doc(userId).update({
+        credits: admin.firestore.FieldValue.increment(-1)
+      });
+    }
+    
+    // Also save this game plan to the user's history if it's a new plan (not a revision)
+    if (!data.previousPlan && !data.revisionRequest && !data.aiQuestion) {
+      try {
+        // Generate a title from the project summary or topic/challenge
+        let planTitle = 'Game Plan';
+        if (parsedResponse.project_summary) {
+          const words = parsedResponse.project_summary.split(' ').slice(0, 6).join(' ');
+          planTitle = `${words}${words.endsWith('.') ? '' : '...'}`;
+        } else if (data.topic && data.challenge) {
+          planTitle = `${data.topic}: ${data.challenge}`;
+        } else if (data.topic) {
+          planTitle = data.topic;
+        }
+        
+        // Save to Firestore
+        await db.collection('users').doc(userId).collection('gamePlans').add({
+          title: planTitle,
+          topic: data.topic || '',
+          challenge: data.challenge || '',
+          projectType: data.projectType || '',
+          description: data.projectDescription || '',
+          plan: parsedResponse,
+          revisionHistory: [],
+          createdAt: admin.firestore.FieldValue.serverTimestamp(),
+          updatedAt: admin.firestore.FieldValue.serverTimestamp()
+        });
+        
+        console.log('Automatically saved new game plan to user history');
+      } catch (saveError) {
+        console.error('Error auto-saving game plan:', saveError);
+        // Don't fail the function if auto-save fails
+      }
+    }
     
     // Return the full parsed object from the AI
     return parsedResponse;
   } catch (error) {
     console.error('Error in generateGamePlan function:', error);
-    if (error instanceof functions.https.HttpsError) {
-      throw error; // Re-throw HttpsError directly
-    }
-    // Wrap other errors as internal HttpsError
-    throw new functions.https.HttpsError('internal', 'An unexpected error occurred generating the plan.' + (error.message ? ` (${error.message})` : ''));
+    throw new functions.https.HttpsError(
+      'internal',
+      error.message || 'An unknown error occurred while generating the game plan.'
+    );
   }
 });
 
-// HTTP version of generateGamePlan
-exports.generateGamePlanHttp = functions.https.onRequest((req, res) => {
-  // Set CORS headers
-  res.set('Access-Control-Allow-Origin', 'https://www.ai-fundamentals.me');
-  res.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.set('Access-Control-Allow-Credentials', 'true');
+// Helper function to determine if we should ask a clarifying question
+function shouldAskClarifyingQuestion(revisionRequest) {
+  // Simple heuristic: if the revision request contains a question or seems vague
+  const questionMarks = (revisionRequest.match(/\?/g) || []).length;
+  const vaguePhrases = [
+    'more details', 'tell me more', 'elaborate', 'explain', 'clarify', 
+    'what about', 'how would', 'can you provide', 'more information',
+    'additional', 'not clear', 'confused', 'don\'t understand'
+  ];
   
-  // Handle preflight requests
-  if (req.method === 'OPTIONS') {
-    res.status(204).send('');
-    return;
-  }
+  // Check if the revision request has question marks or contains vague phrases
+  const hasQuestionMarks = questionMarks > 0;
+  const hasVaguePhrases = vaguePhrases.some(phrase => 
+    revisionRequest.toLowerCase().includes(phrase.toLowerCase())
+  );
   
-  return cors(req, res, async () => {
-    try {
-      // Extract parameters
-      const { category, topic, projectDescription, model = 'grok-2-latest' } = req.body;
-      
-      if (!projectDescription && !category) {
-        return res.status(400).json({
-          error: 'You must provide either a project description or select a category',
-          success: false
-        });
-      }
-      
-      // Create enhanced prompt for game plan generation with category and topic
-      const prompt = `
-        Create a detailed implementation plan for the following project:
-        "${projectDescription || 'A project in the selected category'}"
-        
-        ${category ? `Category: ${category}` : ''}
-        ${topic ? `Topic: ${topic}` : ''}
-        
-        Provide the following:
-        1. A step-by-step implementation plan (at least 5 steps)
-        2. Recommended technologies with brief descriptions
-        3. Learning resources (tutorials, documentation, courses)
-        
-        Format the response as a structured JSON object with these fields:
-        {
-          "plan": ["step 1", "step 2", ...],
-          "technologies": [{"name": "Tech Name", "description": "Brief description"}],
-          "resources": [{"title": "Resource Title", "url": "URL", "type": "Tutorial/Documentation/Course"}],
-        }
-      `;
-      
-      // Enhanced system message with guardrails
-      const systemMessage = `
-        You are a helpful AI assistant that creates detailed project implementation plans. 
-        Only respond to questions about project planning, technology selection, and implementation strategies.
-        For off-topic questions or casual conversation, politely redirect the user to describe their project instead.
-        Always format your response as a single, valid JSON object adhering strictly to the specified structure. DO NOT include markdown formatting like \`\`\`json.
-        Ensure all URLs in resources are valid and point to reputable sources.
-        For each technology recommended, provide a clear and concise description of its purpose and benefits.
-      `;
-      
-      // Initialize axios
-      const axios = require('axios');
-      
-      try {
-        // Construct the full API endpoint URL
-        let endpointUrl = GROK_API_URL;
-        if (!endpointUrl.includes('/chat/completions')) {
-            endpointUrl = `${GROK_API_URL.replace(/\/$/, '')}/chat/completions`; // Append path if missing
-        }
-        
-        console.log('Attempting to POST to:', endpointUrl); // Log the actual endpoint
-
-        // Call Grok API using the constructed endpoint URL
-        const response = await axios.post(
-          endpointUrl,
-          {
-            model: model,
-            messages: [
-              { role: 'system', content: systemMessage },
-              { role: 'user', content: prompt }
-            ]
-          },
-          {
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${GROK_API_KEY}`
-            }
-          }
-        );
-        
-        // Parse the response
-        const responseText = response.data.choices[0].message.content;
-        let parsedResponse;
-        
-        try {
-          // Extract JSON from the response
-          const jsonMatch = responseText.match(/```json\n([\s\S]*?)\n```/) || 
-                          responseText.match(/{[\s\S]*}/);
-          
-          const jsonString = jsonMatch ? jsonMatch[1] || jsonMatch[0] : responseText;
-          parsedResponse = JSON.parse(jsonString);
-        } catch (parseError) {
-          console.error('Error parsing AI response:', parseError);
-          // Provide a fallback structured response
-          return res.status(200).json({
-            success: true,
-            plan: [
-              "Please provide more specific details about your project.",
-              "Consider selecting a category and topic to get more targeted recommendations.",
-              "Describe what you're trying to build and what problem it solves.",
-              "Mention any specific technologies you're interested in using.",
-              "Include any constraints or requirements for your project."
-            ],
-            technologies: [
-              {
-                name: "Recommended Technologies",
-                description: "Select a category and provide project details to get specific technology recommendations."
-              }
-            ],
-            resources: [
-              {
-                title: "AI Fundamentals Learning Resources",
-                url: "https://ai-fundamentals.me/learning.html",
-                type: "Learning Path"
-              }
-            ]
-          });
-        }
-        
-        // Return the parsed response
-        return res.status(200).json({
-          success: true,
-          ...parsedResponse
-        });
-        
-      } catch (apiError) {
-        console.error('Error calling Grok API:', apiError);
-        
-        // Return a fallback response
-        return res.status(200).json({
-          success: true,
-          plan: [
-            "We're experiencing some technical difficulties with our AI service.",
-            "Please try again in a few moments.",
-            "In the meantime, you can browse our learning resources for project ideas."
-          ],
-          technologies: [
-            {
-              name: "AI Fundamentals",
-              description: "Our platform offers various learning resources for AI and technology projects."
-            }
-          ],
-          resources: [
-            {
-              title: "AI Fundamentals Learning Resources",
-              url: "https://ai-fundamentals.me/learning.html",
-              type: "Learning Path"
-            }
-          ]
-        });
-      }
-      
-    } catch (error) {
-      console.error('Error in generateGamePlanHttp:', error);
-      return res.status(500).json({
-        success: false,
-        error: error.message || 'An unexpected error occurred'
-      });
-    }
-  });
-});
+  // If the revision is short and contains a question or vague phrase, ask for clarification
+  const isShort = revisionRequest.length < 100;
+  
+  // Randomize a bit so we don't always ask questions for similar requests
+  const randomFactor = Math.random() < 0.7; // 70% chance to ask a question if other conditions met
+  
+  return randomFactor && isShort && (hasQuestionMarks || hasVaguePhrases);
+}
