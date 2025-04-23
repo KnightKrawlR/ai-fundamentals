@@ -517,4 +517,8 @@
       ])
     ]);
   }
+  
+  // Set a flag to indicate the script has loaded and executed successfully
+  window.gamePlanScriptLoaded = true;
+  console.log("Game Plan script fully executed, flag set.");
 })(); 
