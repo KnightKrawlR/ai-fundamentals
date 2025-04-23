@@ -436,6 +436,24 @@
             const [error, setError] = React.useState(null);
             const [gamePlanResult, setGamePlanResult] = React.useState(null);
             
+            // State for collapsible sections (true = open)
+            const [sectionsOpen, setSectionsOpen] = React.useState({});
+
+            React.useEffect(() => {
+              // Reset open states when a new game plan is generated or cleared
+              const initialStates = {};
+              if (gamePlanResult) {
+                  const sectionKeys = ['milestones', 'steps', 'technologies', 'resources', 'roadblocks', 'metrics'];
+                  sectionKeys.forEach(key => { initialStates[key] = false; }); // Start collapsed
+              }
+              setSectionsOpen(initialStates);
+            }, [gamePlanResult]);
+
+            // Function to toggle section visibility
+            const toggleSection = (sectionKey) => {
+                setSectionsOpen(prev => ({ ...prev, [sectionKey]: !prev[sectionKey] }));
+            };
+            
             // Sample topics
             const topics = [
               'Introduction to AI',
@@ -717,83 +735,96 @@
                 error
               ]),
               
-              // --- Display Generated Game Plan (Collapsible Sections) --- 
+              // --- Display Generated Game Plan (Collapsible Sections with Buttons) --- 
               gamePlanResult && React.createElement('div', { 
-                  className: 'game-plan-results mt-8 p-6 bg-gray-50 border border-gray-200 rounded-lg shadow-sm'
+                  className: 'game-plan-results mt-8 p-4 md:p-6 bg-gray-50 border border-gray-200 rounded-lg shadow-sm'
               }, [
                   // Project Summary (Always Visible)
-                  gamePlanResult.project_summary && React.createElement('div', { className: 'mb-6 border-b pb-4' }, [
+                  gamePlanResult.project_summary && React.createElement('div', { className: 'mb-6 border-b border-gray-200 pb-4' }, [
                       React.createElement('h3', { className: 'text-xl font-semibold text-gray-800 mb-2' }, 'Project Summary'),
                       React.createElement('p', { className: 'text-gray-700' }, gamePlanResult.project_summary)
                   ]),
                   
-                  // Helper function to create collapsible sections
-                  createCollapsibleSection('Key Milestones', gamePlanResult.key_milestones, (item, index) => 
-                      React.createElement('li', { key: 'milestone-' + index, className: 'flex items-start mb-3' }, [
+                  // --- Collapsible Sections --- 
+                  
+                  renderCollapsibleSection(
+                      'milestones', 'Key Milestones', gamePlanResult.key_milestones,
+                      (item, index) => React.createElement('li', { key: 'milestone-' + index, className: 'flex items-start mb-3' }, [
                           React.createElement('span', { className: 'flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-700 rounded-full flex items-center justify-center font-bold mr-3 mt-1' }, index + 1),
                           React.createElement('div', null, [
                               React.createElement('strong', { className: 'block text-gray-900' }, item.milestone),
-                              React.createElement('p', { className: 'text-gray-600' }, item.description)
+                              React.createElement('p', { className: 'text-gray-600 text-sm' }, item.description)
                           ])
-                      ])
-                  ), 
+                      ]),
+                      'ul', 'list-none space-y-2 pl-1'
+                  ),
 
-                  createCollapsibleSection('Suggested Steps', gamePlanResult.suggested_steps, (item, index) => 
-                      React.createElement('li', { key: 'step-' + index, className: 'mb-3' }, [
+                  renderCollapsibleSection(
+                      'steps', 'Suggested Steps',
+                      gamePlanResult.suggested_steps,
+                      (item, index) => React.createElement('li', { key: 'step-' + index, className: 'mb-3' }, [
                           React.createElement('strong', { className: 'text-gray-900' }, `${index + 1}. ${item.step}`),
                           item.details && React.createElement('p', { className: 'pl-5 text-sm text-gray-600 mt-1' }, item.details)
-                      ])
-                  , 'ol', 'list-none space-y-1'), // Use ordered list appearance but list-none for custom markers
+                      ]), 
+                      'ol', 'list-none space-y-1 pl-1'
+                  ),
                   
-                  createCollapsibleSection('Recommended Technologies', gamePlanResult.recommended_technologies, (item, index) => 
-                      React.createElement('div', { key: 'tech-' + index, className: 'p-4 border rounded-md bg-white mb-3' }, [
+                  renderCollapsibleSection(
+                      'technologies', 'Recommended Technologies',
+                      gamePlanResult.recommended_technologies,
+                      (item, index) => React.createElement('div', { key: 'tech-' + index, className: 'p-4 border rounded-md bg-white shadow-sm' }, [
                           React.createElement('strong', { className: 'block text-gray-900 text-lg' }, item.name, 
                               item.type && React.createElement('span', { 
                                   className: `ml-2 text-xs font-medium px-2 py-0.5 rounded ${item.type === 'Core' ? 'bg-green-100 text-green-800' : item.type === 'Supporting' ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100 text-gray-800'}` 
                               }, item.type)
                           ),
                           item.reasoning && React.createElement('p', { className: 'text-gray-600 text-sm mt-1' }, item.reasoning)
-                      ])
-                  , 'div', 'grid grid-cols-1 md:grid-cols-2 gap-3'), // Use grid for technologies
+                      ]),
+                      'div', 'grid grid-cols-1 md:grid-cols-2 gap-3'
+                  ),
 
-                  createCollapsibleSection('Learning Resources', gamePlanResult.learning_resources, (item, index) => 
-                      React.createElement('li', { key: 'resource-' + index, className: 'p-3 border rounded-md bg-white flex items-start mb-3' }, [
+                  renderCollapsibleSection(
+                      'resources', 'Learning Resources',
+                      gamePlanResult.learning_resources,
+                      (item, index) => React.createElement('li', { key: 'resource-' + index, className: 'p-3 border rounded-md bg-white flex items-start mb-3 shadow-sm' }, [
                           React.createElement('i', { className: 'fas fa-link text-gray-400 mr-3 mt-1 flex-shrink-0' }),
                           React.createElement('div', null, [
-                              React.createElement('a', { 
-                                  href: item.url, 
-                                  target: '_blank', 
-                                  rel: 'noopener noreferrer', 
-                                  className: 'text-blue-600 hover:underline font-medium' 
-                              }, item.title),
+                              React.createElement('a', { href: item.url, target: '_blank', rel: 'noopener noreferrer', className: 'text-blue-600 hover:underline font-medium' }, item.title),
                               item.type && React.createElement('span', { className: 'ml-2 text-xs text-gray-500' }, `(${item.type})`),
                               item.relevance && React.createElement('p', { className: 'text-gray-600 text-sm mt-1' }, item.relevance)
                           ])
-                      ])
-                  , 'ul', 'space-y-0'), // Adjust spacing if needed
+                      ]),
+                      'ul', 'list-none space-y-0'
+                  ),
                   
-                  createCollapsibleSection('Potential Roadblocks', gamePlanResult.potential_roadblocks, (item, index) => 
-                      React.createElement('li', { key: 'roadblock-' + index, className: 'flex items-start mb-3' }, [
+                  renderCollapsibleSection(
+                      'roadblocks', 'Potential Roadblocks',
+                      gamePlanResult.potential_roadblocks,
+                      (item, index) => React.createElement('li', { key: 'roadblock-' + index, className: 'flex items-start mb-3' }, [
                           React.createElement('i', { className: 'fas fa-exclamation-triangle text-yellow-500 mr-3 mt-1 flex-shrink-0' }), 
                           React.createElement('div', null, [
                               React.createElement('strong', { className: 'block text-gray-900' }, item.roadblock),
                               item.mitigation && React.createElement('p', { className: 'text-gray-600 text-sm' }, 'Mitigation: ' + item.mitigation)
                           ])
-                      ])
+                      ]),
+                      'ul', 'list-none space-y-2 pl-1'
                   ),
 
-                  createCollapsibleSection('Success Metrics', gamePlanResult.success_metrics, (item, index) => 
-                      React.createElement('li', { key: 'metric-' + index, className: 'flex items-start mb-3' }, [
+                  renderCollapsibleSection(
+                      'metrics', 'Success Metrics',
+                      gamePlanResult.success_metrics,
+                      (item, index) => React.createElement('li', { key: 'metric-' + index, className: 'flex items-start mb-3' }, [
                           React.createElement('i', { className: 'fas fa-check-circle text-green-500 mr-3 mt-1 flex-shrink-0' }),
                           React.createElement('div', null, [
                               React.createElement('strong', { className: 'block text-gray-900' }, item.metric),
                               item.measurement && React.createElement('p', { className: 'text-gray-600 text-sm' }, 'Measurement: ' + item.measurement)
                           ])
-                      ])
+                      ]),
+                      'ul', 'list-none space-y-2 pl-1'
                   ),
                   
                   // Next Steps Prompt (Always Visible)
-                  gamePlanResult.next_steps_prompt && React.createElement('div', { className: 'mt-6 pt-4 border-t' }, [
+                  gamePlanResult.next_steps_prompt && React.createElement('div', { className: 'mt-6 pt-4 border-t border-gray-200' }, [
                       React.createElement('h4', { className: 'text-lg font-semibold text-gray-800 mb-1' }, 'Next Steps'),
                       React.createElement('p', { className: 'text-gray-700' }, gamePlanResult.next_steps_prompt)
                   ])
@@ -801,29 +832,24 @@
             ]);
           }
           
-          // Helper function to create a collapsible section
-          function createCollapsibleSection(title, dataArray, renderItem, listType = 'ul', listClassName = 'list-none space-y-3') {
+          // Helper function to render a collapsible section using a button
+          function renderCollapsibleSection(sectionKey, title, dataArray, renderItem, listType = 'ul', listClassName = 'list-none space-y-3') {
             if (!dataArray || dataArray.length === 0) return null;
             
-            // Use React state to manage open/closed state for each section
-            const [isOpen, setIsOpen] = React.useState(false); 
+            const isOpen = sectionsOpen[sectionKey]; // Read state
 
-            return React.createElement('details', { 
-                className: 'mb-4 border-b pb-4', 
-                open: isOpen, 
-                onToggle: (e) => setIsOpen(e.target.open) // Update state on toggle
-            }, [
-                React.createElement('summary', { 
-                    className: 'text-xl font-semibold text-gray-800 mb-3 cursor-pointer list-none flex justify-between items-center' 
+            return React.createElement('div', { className: 'mb-4 border-b border-gray-200 pb-4 last:border-b-0' }, [
+                React.createElement('button', { 
+                    className: 'w-full text-left text-xl font-semibold text-gray-800 mb-2 flex justify-between items-center focus:outline-none hover:text-blue-600 transition-colors', 
+                    onClick: () => toggleSection(sectionKey) // Use toggle function
                 }, [
                   title,
-                  // Add a chevron icon that rotates based on open state
                   React.createElement('i', { 
                       className: `fas fa-chevron-down transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}` 
                   })
                 ]),
-                // Conditionally render the content based on the open state
-                isOpen && React.createElement(listType, { className: listClassName + ' mt-2' }, 
+                // Conditionally render the content wrapper and items
+                isOpen && React.createElement(listType, { className: listClassName + ' mt-2 pl-2 pr-2' }, 
                     dataArray.map(renderItem)
                 )
             ]);
