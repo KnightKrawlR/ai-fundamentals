@@ -436,6 +436,9 @@
             const [error, setError] = React.useState(null);
             const [gamePlanResult, setGamePlanResult] = React.useState(null);
             
+            // State for form collapse (starts open)
+            const [isFormCollapsed, setIsFormCollapsed] = React.useState(false);
+
             // State for collapsible sections (true = open)
             const [sectionsOpen, setSectionsOpen] = React.useState({});
 
@@ -444,6 +447,11 @@
               const initialStates = {};
               if (gamePlanResult) {
                   const sectionKeys = ['milestones', 'steps', 'technologies', 'resources', 'roadblocks', 'metrics'];
+                  sectionKeys.forEach(key => { initialStates[key] = true; }); // Start results expanded
+                  setIsFormCollapsed(true); // Collapse form when results appear
+              } else {
+                  setIsFormCollapsed(false); // Ensure form is open if no results
+                  const initialStates = {};
                   sectionKeys.forEach(key => { initialStates[key] = false; }); // Start collapsed
               }
               setSectionsOpen(initialStates);
@@ -574,149 +582,153 @@
                 boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
               }
             }, [
-              React.createElement('h2', {
-                style: {
-                  fontSize: '24px',
-                  marginBottom: '20px',
-                  color: '#333'
-                }
-              }, 'Create New Game Plan'),
-              
-              // Form element
-              React.createElement('form', {
-                onSubmit: handleSubmit,
-                style: {
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '16px'
-                }
-              }, [
-                // Topic dropdown
-                React.createElement('div', {}, [
-                  React.createElement('label', {
-                    htmlFor: 'topic',
-                    style: {
-                      display: 'block',
-                      marginBottom: '8px',
-                      fontWeight: '500'
-                    }
-                  }, 'Topic'),
-                  React.createElement('select', {
-                    id: 'topic',
-                    value: selectedTopic,
-                    onChange: (e) => setSelectedTopic(e.target.value),
-                    style: {
-                      width: '100%',
-                      padding: '10px',
-                      border: '1px solid #ddd',
-                      borderRadius: '4px'
-                    }
+              // -- Input Form Section (Now Collapsible) --
+              React.createElement('div', { className: 'mb-8 p-6 bg-white border border-gray-200 rounded-lg shadow-sm' }, [
+                  React.createElement('button', { 
+                      className: 'w-full text-left text-2xl font-semibold text-gray-800 mb-4 flex justify-between items-center focus:outline-none hover:text-blue-600 transition-colors', 
+                      onClick: () => setIsFormCollapsed(!isFormCollapsed)
                   }, [
-                    React.createElement('option', { value: '' }, 'Select a topic'),
-                    ...topics.map(topic => 
-                      React.createElement('option', { key: topic, value: topic }, topic)
-                    )
-                  ])
-                ]),
-                
-                // Challenge dropdown
-                React.createElement('div', {}, [
-                  React.createElement('label', {
-                    htmlFor: 'challenge',
-                    style: {
-                      display: 'block',
-                      marginBottom: '8px',
-                      fontWeight: '500'
-                    }
-                  }, 'Challenge'),
-                  React.createElement('select', {
-                    id: 'challenge',
-                    value: selectedChallenge,
-                    onChange: (e) => setSelectedChallenge(e.target.value),
-                    disabled: !selectedTopic,
-                    style: {
-                      width: '100%',
-                      padding: '10px',
-                      border: '1px solid #ddd',
-                      borderRadius: '4px'
-                    }
+                      'Create New Game Plan', // Title for the collapsible form section
+                      React.createElement('i', { 
+                          className: `fas fa-chevron-down transition-transform duration-200 ${isFormCollapsed ? '' : 'rotate-180'}` 
+                      })
+                  ]),
+                  // Conditionally render the form based on collapse state
+                  !isFormCollapsed && React.createElement('form', {
+                      onSubmit: handleSubmit,
+                      style: {
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '16px'
+                      }
                   }, [
-                    React.createElement('option', { value: '' }, 'Select a challenge'),
-                    ...getChallenges(selectedTopic).map(challenge => 
-                      React.createElement('option', { key: challenge, value: challenge }, challenge)
-                    )
-                  ])
-                ]),
-                
-                // Project Type dropdown
-                React.createElement('div', {}, [
-                  React.createElement('label', {
-                    htmlFor: 'projectType',
-                    style: {
-                      display: 'block',
-                      marginBottom: '8px',
-                      fontWeight: '500'
-                    }
-                  }, 'Project Type'),
-                  React.createElement('select', {
-                    id: 'projectType',
-                    value: selectedProjectType,
-                    onChange: (e) => setSelectedProjectType(e.target.value),
-                    disabled: !selectedChallenge,
-                    style: {
-                      width: '100%',
-                      padding: '10px',
-                      border: '1px solid #ddd',
-                      borderRadius: '4px'
-                    }
-                  }, [
-                    React.createElement('option', { value: '' }, 'Select a project type'),
-                    ...getProjectTypes(selectedTopic, selectedChallenge).map(type => 
-                      React.createElement('option', { key: type, value: type }, type)
-                    )
-                  ])
-                ]),
-                
-                // Description textarea
-                React.createElement('div', {}, [
-                  React.createElement('label', {
-                    htmlFor: 'description',
-                    style: {
-                      display: 'block',
-                      marginBottom: '8px',
-                      fontWeight: '500'
-                    }
-                  }, 'Project Description (Optional)'),
-                  React.createElement('textarea', {
-                    id: 'description',
-                    value: description,
-                    onChange: (e) => setDescription(e.target.value),
-                    placeholder: 'Provide any additional details about your project...',
-                    style: {
-                      width: '100%',
-                      padding: '10px',
-                      border: '1px solid #ddd',
-                      borderRadius: '4px',
-                      minHeight: '100px',
-                      resize: 'vertical'
-                    }
-                  })
-                ]),
-                
-                // Submit button
-                React.createElement('button', {
-                  type: 'submit',
-                  disabled: !selectedTopic || !selectedChallenge || !selectedProjectType || isLoading,
-                  style: {
-                    padding: '12px',
-                    backgroundColor: (!selectedTopic || !selectedChallenge || !selectedProjectType || isLoading) ? '#ccc' : '#0ea5e9',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '4px',
-                    fontWeight: '500',
-                    cursor: (!selectedTopic || !selectedChallenge || !selectedProjectType || isLoading) ? 'not-allowed' : 'pointer'
-                  }
-                }, isLoading ? 'Generating...' : 'Generate Game Plan')
+                    // Topic dropdown
+                    React.createElement('div', {}, [
+                      React.createElement('label', {
+                        htmlFor: 'topic',
+                        style: {
+                          display: 'block',
+                          marginBottom: '8px',
+                          fontWeight: '500'
+                        }
+                      }, 'Topic'),
+                      React.createElement('select', {
+                        id: 'topic',
+                        value: selectedTopic,
+                        onChange: (e) => setSelectedTopic(e.target.value),
+                        style: {
+                          width: '100%',
+                          padding: '10px',
+                          border: '1px solid #ddd',
+                          borderRadius: '4px'
+                        }
+                      }, [
+                        React.createElement('option', { value: '' }, 'Select a topic'),
+                        ...topics.map(topic => 
+                          React.createElement('option', { key: topic, value: topic }, topic)
+                        )
+                      ])
+                    ]),
+                    
+                    // Challenge dropdown
+                    React.createElement('div', {}, [
+                      React.createElement('label', {
+                        htmlFor: 'challenge',
+                        style: {
+                          display: 'block',
+                          marginBottom: '8px',
+                          fontWeight: '500'
+                        }
+                      }, 'Challenge'),
+                      React.createElement('select', {
+                        id: 'challenge',
+                        value: selectedChallenge,
+                        onChange: (e) => setSelectedChallenge(e.target.value),
+                        disabled: !selectedTopic,
+                        style: {
+                          width: '100%',
+                          padding: '10px',
+                          border: '1px solid #ddd',
+                          borderRadius: '4px'
+                        }
+                      }, [
+                        React.createElement('option', { value: '' }, 'Select a challenge'),
+                        ...getChallenges(selectedTopic).map(challenge => 
+                          React.createElement('option', { key: challenge, value: challenge }, challenge)
+                        )
+                      ])
+                    ]),
+                    
+                    // Project Type dropdown
+                    React.createElement('div', {}, [
+                      React.createElement('label', {
+                        htmlFor: 'projectType',
+                        style: {
+                          display: 'block',
+                          marginBottom: '8px',
+                          fontWeight: '500'
+                        }
+                      }, 'Project Type'),
+                      React.createElement('select', {
+                        id: 'projectType',
+                        value: selectedProjectType,
+                        onChange: (e) => setSelectedProjectType(e.target.value),
+                        disabled: !selectedChallenge,
+                        style: {
+                          width: '100%',
+                          padding: '10px',
+                          border: '1px solid #ddd',
+                          borderRadius: '4px'
+                        }
+                      }, [
+                        React.createElement('option', { value: '' }, 'Select a project type'),
+                        ...getProjectTypes(selectedTopic, selectedChallenge).map(type => 
+                          React.createElement('option', { key: type, value: type }, type)
+                        )
+                      ])
+                    ]),
+                    
+                    // Description textarea
+                    React.createElement('div', {}, [
+                      React.createElement('label', {
+                        htmlFor: 'description',
+                        style: {
+                          display: 'block',
+                          marginBottom: '8px',
+                          fontWeight: '500'
+                        }
+                      }, 'Project Description (Optional)'),
+                      React.createElement('textarea', {
+                        id: 'description',
+                        value: description,
+                        onChange: (e) => setDescription(e.target.value),
+                        placeholder: 'Provide any additional details about your project...',
+                        style: {
+                          width: '100%',
+                          padding: '10px',
+                          border: '1px solid #ddd',
+                          borderRadius: '4px',
+                          minHeight: '100px',
+                          resize: 'vertical'
+                        }
+                      })
+                    ]),
+                    
+                    // Submit button
+                    React.createElement('button', {
+                      type: 'submit',
+                      disabled: !selectedTopic || !selectedChallenge || !selectedProjectType || isLoading,
+                      style: {
+                        padding: '12px',
+                        backgroundColor: (!selectedTopic || !selectedChallenge || !selectedProjectType || isLoading) ? '#ccc' : '#0ea5e9',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '4px',
+                        fontWeight: '500',
+                        cursor: (!selectedTopic || !selectedChallenge || !selectedProjectType || isLoading) ? 'not-allowed' : 'pointer'
+                      }
+                    }, isLoading ? 'Generating...' : 'Generate Game Plan')
+                  ]),
               ]),
               
               // --- Display Loading State --- 
