@@ -2067,7 +2067,7 @@ Your response MUST be a single, valid JSON object containing ONLY the following 
     
     // Return the full parsed object from the AI
     return parsedResponse;
-  } catch (error) {
+    } catch (error) {
     console.error('Error in generateGamePlan function:', error);
     throw new functions.https.HttpsError(
       'internal',

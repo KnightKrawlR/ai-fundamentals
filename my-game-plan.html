@@ -23,26 +23,26 @@
             theme: 'default'
         });
         
-        tailwind.config = {
-          theme: {
-            extend: {
-              colors: {
-                primary: {
-                  50: '#f0f9ff',
-                  100: '#e0f2fe',
-                  200: '#bae6fd',
-                  300: '#7dd3fc',
-                  400: '#38bdf8',
-                  500: '#0ea5e9',
-                  600: '#0284c7',
-                  700: '#0369a1',
-                  800: '#075985',
-                  900: '#0c4a6e',
-                },
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              primary: {
+                50: '#f0f9ff',
+                100: '#e0f2fe',
+                200: '#bae6fd',
+                300: '#7dd3fc',
+                400: '#38bdf8',
+                500: '#0ea5e9',
+                600: '#0284c7',
+                700: '#0369a1',
+                800: '#075985',
+                900: '#0c4a6e',
               },
             },
           },
-        }
+        },
+      }
     </script>
     
     <!-- Firebase SDKs -->
@@ -262,7 +262,7 @@
       .sign-in-btn i {
           font-size: 20px;
       }
-
+      
       /* Mermaid diagram styles */
       .mermaid-diagram-container {
           overflow-x: auto;
@@ -342,9 +342,9 @@
             
             <!-- Fallback if React fails to load -->
             <div id="loading-fallback" style="display: flex; justify-content: center; align-items: center; height: 300px;">
-                <div style="text-align: center;">
-                    <div class="spinner" style="border: 4px solid rgba(0,0,0,.1); width: 36px; height: 36px; border-radius: 50%; border-left-color: #5D3FD3; animation: spin 1s linear infinite; margin: 0 auto;"></div>
-                    <p style="margin-top: 16px;">Loading Game Plan generator...</p>
+                    <div style="text-align: center;">
+                        <div class="spinner" style="border: 4px solid rgba(0,0,0,.1); width: 36px; height: 36px; border-radius: 50%; border-left-color: #5D3FD3; animation: spin 1s linear infinite; margin: 0 auto;"></div>
+                        <p style="margin-top: 16px;">Loading Game Plan generator...</p>
                 </div>
             </div>
         </div>
@@ -493,95 +493,288 @@
         }
     </script>
 
-    <!-- Make Firebase available to the React app -->
-    <script>
-        // Make Firebase accessible to the React component
-        window.firebase = firebase;
-        
-        // Add debugging info
-        console.log('Firebase initialized:', typeof firebase !== 'undefined');
-        console.log('React available:', typeof React !== 'undefined');
-        console.log('ReactDOM available:', typeof ReactDOM !== 'undefined');
-        
-        // Clear any inline React components to avoid conflicts
-        window.addEventListener('DOMContentLoaded', function() {
-          try {
-            const rootElement = document.getElementById('my-game-plan-root');
-            if (rootElement) {
-              // Remove any existing content to ensure a clean mount
-              rootElement.innerHTML = '';
-            }
-          } catch (error) {
-            console.error('Error clearing root element:', error);
-          }
-        });
+    <!-- Remove reference to external JS file that's causing 404 errors -->
+    <!-- <script src="./my-game-plan-enhanced.js?v=7" onerror="handleScriptError(event)"></script> -->
 
-        // Define the renderGamePlanComponent function that's called by the auth observer
-        function renderGamePlanComponent() {
-          console.log("Rendering game plan component via function...");
+    <!-- Inline Game Plan Component -->
+    <script>
+      console.log("Starting inline game plan component initialization");
+      
+      // This will run once the DOM is fully loaded
+      document.addEventListener('DOMContentLoaded', function() {
+        console.log("DOM loaded, checking for React availability");
+        
+        // Function to initialize when React is available
+        function initialize() {
+          if (typeof React === 'undefined' || typeof ReactDOM === 'undefined') {
+            console.log("React not available yet, retrying in 200ms");
+            setTimeout(initialize, 200);
+            return;
+          }
           
-          // This function will be called when a user is authenticated
-          // The actual rendering logic is already in the my-game-plan-enhanced.js file
-          // which uses a DOMContentLoaded event, so we just need to ensure the script is loaded
+          console.log("React available, creating Game Plan component");
           
-          // Check if the script was loaded
-          if (typeof window.renderGamePlanComponent === 'function') {
-            try {
-              // Call the actual implementation from the loaded script
-              window.renderGamePlanComponent();
-            } catch (error) {
-              console.error("Error calling script's renderGamePlanComponent:", error);
-              showFallbackContent();
+          // A simple game plan component
+          function GamePlanApp() {
+            // State hooks for form inputs
+            const [selectedTopic, setSelectedTopic] = React.useState('');
+            const [selectedChallenge, setSelectedChallenge] = React.useState('');
+            const [selectedProjectType, setSelectedProjectType] = React.useState('');
+            const [description, setDescription] = React.useState('');
+            const [isLoading, setIsLoading] = React.useState(false);
+            const [error, setError] = React.useState(null);
+            
+            // Get challenges based on topic
+            const getChallenges = (topic) => {
+              if (!topic) return [];
+              
+              switch(topic) {
+                case 'Introduction to AI':
+                  return ['Understanding AI Concepts', 'Machine Learning', 'Natural Language Processing'];
+                case 'Office Productivity':
+                  return ['Document Automation', 'Email Management', 'Meeting Optimization'];
+                case 'Personal Finance':
+                  return ['Budgeting', 'Investment Planning', 'Debt Management'];
+                case 'Social Media Marketing':
+                  return ['Content Calendar Automation', 'Audience Growth Strategies', 'Engagement Optimization'];
+                case 'Videography':
+                  return ['Video Editing Workflow', 'Content Distribution', 'Audience Growth'];
+                case 'eCommerce':
+                  return ['Sales Funnel Optimization', 'Product Selection & Sourcing', 'Payment Processing & Checkout'];
+                default:
+                  return ['Challenge 1', 'Challenge 2', 'Challenge 3'];
+              }
+            };
+            
+            // Get project types
+            const getProjectTypes = (topic, challenge) => {
+              if (!topic || !challenge) return [];
+              return ['Personal Project', 'Small Business', 'Enterprise Solution'];
+            };
+            
+            // Reset dependent dropdowns when topic changes
+            React.useEffect(() => {
+              setSelectedChallenge('');
+              setSelectedProjectType('');
+            }, [selectedTopic]);
+            
+            // Reset project type when challenge changes
+            React.useEffect(() => {
+              setSelectedProjectType('');
+            }, [selectedChallenge]);
+            
+            // Handle form submission
+            const handleSubmit = async (e) => {
+              if (e) e.preventDefault();
+              console.log("Submitting form with values:", { 
+                topic: selectedTopic, 
+                challenge: selectedChallenge, 
+                projectType: selectedProjectType 
+              });
+              
+              setIsLoading(true);
+              setError(null);
+              
+              try {
+                if (!firebase.auth().currentUser) {
+                  throw new Error("User is not authenticated");
+                }
+                
+                // Call the Firebase function
+                const generateGamePlan = firebase.functions().httpsCallable('generateGamePlan');
+                const result = await generateGamePlan({
+                  topic: selectedTopic,
+                  challenge: selectedChallenge,
+                  projectType: selectedProjectType,
+                  projectDescription: description || ''
+                });
+                
+                console.log("Firebase function result:", result);
+                
+                if (result.data) {
+                  // Use the result
+                  alert("Game plan generated successfully! Check the console for details.");
+                  console.log("Game plan data:", result.data);
+                }
+              } catch (err) {
+                console.error("Error generating game plan:", err);
+                setError(err.message || "Failed to generate game plan");
+              } finally {
+                setIsLoading(false);
+              }
+            };
+            
+            // Render the component
+            return React.createElement('div', {
+              className: 'max-w-4xl mx-auto p-5 font-sans'
+            }, [
+              React.createElement('h2', {
+                className: 'text-2xl font-bold mb-6'
+              }, "Create Your Implementation Game Plan"),
+              
+              // Form
+              React.createElement('form', {
+                onSubmit: handleSubmit,
+                className: 'bg-white shadow-md rounded-lg p-6 mb-8'
+              }, [
+                React.createElement('div', {
+                  className: 'grid md:grid-cols-3 gap-4 mb-4'
+                }, [
+                  // Topic dropdown
+                  React.createElement('div', {}, [
+                    React.createElement('label', {
+                      htmlFor: 'topic',
+                      className: 'block mb-2 font-medium text-gray-700'
+                    }, 'Topic'),
+                    React.createElement('select', {
+                      id: 'topic',
+                      value: selectedTopic,
+                      onChange: (e) => setSelectedTopic(e.target.value),
+                      className: 'w-full p-3 border border-gray-300 rounded-lg'
+                    }, [
+                      React.createElement('option', { value: '' }, 'Select a topic'),
+                      ...['Introduction to AI', 'Office Productivity', 'Personal Finance', 'Social Media Marketing', 'Videography', 'eCommerce'].map(topic => 
+                        React.createElement('option', { key: topic, value: topic }, topic)
+                      )
+                    ])
+                  ]),
+                  
+                  // Challenge dropdown
+                  React.createElement('div', {}, [
+                    React.createElement('label', {
+                      htmlFor: 'challenge',
+                      className: 'block mb-2 font-medium text-gray-700'
+                    }, 'Challenge'),
+                    React.createElement('select', {
+                      id: 'challenge',
+                      value: selectedChallenge,
+                      onChange: (e) => setSelectedChallenge(e.target.value),
+                      disabled: !selectedTopic,
+                      className: 'w-full p-3 border border-gray-300 rounded-lg'
+                    }, [
+                      React.createElement('option', { value: '' }, 'Select a challenge'),
+                      ...getChallenges(selectedTopic).map(challenge => 
+                        React.createElement('option', { key: challenge, value: challenge }, challenge)
+                      )
+                    ])
+                  ]),
+                  
+                  // Project Type dropdown
+                  React.createElement('div', {}, [
+                    React.createElement('label', {
+                      htmlFor: 'projectType',
+                      className: 'block mb-2 font-medium text-gray-700'
+                    }, 'Project Type'),
+                    React.createElement('select', {
+                      id: 'projectType',
+                      value: selectedProjectType,
+                      onChange: (e) => setSelectedProjectType(e.target.value),
+                      disabled: !selectedChallenge,
+                      className: 'w-full p-3 border border-gray-300 rounded-lg'
+                    }, [
+                      React.createElement('option', { value: '' }, 'Select a project type'),
+                      ...getProjectTypes(selectedTopic, selectedChallenge).map(type => 
+                        React.createElement('option', { key: type, value: type }, type)
+                      )
+                    ])
+                  ])
+                ]),
+                
+                // Description textarea
+                React.createElement('div', { className: 'mb-4' }, [
+                  React.createElement('label', {
+                    htmlFor: 'description',
+                    className: 'block mb-2 font-medium text-gray-700'
+                  }, 'Additional Details (Optional)'),
+                  React.createElement('textarea', {
+                    id: 'description',
+                    value: description,
+                    onChange: (e) => setDescription(e.target.value),
+                    placeholder: 'Provide any additional details about your project...',
+                    className: 'w-full p-3 border border-gray-300 rounded-lg min-h-[100px]'
+                  })
+                ]),
+                
+                // Submit button
+                React.createElement('button', {
+                  type: 'submit',
+                  disabled: !selectedTopic || !selectedChallenge || !selectedProjectType || isLoading,
+                  className: 'w-full bg-blue-600 text-white p-3 rounded-lg hover:bg-blue-700 disabled:opacity-50'
+                }, isLoading ? 'Generating Plan...' : 'Generate Game Plan')
+              ]),
+              
+              // Error display
+              error && React.createElement('div', {
+                className: 'bg-red-50 border border-red-200 text-red-800 p-4 rounded-lg'
+              }, [
+                React.createElement('div', { className: 'font-medium mb-1' }, 'Error:'),
+                React.createElement('div', {}, error)
+              ])
+            ]);
+          }
+          
+          try {
+            // Get the root element
+            const rootElement = document.getElementById('my-game-plan-root');
+            
+            if (!rootElement) {
+              console.error("Root element not found");
+              return;
             }
-          } else {
-            console.error("Script's renderGamePlanComponent not found");
-            showFallbackContent();
+            
+            // Hide the loading indicator
+            const loadingEl = document.getElementById('loading-fallback');
+            if (loadingEl) loadingEl.style.display = 'none';
+            
+            // Render our component
+            ReactDOM.render(
+              React.createElement(GamePlanApp, null),
+              rootElement
+            );
+            
+            console.log('Game Plan component rendered successfully!');
+          } catch (err) {
+            console.error("Error rendering game plan:", err);
           }
         }
         
-        // Function to show fallback content if the script fails to load
-        function showFallbackContent() {
-          try {
-            const rootElement = document.getElementById('my-game-plan-root');
-            if (rootElement) {
+        // Start the initialization process
+        initialize();
+      });
+      
+      // Define the tryRenderGamePlanComponent function that's called by the auth observer
+      function tryRenderGamePlanComponent() {
+        console.log("Auth verified, DOM content loaded, will initialize component");
+        // This function is intentionally empty since the component will be initialized by the DOMContentLoaded event
+      }
+    </script>
+
+    <!-- Fallback script if the main one fails to load -->
+    <script>
+        // Hide any errors and just show the component
+        setTimeout(function() {
+          const rootElement = document.getElementById('my-game-plan-root');
+          const loadingEl = document.getElementById('loading-fallback');
+          
+          // If loading indicator is still visible after 3 seconds, hide it
+          if (loadingEl && loadingEl.style.display !== 'none') {
+            loadingEl.style.display = 'none';
+            console.log("Force hiding loading indicator after timeout");
+            
+            // If root is empty, show a basic message
+            if (!rootElement.hasChildNodes()) {
               rootElement.innerHTML = `
-                <div class="text-center p-6 bg-white border border-gray-200 rounded-lg shadow-lg">
-                  <h2 class="text-2xl font-bold text-gray-800 mb-4">Game Plan Generator</h2>
-                  <p class="text-gray-600 mb-6">There was an issue loading the game plan generator.</p>
-                  <button onclick="window.location.reload()" class="btn-apple py-2 px-6">
+                <div class="text-center p-6 bg-white shadow-lg rounded-lg">
+                  <h2 class="text-2xl font-bold mb-4">Game Plan Generator</h2>
+                  <p class="mb-4">Create, save, and refine AI implementation plans for your professional projects.</p>
+                  <button onclick="window.location.reload()" class="bg-blue-600 text-white px-4 py-2 rounded-lg">
                     <i class="fas fa-sync-alt mr-2"></i> Refresh Page
                   </button>
                 </div>
               `;
-              
-              // Hide the loading indicator
-              const loadingEl = document.getElementById('loading-fallback');
-              if (loadingEl) loadingEl.style.display = 'none';
             }
-          } catch (error) {
-            console.error("Error showing fallback content:", error);
           }
-        }
-        
-        // Handle script loading errors
-        function handleScriptError(event) {
-          console.error("Error loading game plan script:", event);
-          showFallbackContent();
-        }
-    </script>
-
-    <!-- Game Plan Enhanced Bundle - Updated path to ensure it can be found -->
-    <script src="./my-game-plan-enhanced.js?v=6" onerror="handleScriptError(event)"></script>
-
-    <!-- Fallback script if the main one fails to load -->
-    <script>
-        // Check if the main script loaded after a short delay
-        setTimeout(function() {
-          if (typeof window.renderGamePlanComponent !== 'function') {
-            console.error("Main script failed to define renderGamePlanComponent after timeout");
-            handleScriptError({ type: 'timeout' });
-          }
-        }, 2000);
+        }, 3000);
     </script>
 
     <!-- Sample challenges based on topic - updated with business-focused challenges -->
