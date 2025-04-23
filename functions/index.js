@@ -1724,9 +1724,9 @@ Your response MUST be a single, valid JSON object containing ONLY the following 
     {"metric": "Measurable outcome 2", "measurement": "How to track..."} 
     // ... (Define 1-3 key success metrics total)
   ],
+  "mermaid_diagram": "A Mermaid code block visualizing the high-level architecture or process flow described in the plan. Use graph TD for flow or sequenceDiagram where appropriate.",
   "next_steps_prompt": "A brief suggestion encouraging the user on how to start or refine the plan (e.g., 'Focus on Milestone 1 and explore the suggested resources.')."
-}
-    `;
+}`;
 
     // Refined system message
     const systemMessage = `

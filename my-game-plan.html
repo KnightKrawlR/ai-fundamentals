@@ -11,7 +11,11 @@
     
     <!-- Add Tailwind CSS for the React app -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Add Mermaid JS Library -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
     <script>
+      // Initialize Mermaid
+      mermaid.initialize({ startOnLoad: false }); // We will render manually
       tailwind.config = {
         theme: {
           extend: {
@@ -443,9 +447,9 @@
             const [sectionsOpen, setSectionsOpen] = React.useState({});
 
             React.useEffect(() => {
-              // Reset open states when a new game plan is generated or cleared
-              let initialStates = {}; // Define outside if/else
-              const sectionKeys = ['milestones', 'steps', 'technologies', 'resources', 'roadblocks', 'metrics']; // Define outside if/else
+              // Reset open states AND initialize Mermaid when a new game plan is generated
+              let initialStates = {};
+              const sectionKeys = ['milestones', 'steps', 'technologies', 'resources', 'roadblocks', 'metrics'];
               
               if (gamePlanResult) {
                   sectionKeys.forEach(key => { initialStates[key] = true; }); // Start results expanded
@@ -454,7 +458,20 @@
                   setIsFormCollapsed(false); // Ensure form is open if no results
                   // No result sections to set state for, initialStates remains {}
               }
-              setSectionsOpen(initialStates); // Set the state based on whether results exist
+              setSectionsOpen(initialStates);
+              
+              // Initialize Mermaid rendering after results are potentially set
+              if (gamePlanResult && gamePlanResult.mermaid_diagram) {
+                // Delay slightly to ensure DOM update before Mermaid runs
+                setTimeout(() => {
+                    try {
+                        console.log('Initializing Mermaid for diagram...');
+                        mermaid.run({ nodes: document.querySelectorAll('.mermaid-diagram-render') });
+                    } catch (err) {
+                        console.error('Mermaid rendering error:', err);
+                    }
+                }, 100); 
+              }
             }, [gamePlanResult]);
 
             // Function to toggle section visibility
@@ -783,6 +800,18 @@
                   
                   // --- Collapsible Sections --- 
                   
+                  renderCollapsibleSection(
+                      'diagram', // Unique key for this section
+                      'Architecture/Flow Diagram',
+                      gamePlanResult.mermaid_diagram ? [gamePlanResult.mermaid_diagram] : [], // Pass diagram string in array
+                      (diagramString) => React.createElement('div', { 
+                          key: 'mermaid-diag', 
+                          className: 'mermaid mermaid-diagram-render p-4 border rounded-md bg-white flex justify-center' // Add class for Mermaid hook
+                      }, diagramString), // Render the diagram string directly inside the div
+                      'div', // Use div as container instead of ul/ol
+                      '' // No extra list class needed
+                  ),
+
                   renderCollapsibleSection(
                       'milestones', 'Key Milestones', gamePlanResult.key_milestones,
                       (item, index) => React.createElement('li', { key: 'milestone-' + index, className: 'flex items-start mb-3' }, [
