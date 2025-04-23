@@ -15,7 +15,18 @@
     <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
     <script>
       // Initialize Mermaid
-      mermaid.initialize({ startOnLoad: false }); // We will render manually
+      mermaid.initialize({ 
+        startOnLoad: false, // We will render manually
+        securityLevel: 'loose', // Required for some diagram features
+        theme: 'default',
+        flowchart: {
+          htmlLabels: true,
+          curve: 'linear',
+          diagramPadding: 8
+        },
+        logLevel: 3 // Error level logging only
+      });
+      
       tailwind.config = {
         theme: {
           extend: {
@@ -91,6 +102,49 @@
       .rounded { border-radius: 0.25rem; }
       .p-4 { padding: 1rem; }
       .border { border-width: 1px; }
+      
+      /* Mermaid Diagram Styles */
+      .mermaid-diagram-container {
+        overflow-x: auto;
+        margin: 20px 0;
+      }
+      
+      .mermaid-diagram-render {
+        display: flex;
+        justify-content: center;
+        margin: 0 auto;
+        text-align: center;
+      }
+      
+      /* Override Mermaid SVG styles for better visibility */
+      .mermaid svg {
+        max-width: 100%;
+        height: auto !important;
+        margin: 0 auto;
+      }
+      
+      /* Style Mermaid diagram nodes and text */
+      .mermaid .node rect, 
+      .mermaid .node circle, 
+      .mermaid .node ellipse, 
+      .mermaid .node polygon {
+        fill: #e0f2fe !important;
+        stroke: #0284c7 !important;
+      }
+      
+      .mermaid .edgePath .path {
+        stroke: #64748b !important;
+        stroke-width: 2px !important;
+      }
+      
+      .mermaid .flowchart-link {
+        stroke: #64748b !important;
+        stroke-width: 2px !important;
+      }
+      
+      .mermaid .label {
+        color: #334155 !important;
+      }
 
       /* User menu styles */
       .user-menu {
@@ -449,10 +503,11 @@
             React.useEffect(() => {
               // Reset open states AND initialize Mermaid when a new game plan is generated
               let initialStates = {};
-              const sectionKeys = ['milestones', 'steps', 'technologies', 'resources', 'roadblocks', 'metrics'];
+              const sectionKeys = ['milestones', 'steps', 'technologies', 'resources', 'roadblocks', 'metrics', 'diagram'];
               
               if (gamePlanResult) {
-                  sectionKeys.forEach(key => { initialStates[key] = true; }); // Start results expanded
+                  // Start all sections expanded, with special emphasis on the diagram section
+                  sectionKeys.forEach(key => { initialStates[key] = true; });
                   setIsFormCollapsed(true); // Collapse form when results appear
               } else {
                   setIsFormCollapsed(false); // Ensure form is open if no results
@@ -466,11 +521,23 @@
                 setTimeout(() => {
                     try {
                         console.log('Initializing Mermaid for diagram...');
-                        mermaid.run({ nodes: document.querySelectorAll('.mermaid-diagram-render') });
+                        // Clear any previous renderings
+                        document.querySelectorAll('.mermaid-diagram-render').forEach(el => {
+                            // Store the diagram text for later use
+                            const diagramText = el.textContent;
+                            // Clear element for fresh rendering
+                            el.textContent = diagramText;
+                        });
+                        
+                        // Run mermaid to render all diagram elements
+                        mermaid.run({ 
+                            nodes: document.querySelectorAll('.mermaid-diagram-render'),
+                            suppressErrors: false
+                        });
                     } catch (err) {
                         console.error('Mermaid rendering error:', err);
                     }
-                }, 100); 
+                }, 300); // Increase timeout to ensure DOM is ready
               }
             }, [gamePlanResult]);
 
@@ -805,9 +872,14 @@
                       'Architecture/Flow Diagram',
                       gamePlanResult.mermaid_diagram ? [gamePlanResult.mermaid_diagram] : [], // Pass diagram string in array
                       (diagramString) => React.createElement('div', { 
-                          key: 'mermaid-diag', 
-                          className: 'mermaid mermaid-diagram-render p-4 border rounded-md bg-white flex justify-center' // Add class for Mermaid hook
-                      }, diagramString), // Render the diagram string directly inside the div
+                          key: 'mermaid-diag',
+                          className: 'mermaid-diagram-container p-4 border rounded-md bg-white'
+                      }, [
+                          React.createElement('pre', {
+                              className: 'mermaid mermaid-diagram-render',
+                              style: { textAlign: 'center' }
+                          }, diagramString)
+                      ]), 
                       'div', // Use div as container instead of ul/ol
                       '' // No extra list class needed
                   ),
