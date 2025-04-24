@@ -1779,7 +1779,7 @@ function createGamePlanUserPrompt(messageType, initialRequestData, conversationH
             if (turn?.type === 'initial_request' && turn?.request) {
                 promptContext += `--- Initial Request ---\nTopic: ${turn.request.topic || 'N/A'}, Challenge: ${turn.request.challenge || 'N/A'}, Type: ${turn.request.projectType || 'N/A'}\nDescription: ${turn.request.projectDescription || 'N/A'}\n---\n`;
             } else if (turn?.type === 'clarification_request' && turn?.questions) {
-                promptContext += `AI Question(s): ${turn.questions.join(';\n')}\n`;
+                promptContext += `AI Question(s): ${turn.questions.join('; ')}\n`;
             } else if (turn?.type === 'clarification_response' && turn?.response) {
                 promptContext += `User Answer: ${turn.response}\n`;
             } else if (turn?.type === 'follow_up_request' && turn?.question) {
@@ -1796,21 +1796,20 @@ function createGamePlanUserPrompt(messageType, initialRequestData, conversationH
     });
 
     let currentTaskDesc = "";
-    let jsonStructureNote = `Respond ONLY with a valid JSON object matching this structure (do not add text before or after):\n{\n  "project_summary": "...",
-  "key_milestones": [{"milestone": "...", "description": "..."}],\n  "suggested_steps": [{"step": "...", "details": "..."}],\n  "recommended_technologies": [{"name": "...", "reasoning": "...", "type": "..."}],\n  "learning_resources": [{"title": "...", "url": "...", "type": "...", "relevance": "..."}],\n  "potential_roadblocks": [{"roadblock": "...", "mitigation": "..."}],\n  "success_metrics": [{"metric": "...", "measurement": "..."}],\n  "mermaid_diagram": "Mermaid code...",
-  "next_steps_prompt": "..."\n}`;
+    let jsonStructureNote = `Respond ONLY with a valid JSON object matching this structure (do not add text before or after):\n{\n  \"project_summary\": \"...\",\n  \"key_milestones\": [/* Array of objects */],\n  \"suggested_steps\": [/* Array of objects */],\n  \"recommended_technologies\": [/* Array of objects */],\n  \"learning_resources\": [/* Array of objects */],\n  \"potential_roadblocks\": [/* Array of objects */],\n  \"success_metrics\": [/* Array of objects */],\n  \"mermaid_diagram\": \"Mermaid code...\",\n  \"next_steps_prompt\": \"...\"\n}`;
 
     if (messageType === 'initial_request') {
         currentTaskDesc = "Generate the full implementation game plan based on the Initial Request provided in the context.";
     } else if (messageType === 'clarification_response') {
         currentTaskDesc = `The user has responded to the clarification question(s). Use their answer ("${userResponse}") and the full context to generate the complete implementation game plan.`;
     } else if (messageType === 'follow_up') {
-        currentTaskDesc = `Address the user's latest follow-up question ("${userResponse}") based on the conversation history and the previously generated plan (summary provided in context). Provide a concise answer.`;
-        jsonStructureNote = `Respond ONLY with a valid JSON object containing an "answer" field: {\n "answer": "Your concise and helpful answer here..." \n}`;
+        currentTaskDesc = `Address the user\'s latest follow-up question ("${userResponse}") based on the conversation history and the previously generated plan (summary provided in context). Provide a concise answer.`;
+        // Simplify JSON example for follow-up as well
+        jsonStructureNote = `Respond ONLY with a valid JSON object containing an \"answer\" field: {\n  \"answer\": \"Your concise and helpful answer here...\"\n}`;
     }
 
-    // Escaped backticks for Mermaid instructions within the template literal
-    const mermaidInstructions = `MERMAID DIAGRAM INSTRUCTIONS (Include only if generating the full plan):\nCreate a **topology diagram** visualizing the high-level **tool and process landscape**... (Use \`graph TD\` or \`graph LR\`). Represent functions if tools aren't selected (e.g., \`Email_Marketing[Function: Email Marketing<br>(e.g., Mailchimp)]\`). Keep it simple (5-10 elements). DO NOT visualize implementation steps.`;
+    // Use single quotes inside the template literal for Mermaid examples
+    const mermaidInstructions = `MERMAID DIAGRAM INSTRUCTIONS (Include only if generating the full plan):\nCreate a **topology diagram** visualizing the high-level **tool and process landscape**... (Use 'graph TD' or 'graph LR'). Represent functions if tools aren\'t selected (e.g., 'Email_Marketing[Function: Email Marketing<br>(e.g., Mailchimp)]'). Keep it simple (5-10 elements). DO NOT visualize implementation steps.`;
 
     const finalMermaidInstructions = (messageType === 'initial_request' || messageType === 'clarification_response') ? mermaidInstructions : "";
 
@@ -1821,201 +1820,220 @@ function createGamePlanUserPrompt(messageType, initialRequestData, conversationH
 
 // Game Plan generation function using Grok API
 exports.generateGamePlan = functions.https.onCall(async (data, context) => {
-  console.log('generateGamePlan v2 called with:', data);
-  
+  console.log('generateGamePlan v3 received data:', JSON.stringify(data));
+
   if (!context.auth) {
-    throw new functions.https.HttpsError('unauthenticated', 'Authentication required');
+    throw new functions.https.HttpsError('unauthenticated', 'Authentication required.');
   }
-  
   const userId = context.auth.uid;
-  
-  // Extract data, including new fields for conversation handling
-  const { 
-    topic, 
-    challenge, 
-    projectType, 
-    projectDescription, 
-    sessionId: existingSessionId, // ID of the ongoing conversation (if any)
-    messageType = 'initial_request', // 'initial_request', 'clarification_response', 'follow_up'
-    userResponse // User's answer to clarification or follow-up question
+
+  const {
+    topic, challenge, projectType, projectDescription, // From initial form
+    sessionId: existingSessionId,                      // From subsequent calls
+    messageType = 'initial_request',                   // Type of call ('initial_request', 'clarification_response', 'follow_up')
+    userResponse                                       // User's reply
   } = data;
-  
-  // Generate or use existing session ID
-  const sessionId = existingSessionId || uuidv4();
-  console.log(`Using Session ID: ${sessionId}`);
+
+  // --- Session Management ---
+  const sessionId = existingSessionId || uuidv4(); // Use existing or create new
+  console.log(`Processing ${messageType} for session: ${sessionId}`);
+
+  let initialRequestData = {}; // To store initial request data for context
 
   try {
     // --- Credit Check ---
-    const userRef = db.collection('users').doc(userId);
+    const userRef = db.collection(USERS_COLLECTION).doc(userId);
     const userDoc = await userRef.get();
-    if (!userDoc.exists) {
-      // Optionally create user doc here or handle as error
-      throw new functions.https.HttpsError('not-found', 'User data not found.');
-    }
-    const userData = userDoc.data();
-    if ((userData.credits || 0) < 1) {
-      throw new functions.https.HttpsError('resource-exhausted', 'Not enough credits');
-    }
-    
-    // --- Initial Request Logic ---
-    if (messageType === 'initial_request') {
-      console.log('Processing initial request...');
-      // Store the initial request
-      await storeConversationHistory(sessionId, userId, { type: 'initial_request', request: data });
+    if (!userDoc.exists) throw new functions.https.HttpsError('not-found', 'User data not found.');
 
-      // Check if clarification is needed
-      if (needsClarification(topic, challenge, projectType, projectDescription)) {
-        const questions = generateClarifyingQuestions(topic, challenge, projectType, projectDescription);
-        // Store the clarification request
-        await storeConversationHistory(sessionId, userId, { type: 'clarification_request', questions: questions });
-        // Return clarification questions to the client
+    const userData = userDoc.data();
+    const isChargeable = (messageType === 'initial_request' || messageType === 'clarification_response');
+    if (isChargeable && (userData.credits || 0) < GAME_SESSION_COST) {
+      throw new functions.https.HttpsError('resource-exhausted', `Not enough credits. Need ${GAME_SESSION_COST}, have ${userData.credits || 0}.`);
+    }
+
+    // --- Load History & Handle Initial Request/Clarification ---
+    const conversationHistory = await getGamePlanConversationHistory(sessionId); // Use specific helper
+
+    if (messageType === 'initial_request') {
+      console.log(`Handling initial request for session ${sessionId}...`);
+      initialRequestData = { topic, challenge, projectType, projectDescription }; // Store for prompt context
+      await storeGamePlanConversationHistory(sessionId, userId, { type: 'initial_request', request: initialRequestData });
+
+      if (gamePlanNeedsClarification(topic, challenge, projectType, projectDescription)) {
+        const questions = generateGamePlanClarifyingQuestions(topic, challenge, projectType, projectDescription);
+        await storeGamePlanConversationHistory(sessionId, userId, { type: 'clarification_request', questions: questions });
+        console.log(`Clarification needed for session ${sessionId}. Returning questions.`);
         return { type: 'clarification_needed', questions: questions, sessionId: sessionId };
       }
-      // Proceed to generate plan if no clarification needed
+       console.log(`No clarification needed for session ${sessionId}. Proceeding to generate plan.`);
+    } else {
+      // For follow-ups/clarifications, find the initial request in history
+      const initialTurn = conversationHistory.find(turn => turn.type === 'initial_request');
+      if (initialTurn?.request) {
+        initialRequestData = initialTurn.request;
+      } else {
+        console.warn(`Could not find initial request in history for session ${sessionId}. Using current data if available.`);
+        initialRequestData = { topic, challenge, projectType, projectDescription }; // Fallback
+      }
     }
-    
-    // --- Build Prompt based on Message Type ---
-    let systemMessage = "You are an expert AI implementation consultant..."; // Keep base system message concise
-    let userPrompt;
-    const conversationHistory = await getConversationHistory(sessionId);
 
-    // Construct conversation context for the AI
-    let promptContext = "";
-    conversationHistory.forEach(turn => {
-        if (turn.type === 'initial_request' && turn.request) {
-            promptContext += `Initial Request:\nTopic: ${turn.request.topic}, Challenge: ${turn.request.challenge}, Type: ${turn.request.projectType}, Description: ${turn.request.projectDescription}\n\n`;
-        } else if (turn.type === 'clarification_request' && turn.questions) {
-            promptContext += `AI Question: ${turn.questions.join(' ')}\n\n`;
-        } else if (turn.type === 'clarification_response' && turn.response) {
-            promptContext += `User Response: ${turn.response}\n\n`;
-        } else if (turn.type === 'follow_up_request' && turn.question) {
-             promptContext += `User Follow-up: ${turn.question}\n\n`;
-        } else if (turn.type === 'plan_generated' && turn.plan && turn.plan.project_summary) {
-            // Include summary of last generated plan for context if needed
-            // promptContext += `Previous Plan Summary: ${turn.plan.project_summary}\n\n`; 
-        }
-    });
-
+    // --- Store User Response (if applicable) ---
     if (messageType === 'clarification_response') {
-      console.log('Processing clarification response...');
-      await storeConversationHistory(sessionId, userId, { type: 'clarification_response', response: userResponse });
-      promptContext += `User Response: ${userResponse}\n\n`; // Add current response
-      userPrompt = `Based on the previous context and the user's latest response ("${userResponse}"), generate the full implementation game plan.`;
-      
+      await storeGamePlanConversationHistory(sessionId, userId, { type: 'clarification_response', response: userResponse });
     } else if (messageType === 'follow_up') {
-      console.log('Processing follow-up request...');
-       await storeConversationHistory(sessionId, userId, { type: 'follow_up_request', question: userResponse });
-       promptContext += `User Follow-up: ${userResponse}\n\n`; // Add current question
-       systemMessage = "You are an AI assistant helping a user refine an existing game plan based on their follow-up question. Use the context provided."
-       userPrompt = `Address the user's follow-up question ("${userResponse}") based on the conversation history and the previously generated plan components. Provide a concise answer or refinement.`;
-       
-    } else { // Initial request (no clarification needed) or other cases
-       console.log('Generating plan directly...');
-       userPrompt = `Generate a full implementation game plan based on the initial request detailed in the context.`;
+      await storeGamePlanConversationHistory(sessionId, userId, { type: 'follow_up_request', question: userResponse });
     }
 
-    // Combine context and current prompt
-    const fullUserPrompt = `${promptContext}Current Task: ${userPrompt}\n\nMERMAID DIAGRAM INSTRUCTIONS:\nCreate a **topology diagram** visualizing the high-level **tool and process landscape** of the final working setup. This should give a "bird's eye view" of how components interact.\n\n- **Focus**: Show the relationships between key tools, platforms, data flows, or major process areas.\n- **DO NOT**: Visualize the implementation steps. This is about the final system structure.\n- **Diagram Type**: Use \`graph TD\` (top-down) or \`graph LR\` (left-right) for system architecture/topology.\n- **Functions vs. Tools**: If a specific tool isn't selected for a function (e.g., email marketing), represent the *function* in a node. Optionally, list tool examples within the node like: \`Email_Marketing[Function: Email Marketing<br>(e.g., Mailchimp, Brevo)]\`.\n- **Simplicity**: Keep the diagram focused on 5-10 key elements with clear labels and relationships.\n- **Syntax**: Use basic Mermaid syntax. Avoid overly complex features.\n\nRespond ONLY with a valid JSON object matching this structure:\n{\n  "project_summary": "...",\n  "key_milestones": [{"milestone": "...", "description": "..."}],\n  "suggested_steps": [{"step": "...", "details": "..."}],\n  "recommended_technologies": [{"name": "...", "reasoning": "...", "type": "..."}],\n  "learning_resources": [{"title": "...", "url": "...", "type": "...", "relevance": "..."}],\n  "potential_roadblocks": [{"roadblock": "...", "mitigation": "..."}],\n  "success_metrics": [{"metric": "...", "measurement": "..."}],\n  "mermaid_diagram": "Mermaid code...",\n  "next_steps_prompt": "..."\n}`;
-    
-    console.log("Sending prompt to AI model...");
-    // --- Call AI Model ---
-    const { text } = await generateText({
-      model: xai('grok-2-1212'), 
-      system: systemMessage,
-      prompt: fullUserPrompt, 
+    // --- Prepare Prompt for AI ---
+    const systemPrompt = createGamePlanSystemPrompt(messageType);
+    // Reload history *after* potentially storing the latest user response
+    const currentHistory = await getGamePlanConversationHistory(sessionId);
+    const userPrompt = createGamePlanUserPrompt(messageType, initialRequestData, currentHistory, userResponse);
+
+    console.log(`--- Sending to AI (Session: ${sessionId}) ---`);
+    // console.log("System Prompt:", systemPrompt); // Uncomment for debugging
+    // console.log("User Prompt:", userPrompt); // Uncomment for debugging
+    console.log(`--- End AI Prompt ---`);
+
+    // --- Call AI Model (Grok via Vercel SDK) ---
+    const { text, usage, finishReason, warnings } = await generateText({
+      model: xai('grok-2-1212'), // Ensure correct model ID
+      system: systemPrompt,
+      prompt: userPrompt,
+      maxTokens: 2048, // Set reasonable max tokens
+      temperature: 0.3, // Slightly lower temperature for more structured plans
     });
-    console.log("Raw response from AI SDK:", text);
+    console.log("Raw response from AI SDK:", { usage, finishReason, warnings }); // Don't log full text by default
 
-    // --- Process Response ---
+    // --- Process AI Response ---
     let processedText = text.trim();
-    // Extract JSON (handle potential markdown code blocks)
+    // Basic extraction if wrapped in markdown
     if (processedText.startsWith('```json')) {
-        processedText = processedText.substring(7, processedText.length - 3).trim();
+      processedText = processedText.substring(7, processedText.length - 3).trim();
     } else if (processedText.startsWith('```')) {
-         processedText = processedText.substring(3, processedText.length - 3).trim();
+      processedText = processedText.substring(3, processedText.length - 3).trim();
     }
-     if (!processedText.startsWith('{') || !processedText.endsWith('}')) {
-        const jsonMatch = processedText.match(/(\{[\s\S]*\})/);
-        if (jsonMatch && jsonMatch[1]) {
-            processedText = jsonMatch[1];
-        } else {
-             console.error("Failed to extract JSON from response:", processedText);
-             throw new Error('AI response was not valid JSON.');
+    // Find JSON object within the text if necessary
+    if (!processedText.startsWith('{') || !processedText.endsWith('}')) {
+      const jsonMatch = processedText.match(/(\{[\s\S]*\})/);
+      if (jsonMatch && jsonMatch[1]) {
+        processedText = jsonMatch[1];
+        console.log("Extracted JSON object from potentially messy text.");
+      } else {
+        console.error("Failed to extract valid JSON object from response:", processedText);
+        if (messageType === 'follow_up') {
+          console.warn("Returning raw text as follow-up answer due to JSON extraction failure.");
+          await storeGamePlanConversationHistory(sessionId, userId, { type: 'follow_up_response', answer: processedText, error: 'json_extraction_failed' });
+          // Return sessionId for client state management
+          return { type: 'follow_up_answer', answer: processedText, sessionId: sessionId };
         }
+        throw new Error('AI response was not in the expected JSON format.');
+      }
     }
 
     let parsedResponse;
     try {
       parsedResponse = JSON.parse(processedText);
-       // Clean mermaid diagram
-       if (parsedResponse.mermaid_diagram) {
-           let diagramText = parsedResponse.mermaid_diagram.trim().replace(/^```(?:mermaid)?\s*/, '').replace(/\s*```$/, '');
-            // Basic validation/defaulting
-            if (!diagramText.startsWith('graph ') && !diagramText.startsWith('flowchart ')) {
-                 diagramText = 'graph TD\\n' + diagramText; // Default to TD graph
-            }
-           parsedResponse.mermaid_diagram = diagramText;
-       } else {
-            parsedResponse.mermaid_diagram = 'graph TD\\nA[No Diagram Provided]';
-       }
+      console.log("Successfully parsed AI JSON response.");
+
+      // --- Post-process and Validate --- //
+      if (messageType === 'initial_request' || messageType === 'clarification_response') {
+        // Validate full plan structure (basic checks)
+        const requiredPlanFields = ['project_summary', 'key_milestones', 'suggested_steps', 'recommended_technologies', 'learning_resources', 'potential_roadblocks', 'success_metrics', 'mermaid_diagram', 'next_steps_prompt'];
+        for (const field of requiredPlanFields) {
+          if (parsedResponse[field] === undefined || parsedResponse[field] === null) {
+            console.warn(`Generated plan JSON is missing or has null field: ${field}`);
+            // Provide default values for robustness
+            if (field === 'mermaid_diagram') parsedResponse[field] = 'graph TD\nA[Diagram Generation Failed]';
+            else if (Array.isArray(parsedResponse[field])) parsedResponse[field] = []; // Default to empty array if expected
+            else parsedResponse[field] = 'N/A'; // Default for strings
+          }
+        }
+
+        // Clean Mermaid diagram code
+        if (parsedResponse.mermaid_diagram && typeof parsedResponse.mermaid_diagram === 'string') {
+          let diagramText = parsedResponse.mermaid_diagram.trim().replace(/^```(?:mermaid)?\s*/, '').replace(/\s*```$/, '');
+          // Ensure graph type is present
+          if (!diagramText.match(/^(graph|flowchart)\s+(TD|LR|TB|BT|RL)/i)) {
+            diagramText = 'graph TD\n' + diagramText; // Default to TD graph
+          }
+          parsedResponse.mermaid_diagram = diagramText;
+        } else {
+          parsedResponse.mermaid_diagram = 'graph TD\nA[Diagram Not Provided]'; // Placeholder if missing or invalid
+        }
+      } else if (messageType === 'follow_up') {
+        // Validate follow-up answer structure
+        if (typeof parsedResponse.answer !== 'string') {
+          console.warn("Follow-up response JSON parsed but missing 'answer' string. Using raw text.");
+          parsedResponse.answer = processedText; // Fallback to raw text
+        }
+      }
 
     } catch (parseError) {
-      console.error('Error parsing AI response JSON:', parseError, "Processed text was:", processedText);
-      throw new functions.https.HttpsError('internal', 'AI response format error.');
+      console.error('Error parsing or validating AI response JSON:', parseError, "Processed text was:", processedText);
+      throw new functions.https.HttpsError('internal', `AI response format error: ${parseError.message}`);
     }
 
-    // --- Store Results & Deduct Credits ---
-    if (messageType !== 'follow_up') { // Only deduct credit for initial plan or clarification response
-         await userRef.update({ credits: admin.firestore.FieldValue.increment(-1) });
-         console.log("Credit deducted.");
+    // --- Deduct Credits & Store Results ---
+    if (isChargeable) {
+      const creditRef = db.collection(USERS_COLLECTION).doc(userId);
+      await db.runTransaction(async (transaction) => {
+        const doc = await transaction.get(creditRef);
+        if (!doc.exists) throw new Error("User not found for credit deduction.");
+        const currentCredits = doc.data().credits || 0;
+        if (currentCredits < GAME_SESSION_COST) throw new Error("Credit check passed initially but failed during transaction.");
+        transaction.update(creditRef, { credits: admin.firestore.FieldValue.increment(-GAME_SESSION_COST) });
+      });
+      console.log(`Credit deducted for ${messageType}.`);
     }
-   
-    // Store the generated plan/answer
-    await storeConversationHistory(sessionId, userId, { 
-        type: messageType === 'follow_up' ? 'follow_up_response' : 'plan_generated', 
-        [messageType === 'follow_up' ? 'answer' : 'plan']: parsedResponse 
+
+    // Store the AI's response in history
+    await storeGamePlanConversationHistory(sessionId, userId, {
+      type: (messageType === 'follow_up') ? 'follow_up_response' : 'plan_generated',
+      [ (messageType === 'follow_up') ? 'answer' : 'plan' ]: parsedResponse // Store plan or answer object
     });
 
-    // --- Save Final Plan Snapshot (Optional but useful for saved plans list) ---
-    if (messageType !== 'follow_up') { // Save only when a full plan is generated/updated
-        try {
-             let planTitle = data.topic || 'Game Plan'; // Simple title
-             if (parsedResponse.project_summary) {
-                 planTitle = parsedResponse.project_summary.split(' ').slice(0, 6).join(' ') + '...';
-             }
-             await db.collection('users').doc(userId).collection('gamePlans').doc(sessionId).set({ // Use sessionId as doc ID for easy linking
-                 title: planTitle,
-                 topic: data.topic || '',
-                 challenge: data.challenge || '',
-                 projectType: data.projectType || '',
-                 description: data.projectDescription || '',
-                 plan: parsedResponse, // Store the latest plan snapshot
-                 createdAt: admin.firestore.FieldValue.serverTimestamp(), // Or use timestamp from session?
-                 updatedAt: admin.firestore.FieldValue.serverTimestamp()
-             }, { merge: true }); // Use merge to update if exists
-             console.log(`Saved/Updated final plan snapshot with ID: ${sessionId}`);
-         } catch (saveError) {
-             console.error('Error saving final plan snapshot:', saveError);
-         }
+    // --- Save Final Plan Snapshot --- //
+    if (messageType === 'initial_request' || messageType === 'clarification_response') {
+      try {
+        let planTitle = initialRequestData.topic || 'Game Plan';
+        if (parsedResponse.project_summary) {
+          const summaryWords = parsedResponse.project_summary.split(' ');
+          planTitle = summaryWords.slice(0, 7).join(' ') + (summaryWords.length > 7 ? '...' : '');
+        }
+        await db.collection(USERS_COLLECTION).doc(userId).collection(PLANS_COLLECTION).doc(sessionId).set({
+          title: planTitle,
+          topic: initialRequestData.topic || '',
+          challenge: initialRequestData.challenge || '',
+          projectType: initialRequestData.projectType || '',
+          description: initialRequestData.projectDescription || '',
+          plan: parsedResponse,
+          createdAt: admin.firestore.FieldValue.serverTimestamp(),
+          updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+          sessionId: sessionId
+        }, { merge: true });
+        console.log(`Saved/Updated final plan snapshot with ID: ${sessionId}`);
+      } catch (saveError) {
+        console.error('Error saving final plan snapshot:', saveError);
+      }
     }
 
-    // --- Return Response ---
-    if (messageType === 'follow_up') {
-         return { type: 'follow_up_answer', answer: parsedResponse, sessionId: sessionId }; // Assuming Grok can provide concise answer in structure
-    } else {
-         return { type: 'plan_generated', plan: parsedResponse, sessionId: sessionId };
-    }
+    // --- Return Response to Client --- //
+    const responseType = (messageType === 'follow_up') ? 'follow_up_answer' : 'plan_generated';
+    const responsePayload = (messageType === 'follow_up') ? { answer: parsedResponse.answer } : { plan: parsedResponse };
+
+    console.log(`Returning ${responseType} for session ${sessionId}`);
+    return { type: responseType, ...responsePayload, sessionId: sessionId }; // Always return sessionId
 
   } catch (error) {
-    console.error('Error in generateGamePlan function:', error);
-     // Don't expose internal details unless it's an HttpsError we threw
-     const message = (error instanceof functions.https.HttpsError) ? error.message : 'An error occurred.';
-     const code = (error instanceof functions.https.HttpsError) ? error.code : 'internal';
-     // Rethrow HttpsError or wrap other errors
-     if (error instanceof functions.https.HttpsError) {
-         throw error;
-     } else {
-          throw new functions.https.HttpsError(code, message);
-     }
+    console.error(`Error in generateGamePlan function (Session: ${sessionId}):`, error);
+    const message = (error instanceof functions.https.HttpsError) ? error.message : 'An unexpected error occurred generating the game plan.';
+    const code = (error instanceof functions.https.HttpsError) ? error.code : 'internal';
+    if (error instanceof functions.https.HttpsError) {
+      throw error;
+    } else {
+      throw new functions.https.HttpsError(code, message);
+    }
   }
 });
