@@ -565,24 +565,40 @@
             
             // Run Mermaid render when diagram is available
             React.useEffect(() => {
+              // Check if we have the necessary data and mermaid library
               if (gamePlanResult && gamePlanResult.mermaid_diagram && typeof mermaid !== 'undefined') {
-                // Wait a moment for React to render the element
-                setTimeout(() => {
-                  try {
-                    console.log("Running Mermaid diagram render");
-                    mermaid.initialize({
-                      startOnLoad: false,
-                      securityLevel: 'loose',
-                      theme: 'default'
-                    });
-                    mermaid.run();
-                    console.log("Mermaid diagram rendering complete");
-                  } catch (err) {
-                    console.error("Error rendering Mermaid diagram:", err);
+                console.log("Attempting to render Mermaid diagram:", gamePlanResult.mermaid_diagram);
+                // Find the container specifically
+                const container = document.querySelector('.mermaid-diagram-render.mermaid');
+                if (container) {
+                  // Ensure container innerHTML matches the diagram code before running mermaid
+                  // This helps prevent unnecessary re-renders if the diagram hasn't changed
+                  if (container.innerHTML !== gamePlanResult.mermaid_diagram) {
+                     container.innerHTML = gamePlanResult.mermaid_diagram;
                   }
-                }, 300);
+                  // Delay rendering slightly to ensure DOM update
+                  setTimeout(() => {
+                    try {
+                      // Re-initialize just in case?
+                      mermaid.initialize({
+                        startOnLoad: false,
+                        securityLevel: 'loose',
+                        theme: 'default'
+                      });
+                      mermaid.run({
+                        nodes: [container] // Target specific container
+                      });
+                      console.log("Mermaid diagram rendering complete for container.");
+                    } catch (err) {
+                      console.error("Error rendering Mermaid diagram:", err);
+                      container.innerHTML = `Error rendering diagram: ${err.message}`;
+                    }
+                  }, 150); // Slightly shorter delay might be okay
+                } else {
+                     console.warn("Mermaid diagram container not found in DOM yet.");
+                }
               }
-            }, [gamePlanResult, sectionsOpen.diagram]);
+            }, [gamePlanResult?.mermaid_diagram]); // Depend specifically on the diagram string
             
             // Get challenges based on topic
             const getChallenges = (topic) => {
@@ -801,7 +817,67 @@
               }
             };
             
-            // --- End NEW Handler Functions ---
+            // --- NEW: Handler to Regenerate Plan ---
+            const handleRegeneratePlan = async () => {
+                if (!sessionId) {
+                    console.error("Cannot regenerate plan without a session ID.");
+                    setError("Cannot regenerate plan without a session ID.");
+                    return;
+                }
+                
+                console.log(`Regenerating plan for session: ${sessionId} using full history...`);
+                setIsLoading(true);
+                setError(null);
+                setGamePlanResult(null); // Clear current plan display while regenerating
+                setClarificationQuestions([]); // Clear any stale questions
+                // Add a system message to conversation
+                setConversation(prev => [...prev, { 
+                    role: 'system', 
+                    content: 'Regenerating the full game plan based on the conversation...', 
+                    type: 'message' 
+                }]);
+
+                try {
+                    const generateGamePlan = firebase.functions().httpsCallable('generateGamePlan');
+                    // Call the function as if it were an initial request, but provide the sessionId.
+                    // The backend function uses the sessionId to load the full history for context.
+                    const result = await generateGamePlan({
+                        sessionId: sessionId,
+                        messageType: 'initial_request' // Treat as initial to get full plan based on history
+                        // No topic/challenge/desc needed here as they are in history
+                    });
+
+                    console.log("Firebase function result (Regeneration):", result);
+
+                    if (result.data.type === 'plan_generated') {
+                        setGamePlanResult(result.data.plan);
+                        setConversation(prev => [...prev, { role: 'ai', content: 'Here is the updated game plan:', type: 'message' }]);
+                        console.log("Game plan regenerated successfully:", result.data.plan);
+                    } else if (result.data.type === 'clarification_needed'){
+                        // It's unlikely, but the AI might *still* need clarification after regeneration attempt
+                         setClarificationQuestions(result.data.questions || []);
+                         setConversation(prev => [...prev, { 
+                            role: 'ai', 
+                            content: `I still need a bit more information to update the plan fully:\n${(result.data.questions || []).map(q => `- ${q}`).join('\n')}`, 
+                            type: 'clarification_request' 
+                         }]);
+                         console.warn("Clarification still needed after regeneration attempt:", result.data.questions);
+                    } else {
+                        throw new Error(result.data.error || `Unexpected response type during regeneration: ${result.data.type}`);
+                    }
+
+                } catch (err) {
+                    console.error("Error regenerating game plan:", err);
+                    const errorMessage = err.message || "Failed to regenerate the game plan.";
+                    setError(errorMessage);
+                    setConversation(prev => [...prev, { role: 'system', content: `Error regenerating: ${errorMessage}`, type: 'error' }]);
+                     // Restore previous plan if regeneration fails?
+                     // You might want to fetch the last known good plan from history here.
+                } finally {
+                    setIsLoading(false);
+                }
+            };
+            // --- End NEW Handler ---
             
             // Render the component
             return React.createElement('div', {
@@ -959,14 +1035,14 @@
                 
                 // Input Area (for clarification/follow-up)
                 (clarificationQuestions.length > 0 || gamePlanResult) && !isLoading && React.createElement('div', {
-                  className: 'p-3 bg-gray-50 border-t border-gray-300 flex items-center space-x-2'
+                  className: 'p-3 bg-gray-50 border-t border-gray-300 flex items-center space-x-2 flex-wrap' // Added flex-wrap
                 }, [
                   React.createElement('input', {
                     type: 'text',
                     value: userInput,
                     onChange: (e) => setUserInput(e.target.value),
                     placeholder: clarificationQuestions.length > 0 ? 'Type your answer here...' : 'Ask a follow-up question...',
-                    className: 'flex-grow p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500',
+                    className: 'flex-grow p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 min-w-[200px]', // Added min-width
                     onKeyPress: (e) => {
                         if (e.key === 'Enter' && userInput.trim()) {
                             if (clarificationQuestions.length > 0) {
@@ -986,8 +1062,15 @@
                        }
                     },
                     disabled: !userInput.trim() || isLoading,
-                    className: 'bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 disabled:opacity-50'
-                  }, clarificationQuestions.length > 0 ? 'Send Answer' : 'Ask Follow-up')
+                    className: 'bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 disabled:opacity-50 whitespace-nowrap' // Added whitespace-nowrap
+                  }, clarificationQuestions.length > 0 ? 'Send Answer' : 'Ask Follow-up'),
+                  // --- NEW: Regenerate Button ---
+                  gamePlanResult && !clarificationQuestions.length > 0 && React.createElement('button', {
+                    onClick: handleRegeneratePlan,
+                    disabled: isLoading,
+                    className: 'bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 disabled:opacity-50 whitespace-nowrap ml-auto' // Added ml-auto
+                  }, 'Update Plan with Chat Feedback')
+                  // --- End Regenerate Button ---
                 ])
               ]),
               // --- End NEW Conversation Area ---
@@ -1070,11 +1153,11 @@
                       key: `tech-${index}`, 
                       className: 'border border-gray-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow' // Card style
                     }, [
-                      React.createElement('div', { className: 'font-semibold text-blue-600 text-lg mb-1' }, item.name),
-                      React.createElement('div', { 
+                      React.createElement('div', { className: 'font-semibold text-blue-600 text-lg mb-1' }, item.name || 'Unnamed Technology'),
+                      item.type && React.createElement('div', { 
                         className: 'text-xs inline-block px-2 py-0.5 bg-blue-100 text-blue-800 rounded-full mb-2 font-medium' // Pill style
                       }, item.type),
-                      React.createElement('p', { className: 'text-gray-600 text-sm' }, item.reasoning)
+                      React.createElement('p', { className: 'text-gray-600 text-sm mt-1' }, item.reasoning || 'No description provided.') 
                     ])
                   )),
                   'fa-microchip' // Specific icon
@@ -1087,16 +1170,16 @@
                   }, gamePlanResult.learning_resources.map((item, index) => 
                     React.createElement('li', { key: `resource-${index}`, className: 'text-gray-700 border-b pb-3 last:border-0 last:pb-0' }, [
                       React.createElement('a', { 
-                        href: item.url,
+                        href: item.url || '#', // Add fallback href
                         target: '_blank',
                         rel: 'noopener noreferrer', // Security best practice
                         className: 'text-blue-600 hover:underline font-semibold inline-flex items-center' // Inline flex for icon
                       }, [
-                        item.title,
-                        React.createElement('i', { className: 'fas fa-external-link-alt text-xs ml-2 opacity-70' })
+                        item.title || 'Untitled Resource', // Add fallback title
+                        item.url && React.createElement('i', { className: 'fas fa-external-link-alt text-xs ml-2 opacity-70' })
                       ]),
-                      React.createElement('div', { className: 'text-xs text-gray-500 mt-1' }, `Type: ${item.type}`),
-                      React.createElement('p', { className: 'text-gray-600 text-sm mt-1' }, item.relevance)
+                      item.type && React.createElement('div', { className: 'text-xs text-gray-500 mt-1' }, `Type: ${item.type}`),
+                      React.createElement('p', { className: 'text-gray-600 text-sm mt-1' }, item.relevance || 'No relevance provided.') 
                     ])
                   )),
                   'fa-book-open' // Specific icon
