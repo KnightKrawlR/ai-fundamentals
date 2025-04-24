@@ -493,7 +493,7 @@
     </script>
 
     <!-- Load the enhanced game plan JavaScript with cache busting -->
-    <script src="my-game-plan-enhanced.js?v=4"></script>
+    <script src="my-game-plan-enhanced.js?v=5"></script>
 
     <!-- Inline Game Plan Component -->
     <script>
@@ -712,160 +712,67 @@
               }
             };
             
-            // Function to render a collapsible section
-            function renderCollapsibleSection({ key, title, content }) {
-              const [isOpen, setIsOpen] = React.useState(true);
-              
-              // Icon mapping for different section types
-              const iconMap = {
-                diagram: '📊',
-                milestones: '🏆',
-                steps: '📋',
-                technologies: '💻',
-                resources: '📚',
-                roadblocks: '⚠️',
-                metrics: '📈',
-                code: '📝'
-              };
-              
-              // Render content based on type and section key
-              const renderContent = () => {
-                // Special handling for mermaid diagrams
-                if (key === 'diagram') {
-                  return React.createElement('div', {
-                    className: 'mt-3 bg-white p-4 rounded border',
-                  }, [
-                    React.createElement('div', {
-                      className: 'mermaid-diagram-container',
-                      style: { minHeight: '200px' }
-                    }, [
-                      React.createElement('div', {
-                        className: 'mermaid-diagram-render',
-                        style: { width: '100%' },
-                      }, content)
-                    ])
-                  ]);
+            // --- NEW: Handler to Regenerate Plan ---
+            const handleRegeneratePlan = async () => {
+                if (!sessionId) {
+                    console.error("Cannot regenerate plan without a session ID.");
+                    setError("Cannot regenerate plan without a session ID.");
+                    return;
                 }
                 
-                // For array content (most sections)
-                if (Array.isArray(content)) {
-                  // Check if array contains objects (for most structured data)
-                  if (content.length > 0 && typeof content[0] === 'object') {
-                    const items = content.map((item, index) => {
-                      // Handle different item formats based on section type
-                      let itemContent;
-                      
-                      if (['milestones', 'steps', 'roadblocks'].includes(key)) {
-                        // Format for items with title and description
-                        itemContent = [
-                          React.createElement('span', { className: 'font-semibold' }, 
-                            `${index + 1}. ${item.title || ''}`
-                          ),
-                          item.description && React.createElement('p', { className: 'text-gray-600 mt-1 ml-5' }, 
-                            item.description
-                          )
-                        ];
-                      } else if (key === 'technologies') {
-                        // Format for technology items
-                        itemContent = [
-                          React.createElement('span', { className: 'font-semibold text-blue-600' }, 
-                            item.name || ''
-                          ),
-                          item.reason && React.createElement('p', { className: 'text-gray-600 mt-1 ml-5' }, 
-                            item.reason
-                          )
-                        ];
-                      } else if (key === 'resources') {
-                        // Format for resource items
-                        itemContent = [
-                          React.createElement('a', { 
-                            href: item.url || '#',
-                            target: '_blank',
-                            className: 'text-blue-600 hover:underline font-medium'
-                          }, item.title || 'Resource'),
-                          item.description && React.createElement('p', { className: 'text-gray-600 mt-1 ml-5' }, 
-                            item.description
-                          )
-                        ];
-                      } else if (key === 'code') {
-                        // Format for code snippets
-                        itemContent = [
-                          React.createElement('span', { className: 'font-semibold' }, 
-                            item.title || 'Code Sample'
-                          ),
-                          React.createElement('pre', { 
-                            className: 'bg-gray-100 p-3 rounded mt-2 overflow-x-auto text-sm font-mono' 
-                          }, item.code || '')
-                        ];
-                      } else {
-                        // Generic format for other object arrays
-                        itemContent = [
-                          React.createElement('span', { className: 'font-semibold' }, 
-                            item.title || item.name || ''
-                          ),
-                          (item.description || item.detail) && React.createElement('p', { className: 'text-gray-600 mt-1 ml-5' }, 
-                            item.description || item.detail || ''
-                          )
-                        ];
-                      }
-                      
-                      return React.createElement('li', { 
-                        key: index, 
-                        className: 'mb-3 pb-2 border-b border-gray-100 last:border-0'
-                      }, itemContent);
+                console.log(`Regenerating plan for session: ${sessionId} using full history...`);
+                setIsLoading(true);
+                setError(null);
+                setGamePlanResult(null); // Clear current plan display while regenerating
+                setClarificationQuestions([]); // Clear any stale questions
+                // Add a system message to conversation
+                setConversation(prev => [...prev, { 
+                    role: 'system', 
+                    content: 'Regenerating the full game plan based on the conversation...', 
+                    type: 'message' 
+                }]);
+
+                try {
+                    const generateGamePlan = firebase.functions().httpsCallable('generateGamePlan');
+                    // Call the function as if it were an initial request, but provide the sessionId.
+                    // The backend function uses the sessionId to load the full history for context.
+                    const result = await generateGamePlan({
+                        sessionId: sessionId,
+                        messageType: 'initial_request' // Treat as initial to get full plan based on history
+                        // No topic/challenge/desc needed here as they are in history
                     });
-                    
-                    // Use ul container for list items
-                    return React.createElement('ul', { className: 'mt-3 list-none' }, items);
-                  } else {
-                    // Simple string array
-                    const items = content.map((item, index) => 
-                      React.createElement('li', { 
-                        key: index,
-                        className: 'mb-2'
-                      }, `${index + 1}. ${item}`)
-                    );
-                    
-                    return React.createElement('ul', { className: 'mt-3 list-disc pl-5' }, items);
-                  }
+
+                    console.log("Firebase function result (Regeneration):", result);
+
+                    if (result.data.type === 'plan_generated') {
+                        setGamePlanResult(result.data.plan);
+                        setConversation(prev => [...prev, { role: 'ai', content: 'Here is the updated game plan:', type: 'message' }]);
+                        console.log("Game plan regenerated successfully:", result.data.plan);
+                    } else if (result.data.type === 'clarification_needed'){
+                        // It's unlikely, but the AI might *still* need clarification after regeneration attempt
+                         setClarificationQuestions(result.data.questions || []);
+                         setConversation(prev => [...prev, { 
+                            role: 'ai', 
+                            content: `I still need a bit more information to update the plan fully:\n${(result.data.questions || []).map(q => `- ${q}`).join('\n')}`, 
+                            type: 'clarification_request' 
+                         }]);
+                         console.warn("Clarification still needed after regeneration attempt:", result.data.questions);
+                    } else {
+                        throw new Error(result.data.error || `Unexpected response type during regeneration: ${result.data.type}`);
+                    }
+
+                } catch (err) {
+                    console.error("Error regenerating game plan:", err);
+                    const errorMessage = err.message || "Failed to regenerate the game plan.";
+                    setError(errorMessage);
+                    setConversation(prev => [...prev, { role: 'system', content: `Error regenerating: ${errorMessage}`, type: 'error' }]);
+                     // Restore previous plan if regeneration fails?
+                     // You might want to fetch the last known good plan from history here.
+                } finally {
+                    setIsLoading(false);
                 }
-                
-                // For string content (like description)
-                return React.createElement('div', { className: 'mt-3 text-gray-700' }, content);
-              };
-              
-              // Main container
-              return React.createElement('div', {
-                className: 'mb-4 bg-gray-50 rounded-lg shadow-sm overflow-hidden'
-              }, [
-                // Header
-                React.createElement('div', {
-                  className: 'flex items-center justify-between p-4 cursor-pointer bg-gray-100 hover:bg-gray-200',
-                  onClick: () => setIsOpen(!isOpen)
-                }, [
-                  React.createElement('h3', {
-                    className: 'text-lg font-medium flex items-center'
-                  }, [
-                    React.createElement('span', { className: 'mr-2' }, iconMap[key] || '📄'),
-                    title
-                  ]),
-                  React.createElement('span', {
-                    className: 'text-gray-500 text-xl transition-transform duration-200',
-                    style: { transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)' }
-                  }, '▼')
-                ]),
-                
-                // Content
-                React.createElement('div', {
-                  className: 'transition-all duration-300 overflow-hidden',
-                  style: {
-                    maxHeight: isOpen ? '2000px' : '0px',
-                    opacity: isOpen ? 1 : 0,
-                    padding: isOpen ? '1rem' : '0 1rem'
-                  }
-                }, renderContent())
-              ]);
-            }
+            };
+            // --- End NEW Handler ---
             
             // --- NEW Handler Functions ---
             
@@ -956,67 +863,11 @@
               }
             };
             
-            // --- NEW: Handler to Regenerate Plan ---
-            const handleRegeneratePlan = async () => {
-                if (!sessionId) {
-                    console.error("Cannot regenerate plan without a session ID.");
-                    setError("Cannot regenerate plan without a session ID.");
-                    return;
-                }
-                
-                console.log(`Regenerating plan for session: ${sessionId} using full history...`);
-                setIsLoading(true);
-                setError(null);
-                setGamePlanResult(null); // Clear current plan display while regenerating
-                setClarificationQuestions([]); // Clear any stale questions
-                // Add a system message to conversation
-                setConversation(prev => [...prev, { 
-                    role: 'system', 
-                    content: 'Regenerating the full game plan based on the conversation...', 
-                    type: 'message' 
-                }]);
-
-                try {
-                    const generateGamePlan = firebase.functions().httpsCallable('generateGamePlan');
-                    // Call the function as if it were an initial request, but provide the sessionId.
-                    // The backend function uses the sessionId to load the full history for context.
-                    const result = await generateGamePlan({
-                        sessionId: sessionId,
-                        messageType: 'initial_request' // Treat as initial to get full plan based on history
-                        // No topic/challenge/desc needed here as they are in history
-                    });
-
-                    console.log("Firebase function result (Regeneration):", result);
-
-                    if (result.data.type === 'plan_generated') {
-                        setGamePlanResult(result.data.plan);
-                        setConversation(prev => [...prev, { role: 'ai', content: 'Here is the updated game plan:', type: 'message' }]);
-                        console.log("Game plan regenerated successfully:", result.data.plan);
-                    } else if (result.data.type === 'clarification_needed'){
-                        // It's unlikely, but the AI might *still* need clarification after regeneration attempt
-                         setClarificationQuestions(result.data.questions || []);
-                         setConversation(prev => [...prev, { 
-                            role: 'ai', 
-                            content: `I still need a bit more information to update the plan fully:\n${(result.data.questions || []).map(q => `- ${q}`).join('\n')}`, 
-                            type: 'clarification_request' 
-                         }]);
-                         console.warn("Clarification still needed after regeneration attempt:", result.data.questions);
-                    } else {
-                        throw new Error(result.data.error || `Unexpected response type during regeneration: ${result.data.type}`);
-                    }
-
-                } catch (err) {
-                    console.error("Error regenerating game plan:", err);
-                    const errorMessage = err.message || "Failed to regenerate the game plan.";
-                    setError(errorMessage);
-                    setConversation(prev => [...prev, { role: 'system', content: `Error regenerating: ${errorMessage}`, type: 'error' }]);
-                     // Restore previous plan if regeneration fails?
-                     // You might want to fetch the last known good plan from history here.
-                } finally {
-                    setIsLoading(false);
-                }
+            // Render the main component
+            const renderDiagramSection = () => {
+              // This function is replaced by the diagram section in renderResults
+              return null;
             };
-            // --- End NEW Handler ---
             
             // Render the component
             return React.createElement('div', {
@@ -1235,65 +1086,73 @@
                   React.createElement('h3', { className: 'text-xl font-semibold text-blue-800 mb-2'}, 'Project Summary'),
                   React.createElement('p', {
                     className: 'text-gray-700 text-lg'
-                  }, gamePlanResult.project_summary)
+                  }, gamePlanResult.project_summary || gamePlanResult.project_description)
                 ]),
                 
                 // --- REORDERED SECTIONS --- 
                 
                 // 1. Mermaid diagram section (if available)
-                gamePlanResult.mermaid_diagram && renderCollapsibleSection({ 
-                  key: 'diagram', 
+                gamePlanResult.mermaid_diagram && React.createElement(CollapsibleSection, { 
+                  sectionKey: 'diagram', 
                   title: 'Architecture/Flow Diagram', 
-                  content: gamePlanResult.mermaid_diagram
+                  content: gamePlanResult.mermaid_diagram,
+                  isOpenByDefault: true
                 }),
                   
                 // 2. Collapsible milestones section
-                renderCollapsibleSection({ 
-                  key: 'milestones', 
+                React.createElement(CollapsibleSection, { 
+                  sectionKey: 'milestones', 
                   title: 'Key Milestones', 
-                  content: gamePlanResult.key_milestones
+                  content: gamePlanResult.key_milestones,
+                  isOpenByDefault: true
                 }),
                   
                 // 3. Collapsible steps section
-                renderCollapsibleSection({ 
-                  key: 'steps', 
+                React.createElement(CollapsibleSection, { 
+                  sectionKey: 'steps', 
                   title: 'Implementation Steps', 
-                  content: gamePlanResult.suggested_steps
+                  content: gamePlanResult.suggested_steps,
+                  isOpenByDefault: true
                 }),
                   
                 // 4. Collapsible technologies section
-                renderCollapsibleSection({ 
-                  key: 'technologies', 
+                React.createElement(CollapsibleSection, { 
+                  sectionKey: 'technologies', 
                   title: 'Recommended Technologies', 
-                  content: gamePlanResult.recommended_technologies
+                  content: gamePlanResult.recommended_technologies,
+                  isOpenByDefault: true
                 }),
                   
                 // 5. Collapsible resources section
-                renderCollapsibleSection({ 
-                  key: 'resources', 
+                React.createElement(CollapsibleSection, { 
+                  sectionKey: 'resources', 
                   title: 'Learning Resources', 
-                  content: gamePlanResult.learning_resources
+                  content: gamePlanResult.learning_resources,
+                  isOpenByDefault: true
                 }),
                   
                 // 6. Collapsible roadblocks section
-                renderCollapsibleSection({ 
-                  key: 'roadblocks', 
+                React.createElement(CollapsibleSection, { 
+                  sectionKey: 'roadblocks', 
                   title: 'Potential Roadblocks', 
-                  content: gamePlanResult.potential_roadblocks
+                  content: gamePlanResult.potential_roadblocks,
+                  isOpenByDefault: false
                 }),
                   
                 // 7. Collapsible metrics section
-                renderCollapsibleSection({ 
-                  key: 'metrics', 
+                React.createElement(CollapsibleSection, { 
+                  sectionKey: 'metrics', 
                   title: 'Success Metrics', 
-                  content: gamePlanResult.success_metrics
+                  content: gamePlanResult.success_metrics,
+                  isOpenByDefault: false
                 }),
                   
                 // 8. Code snippets section (if available)
-                gamePlanResult.code_snippets && gamePlanResult.code_snippets.length > 0 && renderCollapsibleSection({ 
-                  key: 'code', 
+                gamePlanResult.code_snippets && gamePlanResult.code_snippets.length > 0 && React.createElement(CollapsibleSection, { 
+                  sectionKey: 'code', 
                   title: 'Sample Code Snippets', 
-                  content: gamePlanResult.code_snippets
+                  content: gamePlanResult.code_snippets,
+                  isOpenByDefault: false
                 })
               ])
             ]);
@@ -1333,6 +1192,170 @@
         console.log("Auth verified, DOM content loaded, will initialize component");
         // This function is intentionally empty since the component will be initialized by the DOMContentLoaded event
       }
+
+      // --- NEW: Define CollapsibleSection component outside of the main component ---
+      // Function to render a collapsible section - moved outside of main component to fix hooks error
+      function CollapsibleSection({ title, content, isOpenByDefault = true, sectionKey }) {
+        const [isOpen, setIsOpen] = React.useState(isOpenByDefault);
+        
+        // Icon mapping for different section types
+        const iconMap = {
+          diagram: '📊',
+          milestones: '🏆',
+          steps: '📋',
+          technologies: '💻',
+          resources: '📚',
+          roadblocks: '⚠️',
+          metrics: '📈',
+          code: '📝'
+        };
+        
+        // Render content based on type and section key
+        const renderContent = () => {
+          // Special handling for mermaid diagrams
+          if (sectionKey === 'diagram') {
+            return React.createElement('div', {
+              className: 'mt-3 bg-white p-4 rounded border',
+            }, [
+              React.createElement('div', {
+                className: 'mermaid-diagram-container',
+                style: { minHeight: '200px' }
+              }, [
+                React.createElement('div', {
+                  className: 'mermaid-diagram-render',
+                  style: { width: '100%' },
+                }, content)
+              ])
+            ]);
+          }
+          
+          // For array content (most sections)
+          if (Array.isArray(content)) {
+            // Check if array contains objects (for most structured data)
+            if (content.length > 0 && typeof content[0] === 'object') {
+              const items = content.map((item, index) => {
+                // Handle different item formats based on section type
+                let itemContent;
+                
+                if (['milestones', 'steps', 'roadblocks'].includes(sectionKey)) {
+                  // Format for items with title and description
+                  itemContent = [
+                    React.createElement('span', { className: 'font-semibold' }, 
+                      `${index + 1}. ${item.title || item.milestone || item.step || item.roadblock || ''}`
+                    ),
+                    item.description && React.createElement('p', { className: 'text-gray-600 mt-1 ml-5' }, 
+                      item.description
+                    )
+                  ];
+                } else if (sectionKey === 'technologies') {
+                  // Format for technology items
+                  itemContent = [
+                    React.createElement('span', { className: 'font-semibold text-blue-600' }, 
+                      item.name || ''
+                    ),
+                    (item.reason || item.reasoning) && React.createElement('p', { className: 'text-gray-600 mt-1 ml-5' }, 
+                      item.reason || item.reasoning
+                    )
+                  ];
+                } else if (sectionKey === 'resources') {
+                  // Format for resource items
+                  itemContent = [
+                    React.createElement('a', { 
+                      href: item.url || '#',
+                      target: '_blank',
+                      className: 'text-blue-600 hover:underline font-medium'
+                    }, item.title || 'Resource'),
+                    (item.description || item.relevance) && React.createElement('p', { className: 'text-gray-600 mt-1 ml-5' }, 
+                      item.description || item.relevance
+                    )
+                  ];
+                } else if (sectionKey === 'code') {
+                  // Format for code snippets
+                  itemContent = [
+                    React.createElement('span', { className: 'font-semibold' }, 
+                      item.title || item.description || 'Code Sample'
+                    ),
+                    React.createElement('pre', { 
+                      className: 'bg-gray-100 p-3 rounded mt-2 overflow-x-auto text-sm font-mono' 
+                    }, item.code || '')
+                  ];
+                } else if (sectionKey === 'metrics') {
+                  // Format for metrics
+                  itemContent = [
+                    React.createElement('span', { className: 'font-semibold' }, 
+                      item.metric || item.title || ''
+                    )
+                  ];
+                } else {
+                  // Generic format for other object arrays
+                  itemContent = [
+                    React.createElement('span', { className: 'font-semibold' }, 
+                      item.title || item.name || ''
+                    ),
+                    (item.description || item.detail) && React.createElement('p', { className: 'text-gray-600 mt-1 ml-5' }, 
+                      item.description || item.detail || ''
+                    )
+                  ];
+                }
+                
+                return React.createElement('li', { 
+                  key: index, 
+                  className: 'mb-3 pb-2 border-b border-gray-100 last:border-0'
+                }, itemContent);
+              });
+              
+              // Use ul container for list items
+              return React.createElement('ul', { className: 'mt-3 list-none' }, items);
+            } else {
+              // Simple string array
+              const items = content.map((item, index) => 
+                React.createElement('li', { 
+                  key: index,
+                  className: 'mb-2'
+                }, `${index + 1}. ${item}`)
+              );
+              
+              return React.createElement('ul', { className: 'mt-3 list-disc pl-5' }, items);
+            }
+          }
+          
+          // For string content (like description)
+          return React.createElement('div', { className: 'mt-3 text-gray-700' }, content);
+        };
+        
+        // Main container
+        return React.createElement('div', {
+          className: 'mb-4 bg-gray-50 rounded-lg shadow-sm overflow-hidden'
+        }, [
+          // Header
+          React.createElement('div', {
+            className: 'flex items-center justify-between p-4 cursor-pointer bg-gray-100 hover:bg-gray-200',
+            onClick: () => setIsOpen(!isOpen)
+          }, [
+            React.createElement('h3', {
+              className: 'text-lg font-medium flex items-center'
+            }, [
+              React.createElement('span', { className: 'mr-2' }, iconMap[sectionKey] || '📄'),
+              title
+            ]),
+            React.createElement('span', {
+              className: 'text-gray-500 text-xl transition-transform duration-200',
+              style: { transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)' }
+            }, '▼')
+          ]),
+          
+          // Content
+          React.createElement('div', {
+            className: 'transition-all duration-300 overflow-hidden',
+            style: {
+              maxHeight: isOpen ? '2000px' : '0px',
+              opacity: isOpen ? 1 : 0,
+              padding: isOpen ? '1rem' : '0 1rem'
+            }
+          }, renderContent())
+        ]);
+      }
+      // --- END NEW COMPONENT --- 
     </script>
 
     <!-- Fallback script if the main one fails to load -->
