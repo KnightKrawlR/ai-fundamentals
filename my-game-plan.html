@@ -633,8 +633,6 @@
               setError(null);
               setGamePlanResult(null); // Clear previous plan
               setClarificationQuestions([]); // Clear previous questions
-              const currentSessionId = sessionId || uuidv4(); // Use existing or create new session ID
-              setSessionId(currentSessionId); // Store session ID
               
               // Add user request to conversation history
               setConversation([{ role: 'user', content: requestDesc, type: 'message' }]); 
@@ -652,11 +650,16 @@
                   projectType: selectedProjectType,
                   projectDescription: description || '',
                   // Conversation context
-                  sessionId: currentSessionId,
+                  sessionId: sessionId,
                   messageType: 'initial_request' 
                 });
                 
                 console.log("Firebase function result:", result);
+                
+                // Store the returned sessionId in state
+                if (result?.data?.sessionId) {
+                    setSessionId(result.data.sessionId);
+                }
                 
                 if (result.data.type === 'plan_generated') {
                   setGamePlanResult(result.data.plan);
@@ -732,6 +735,11 @@
                 
                 console.log("Firebase function result (clarification):", result);
                 
+                // Store the returned sessionId in state (should be the same, but good practice)
+                if (result?.data?.sessionId) {
+                    setSessionId(result.data.sessionId);
+                }
+                
                 if (result.data.type === 'plan_generated') {
                   setGamePlanResult(result.data.plan);
                   setConversation(prev => [...prev, { role: 'ai', content: 'Thank you! Here is your updated game plan:', type: 'message' }]);
@@ -769,6 +777,11 @@
                 });
                 
                 console.log("Firebase function result (follow-up):", result);
+                
+                // Store the returned sessionId in state (should be the same)
+                if (result?.data?.sessionId) {
+                    setSessionId(result.data.sessionId);
+                }
                 
                 if (result.data.type === 'follow_up_answer') {
                   setConversation(prev => [...prev, { role: 'ai', content: result.data.answer, type: 'message' }]);
