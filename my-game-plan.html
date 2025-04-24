@@ -523,8 +523,25 @@
             const [description, setDescription] = React.useState('');
             const [isLoading, setIsLoading] = React.useState(false);
             const [error, setError] = React.useState(null);
-            // Add state for the game plan result
             const [gamePlanResult, setGamePlanResult] = React.useState(null);
+            
+            // --- NEW State for Conversation ---
+            const [sessionId, setSessionId] = React.useState(null);
+            const [conversation, setConversation] = React.useState([]); // Array of { role: 'user'/'ai'/'system', content: string, type: 'message'/'clarification_request' }
+            const [clarificationQuestions, setClarificationQuestions] = React.useState([]);
+            const [userInput, setUserInput] = React.useState(''); // For clarification/follow-up input
+            // --- End NEW State ---
+            
+            // --- NEW: Ref for scrolling conversation ---
+            const messagesEndRef = React.useRef(null);
+            const scrollToBottom = () => {
+                messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+            };
+            
+            React.useEffect(() => {
+                // Scroll after state updates and DOM has potentially re-rendered
+                setTimeout(scrollToBottom, 100); // Short delay helps ensure DOM update
+            }, [conversation]); // Dependency array includes conversation
             
             // State for collapsible sections (true = open)
             const [sectionsOpen, setSectionsOpen] = React.useState({
@@ -606,43 +623,63 @@
               setSelectedProjectType('');
             }, [selectedChallenge]);
             
-            // Handle form submission
+            // Handle form submission (Initial Request)
             const handleSubmit = async (e) => {
               if (e) e.preventDefault();
-              console.log("Submitting form with values:", { 
-                topic: selectedTopic, 
-                challenge: selectedChallenge, 
-                projectType: selectedProjectType 
-              });
+              const requestDesc = `Generate a game plan for a ${selectedProjectType} about ${selectedTopic} focusing on ${selectedChallenge}.${description ? ` Details: ${description}` : ''}`;
+              console.log("Submitting Initial Request:", requestDesc);
               
               setIsLoading(true);
               setError(null);
-              setGamePlanResult(null); // Clear any previous results
+              setGamePlanResult(null); // Clear previous plan
+              setClarificationQuestions([]); // Clear previous questions
+              const currentSessionId = sessionId || uuidv4(); // Use existing or create new session ID
+              setSessionId(currentSessionId); // Store session ID
+              
+              // Add user request to conversation history
+              setConversation([{ role: 'user', content: requestDesc, type: 'message' }]); 
               
               try {
                 if (!firebase.auth().currentUser) {
                   throw new Error("User is not authenticated");
                 }
                 
-                // Call the Firebase function
                 const generateGamePlan = firebase.functions().httpsCallable('generateGamePlan');
                 const result = await generateGamePlan({
+                  // Initial request data
                   topic: selectedTopic,
                   challenge: selectedChallenge,
                   projectType: selectedProjectType,
-                  projectDescription: description || ''
+                  projectDescription: description || '',
+                  // Conversation context
+                  sessionId: currentSessionId,
+                  messageType: 'initial_request' 
                 });
                 
                 console.log("Firebase function result:", result);
                 
-                if (result.data) {
-                  // Store the result in state instead of showing an alert
-                  setGamePlanResult(result.data);
-                  console.log("Game plan data:", result.data);
+                if (result.data.type === 'plan_generated') {
+                  setGamePlanResult(result.data.plan);
+                   setConversation(prev => [...prev, { role: 'ai', content: 'Here is your generated game plan:', type: 'message' }]);
+                  console.log("Game plan generated data:", result.data.plan);
+                } else if (result.data.type === 'clarification_needed') {
+                  setClarificationQuestions(result.data.questions || []);
+                  setConversation(prev => [...prev, { 
+                      role: 'ai', 
+                      content: `Okay, before I generate the plan, I need a bit more information. Please answer the following question(s):\n${(result.data.questions || []).map(q => `- ${q}`).join('\n')}`, 
+                      type: 'clarification_request' 
+                  }]);
+                  console.log("Clarification needed:", result.data.questions);
+                } else {
+                   // Handle unexpected response types
+                   throw new Error(result.data.error || `Unexpected response type: ${result.data.type}`);
                 }
+                
               } catch (err) {
                 console.error("Error generating game plan:", err);
-                setError(err.message || "Failed to generate game plan");
+                const errorMessage = err.message || "Failed to generate game plan. Please check the logs.";
+                setError(errorMessage);
+                 setConversation(prev => [...prev, { role: 'system', content: `Error: ${errorMessage}`, type: 'error' }]);
               } finally {
                 setIsLoading(false);
               }
@@ -672,12 +709,93 @@
               ]);
             };
             
+            // --- NEW Handler Functions ---
+            
+            const handleClarificationResponse = async () => {
+              if (!userInput.trim() || !sessionId || clarificationQuestions.length === 0) return;
+              
+              const responseText = userInput;
+              console.log("Sending Clarification Response:", responseText);
+              
+              setIsLoading(true);
+              setUserInput(''); // Clear input
+              setClarificationQuestions([]); // Clear questions
+              setConversation(prev => [...prev, { role: 'user', content: responseText, type: 'clarification_response' }]);
+              
+              try {
+                const generateGamePlan = firebase.functions().httpsCallable('generateGamePlan');
+                const result = await generateGamePlan({
+                  sessionId: sessionId,
+                  messageType: 'clarification_response',
+                  userResponse: responseText
+                });
+                
+                console.log("Firebase function result (clarification):", result);
+                
+                if (result.data.type === 'plan_generated') {
+                  setGamePlanResult(result.data.plan);
+                  setConversation(prev => [...prev, { role: 'ai', content: 'Thank you! Here is your updated game plan:', type: 'message' }]);
+                  console.log("Game plan generated after clarification:", result.data.plan);
+                } else {
+                  throw new Error(result.data.error || `Unexpected response type after clarification: ${result.data.type}`);
+                }
+                
+              } catch (err) {
+                console.error("Error processing clarification response:", err);
+                const errorMessage = err.message || "Failed to process your response.";
+                setError(errorMessage);
+                setConversation(prev => [...prev, { role: 'system', content: `Error: ${errorMessage}`, type: 'error' }]);
+              } finally {
+                setIsLoading(false);
+              }
+            };
+            
+            const handleFollowUp = async () => {
+              if (!userInput.trim() || !sessionId || !gamePlanResult) return;
+              
+              const questionText = userInput;
+              console.log("Sending Follow-up Question:", questionText);
+              
+              setIsLoading(true);
+              setUserInput(''); // Clear input
+              setConversation(prev => [...prev, { role: 'user', content: questionText, type: 'follow_up_request' }]);
+              
+              try {
+                const generateGamePlan = firebase.functions().httpsCallable('generateGamePlan');
+                const result = await generateGamePlan({
+                  sessionId: sessionId,
+                  messageType: 'follow_up',
+                  userResponse: questionText // The user's input is the follow-up question
+                });
+                
+                console.log("Firebase function result (follow-up):", result);
+                
+                if (result.data.type === 'follow_up_answer') {
+                  setConversation(prev => [...prev, { role: 'ai', content: result.data.answer, type: 'message' }]);
+                  console.log("Follow-up answer received:", result.data.answer);
+                  // Note: We are just displaying the answer. The UI doesn't auto-update the plan based on it.
+                } else {
+                  throw new Error(result.data.error || `Unexpected response type after follow-up: ${result.data.type}`);
+                }
+                
+              } catch (err) {
+                console.error("Error processing follow-up question:", err);
+                const errorMessage = err.message || "Failed to process your follow-up question.";
+                setError(errorMessage);
+                 setConversation(prev => [...prev, { role: 'system', content: `Error: ${errorMessage}`, type: 'error' }]);
+              } finally {
+                setIsLoading(false);
+              }
+            };
+            
+            // --- End NEW Handler Functions ---
+            
             // Render the component
             return React.createElement('div', {
               className: 'max-w-4xl mx-auto p-5 font-sans'
             }, [
               React.createElement('h2', {
-                className: 'text-3xl font-bold mb-8 text-gray-800' // Updated title style
+                className: 'text-3xl font-bold mb-8 text-gray-800'
               }, "Create Your Implementation Game Plan"),
               
               // Form - more subtle highlight when results are shown
@@ -777,6 +895,89 @@
                   : 'Generate Game Plan'
                 )
               ]),
+              
+              // --- NEW: Conversation Area ---
+              (conversation.length > 0 || clarificationQuestions.length > 0) && React.createElement('div', {
+                className: 'mt-10 mb-8 border border-gray-300 rounded-lg shadow-inner overflow-hidden'
+              }, [
+                // Conversation Header
+                React.createElement('div', {
+                  className: 'p-3 bg-gray-100 border-b border-gray-300'
+                }, 
+                  React.createElement('h3', { className: 'text-lg font-semibold text-gray-700' }, 'Conversation')
+                ),
+                
+                // Message List Area
+                React.createElement('div', {
+                  className: 'p-4 space-y-4 max-h-96 overflow-y-auto bg-white',
+                  style: { scrollBehavior: 'smooth' },
+                  id: 'conversation-messages' // Add ID for potential direct manipulation if needed
+                }, [
+                  conversation.map((msg, index) => 
+                    React.createElement('div', { 
+                      key: index, 
+                      className: `flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}` 
+                    }, [
+                      React.createElement('div', {
+                        className: `p-3 rounded-lg max-w-[80%] whitespace-pre-wrap ${ 
+                          msg.role === 'user' ? 'bg-blue-500 text-white' : 
+                          msg.role === 'ai' ? 'bg-gray-200 text-gray-800' : 
+                          'bg-red-100 text-red-700 italic' // System/Error messages
+                        }`
+                      }, msg.content)
+                    ])
+                  ),
+                  // Improved Loading indicator
+                  isLoading && React.createElement('div', { className: 'flex justify-start' }, [
+                    React.createElement('div', {
+                      className: 'p-3 rounded-lg bg-gray-200 text-gray-600 italic flex items-center'
+                    }, [
+                       // Simple pulsing dots animation
+                       React.createElement('span', { className: 'animate-pulse inline-block w-2 h-2 bg-gray-500 rounded-full mr-1' }),
+                       React.createElement('span', { className: 'animate-pulse delay-150 inline-block w-2 h-2 bg-gray-500 rounded-full mr-1' }),
+                       React.createElement('span', { className: 'animate-pulse delay-300 inline-block w-2 h-2 bg-gray-500 rounded-full mr-2' }),
+                       'AI is thinking...'
+                    ])
+                  ]),
+                  // --- NEW: Add empty div for scrolling target ---
+                  React.createElement('div', { ref: messagesEndRef })
+                  // --- End NEW ---
+                ]),
+                
+                // Input Area (for clarification/follow-up)
+                (clarificationQuestions.length > 0 || gamePlanResult) && !isLoading && React.createElement('div', {
+                  className: 'p-3 bg-gray-50 border-t border-gray-300 flex items-center space-x-2'
+                }, [
+                  React.createElement('input', {
+                    type: 'text',
+                    value: userInput,
+                    onChange: (e) => setUserInput(e.target.value),
+                    placeholder: clarificationQuestions.length > 0 ? 'Type your answer here...' : 'Ask a follow-up question...',
+                    className: 'flex-grow p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500',
+                    onKeyPress: (e) => {
+                        if (e.key === 'Enter' && userInput.trim()) {
+                            if (clarificationQuestions.length > 0) {
+                                handleClarificationResponse();
+                            } else if (gamePlanResult) {
+                                handleFollowUp();
+                            }
+                        }
+                    }
+                  }),
+                  React.createElement('button', {
+                    onClick: () => {
+                       if (clarificationQuestions.length > 0) {
+                         handleClarificationResponse();
+                       } else if (gamePlanResult) {
+                         handleFollowUp();
+                       }
+                    },
+                    disabled: !userInput.trim() || isLoading,
+                    className: 'bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 disabled:opacity-50'
+                  }, clarificationQuestions.length > 0 ? 'Send Answer' : 'Ask Follow-up')
+                ])
+              ]),
+              // --- End NEW Conversation Area ---
               
               // Error display - More prominent
               error && React.createElement('div', {

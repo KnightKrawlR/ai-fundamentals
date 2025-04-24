@@ -13,6 +13,7 @@ const cors = require('cors')({
   credentials: true
 });
 const { VertexAI } = require('@google-cloud/vertexai');
+const { v4: uuidv4 } = require('uuid'); // Import UUID library
 
 // Import Vercel AI SDK components
 const { xai } = require("@ai-sdk/xai");
@@ -23,6 +24,16 @@ admin.initializeApp();
 
 // Reference to Firestore database
 const db = admin.firestore();
+
+// Firestore collection names
+const SESSIONS_COLLECTION = 'gamePlanSessions';
+const HISTORY_COLLECTION = 'history';
+const USERS_COLLECTION = 'users';
+const PLANS_COLLECTION = 'gamePlans'; // Keep existing collection for saved final plans
+const CREDIT_TRANSACTIONS_COLLECTION = 'creditTransactions';
+const CREDIT_PURCHASES_COLLECTION = 'creditPurchases';
+const API_USAGE_COLLECTION = 'apiUsage';
+const CHATS_COLLECTION = 'chats'; // For general chat history?
 
 // Configuration constants
 const GROK_API_URL = process.env.GROK_API_URL || 'https://api.x.ai/v1';
@@ -1661,466 +1672,350 @@ exports.testVertexAI = functions.https.onRequest((req, res) => {
   });
 });
 
+// --- Game Plan Generation Helpers ---
+
+/**
+ * Gets conversation history for a game plan session.
+ */
+async function getGamePlanConversationHistory(sessionId) {
+  if (!sessionId) return [];
+  try {
+    const historySnapshot = await db.collection(SESSIONS_COLLECTION).doc(sessionId)
+      .collection(HISTORY_COLLECTION)
+      .orderBy('timestamp', 'asc')
+      .limit(20) // Limit history length
+      .get();
+    return historySnapshot.docs.map(doc => doc.data().turnData || {}); // Extract turnData
+  } catch (error) {
+    console.error(`Error fetching history for session ${sessionId}:`, error);
+    return [];
+  }
+}
+
+/**
+ * Stores a turn in the game plan conversation history.
+ */
+async function storeGamePlanConversationHistory(sessionId, userId, turnData) {
+  if (!sessionId || !userId || !turnData) return;
+  try {
+    await db.collection(SESSIONS_COLLECTION).doc(sessionId)
+      .collection(HISTORY_COLLECTION)
+      .add({ timestamp: admin.firestore.FieldValue.serverTimestamp(), turnData });
+
+    await db.collection(SESSIONS_COLLECTION).doc(sessionId).set({ 
+      lastUpdated: admin.firestore.FieldValue.serverTimestamp(),
+      userId: userId
+    }, { merge: true });
+    console.log(`Stored history turn type '${turnData.type}' for session ${sessionId}`);
+  } catch (error) {
+    console.error(`Error storing history for session ${sessionId}:`, error);
+  }
+}
+
+/**
+ * Checks if the initial game plan request needs clarification.
+ */
+function gamePlanNeedsClarification(topic, challenge, projectType, projectDescription) {
+    const basicChallenges = ['Understanding AI Concepts', 'AI Fundamentals'];
+    if (!basicChallenges.includes(challenge) && (!projectDescription || projectDescription.trim().length < 30)) {
+        console.log("Clarification needed: Description too short/missing for non-basic challenge.");
+        return true;
+    }
+    const vaguePhrases = ['help me', 'i need', 'not sure', 'don\'t know', 'general idea', 'how to start', 'how do i'];
+    if (projectDescription && vaguePhrases.some(phrase => projectDescription.toLowerCase().includes(phrase))) {
+        console.log("Clarification needed: Vague phrase detected.");
+        return true;
+    }
+    console.log("Clarification not needed based on initial checks.");
+    return false;
+}
+
+/**
+ * Generates clarifying questions for the game plan request.
+ */
+function generateGamePlanClarifyingQuestions(topic, challenge, projectType, projectDescription) {
+    const questions = [];
+    if (!projectDescription || projectDescription.trim().length < 30) {
+        questions.push('Could you describe your project goal and expected outcome in more detail?');
+    }
+    if (challenge === 'Content Calendar Automation' && !projectDescription?.toLowerCase().includes('platform')) {
+        questions.push('Which specific social media platforms do you want to automate for?');
+    }
+    if (projectType === 'Enterprise Solution' && !projectDescription?.toLowerCase().includes('team')) {
+        questions.push('Roughly how many people will be using or benefiting from this solution?');
+    }
+    if (projectType === 'Personal Project' && !projectDescription?.toLowerCase().includes('budget')) {
+        questions.push('Are there any budget limitations for tools or services we should keep in mind?');
+    }
+    if (topic === 'Introduction to AI' && !projectDescription?.toLowerCase().includes('experience')) {
+         questions.push('What\'s your current comfort level with AI tools and technical concepts (e.g., beginner, some experience, comfortable)?');
+    }
+    if (questions.length < 2) {
+        questions.push('What is the single most important problem you are trying to solve with this plan?');
+    }
+    console.log("Generated clarification questions:", questions);
+    return questions.slice(0, 3); // Max 3 questions
+}
+
+/**
+ * Creates the system prompt for the AI model based on interaction type.
+ */
+function createGamePlanSystemPrompt(messageType) {
+    if (messageType === 'follow_up') {
+        return `You are an AI assistant helping a user refine an existing game plan. Use the provided conversation context and the user's latest question.\nProvide a concise, helpful answer addressing their question directly.\nIf suggesting changes to the plan, clearly state which section(s) should be modified.\nRespond ONLY with a valid JSON object containing an "answer" field: {"answer": "Your helpful response here..."}`;
+    }
+    return `You are an expert AI implementation consultant. Generate a comprehensive, actionable game plan based on the user's request and the conversation history provided.\nPrioritize ready-made, all-in-one solutions or low-code tools over custom development where appropriate for the project type.\nEnsure the Mermaid diagram visualizes the final system/tool topology, not implementation steps.\nRespond ONLY with a valid JSON object containing the full game plan structure specified in the user prompt. Do not add any text before or after the JSON object.`;
+}
+
+/**
+ * Creates the user prompt for the AI model, including context and instructions.
+ */
+function createGamePlanUserPrompt(messageType, initialRequestData, conversationHistory, userResponse) {
+    let promptContext = "Conversation Context:\n";
+    let lastPlanSummary = "No previous plan generated in this session.";
+
+    conversationHistory.forEach(turn => {
+        try {
+            if (turn?.type === 'initial_request' && turn?.request) {
+                promptContext += `--- Initial Request ---\nTopic: ${turn.request.topic || 'N/A'}, Challenge: ${turn.request.challenge || 'N/A'}, Type: ${turn.request.projectType || 'N/A'}\nDescription: ${turn.request.projectDescription || 'N/A'}\n---\n`;
+            } else if (turn?.type === 'clarification_request' && turn?.questions) {
+                promptContext += `AI Question(s): ${turn.questions.join(';\n')}\n`;
+            } else if (turn?.type === 'clarification_response' && turn?.response) {
+                promptContext += `User Answer: ${turn.response}\n`;
+            } else if (turn?.type === 'follow_up_request' && turn?.question) {
+                promptContext += `User Follow-up: ${turn.question}\n`;
+            } else if (turn?.type === 'plan_generated' && turn?.plan?.project_summary) {
+                lastPlanSummary = turn.plan.project_summary;
+                promptContext += `--- Previously Generated Plan Summary ---\n${lastPlanSummary}\n---\n`;
+            } else if (turn?.type === 'follow_up_response' && turn?.answer) {
+                 promptContext += `AI Answer to Follow-up: ${turn.answer}\n`;
+            }
+        } catch (contextError) {
+            console.error("Error processing history turn for prompt:", contextError, "Turn:", turn);
+        }
+    });
+
+    let currentTaskDesc = "";
+    let jsonStructureNote = `Respond ONLY with a valid JSON object matching this structure (do not add text before or after):\n{\n  "project_summary": "...",
+  "key_milestones": [{"milestone": "...", "description": "..."}],\n  "suggested_steps": [{"step": "...", "details": "..."}],\n  "recommended_technologies": [{"name": "...", "reasoning": "...", "type": "..."}],\n  "learning_resources": [{"title": "...", "url": "...", "type": "...", "relevance": "..."}],\n  "potential_roadblocks": [{"roadblock": "...", "mitigation": "..."}],\n  "success_metrics": [{"metric": "...", "measurement": "..."}],\n  "mermaid_diagram": "Mermaid code...",
+  "next_steps_prompt": "..."\n}`;
+
+    if (messageType === 'initial_request') {
+        currentTaskDesc = "Generate the full implementation game plan based on the Initial Request provided in the context.";
+    } else if (messageType === 'clarification_response') {
+        currentTaskDesc = `The user has responded to the clarification question(s). Use their answer ("${userResponse}") and the full context to generate the complete implementation game plan.`;
+    } else if (messageType === 'follow_up') {
+        currentTaskDesc = `Address the user's latest follow-up question ("${userResponse}") based on the conversation history and the previously generated plan (summary provided in context). Provide a concise answer.`;
+        jsonStructureNote = `Respond ONLY with a valid JSON object containing an "answer" field: {\n "answer": "Your concise and helpful answer here..." \n}`;
+    }
+
+    // Escaped backticks for Mermaid instructions within the template literal
+    const mermaidInstructions = `MERMAID DIAGRAM INSTRUCTIONS (Include only if generating the full plan):\nCreate a **topology diagram** visualizing the high-level **tool and process landscape**... (Use \`graph TD\` or \`graph LR\`). Represent functions if tools aren't selected (e.g., \`Email_Marketing[Function: Email Marketing<br>(e.g., Mailchimp)]\`). Keep it simple (5-10 elements). DO NOT visualize implementation steps.`;
+
+    const finalMermaidInstructions = (messageType === 'initial_request' || messageType === 'clarification_response') ? mermaidInstructions : "";
+
+    return `${promptContext}\n--- Current Task ---\n${currentTaskDesc}\n\n${finalMermaidInstructions}\n\n--- Required Output Format ---\n${jsonStructureNote}`;
+}
+
+// --- End Game Plan Generation Helpers ---
+
 // Game Plan generation function using Grok API
 exports.generateGamePlan = functions.https.onCall(async (data, context) => {
-  console.log('generateGamePlan called with:', data);
+  console.log('generateGamePlan v2 called with:', data);
   
   if (!context.auth) {
     throw new functions.https.HttpsError('unauthenticated', 'Authentication required');
   }
   
   const userId = context.auth.uid;
-  const db = admin.firestore();
   
+  // Extract data, including new fields for conversation handling
+  const { 
+    topic, 
+    challenge, 
+    projectType, 
+    projectDescription, 
+    sessionId: existingSessionId, // ID of the ongoing conversation (if any)
+    messageType = 'initial_request', // 'initial_request', 'clarification_response', 'follow_up'
+    userResponse // User's answer to clarification or follow-up question
+  } = data;
+  
+  // Generate or use existing session ID
+  const sessionId = existingSessionId || uuidv4();
+  console.log(`Using Session ID: ${sessionId}`);
+
   try {
-    // Get the user's document from Firestore
+    // --- Credit Check ---
     const userRef = db.collection('users').doc(userId);
     const userDoc = await userRef.get();
-    
-    // If user document doesn't exist, create it with default credits
     if (!userDoc.exists) {
-      console.log(`Creating new user document for ${userId} with default credits`);
-      await userRef.set({
-        credits: DEFAULT_CREDITS,
-        createdAt: admin.firestore.FieldValue.serverTimestamp()
-      });
-      
-      // Re-fetch the user document
-      const newUserDoc = await userRef.get();
-      var userData = newUserDoc.data();
-    } else {
-      var userData = userDoc.data();
+      // Optionally create user doc here or handle as error
+      throw new functions.https.HttpsError('not-found', 'User data not found.');
     }
-    
-    // Verify user has enough credits
-    if (userData.credits < 1) {
+    const userData = userDoc.data();
+    if ((userData.credits || 0) < 1) {
       throw new functions.https.HttpsError('resource-exhausted', 'Not enough credits');
     }
     
-    // Initialize system message variable upfront to avoid undefined errors
-    let systemMessage = "You are an expert AI implementation consultant. Your goal is to craft actionable implementation game plans for technology projects that help users understand how to implement solutions quickly and effectively. Focus on recommending existing tools and platforms that minimize development work. Prioritize ready-made, all-in-one solutions over technologies that require extensive custom building. IMPORTANT: You MUST respond with valid JSON only, with no explanatory text before or after. Your entire response should be parseable as JSON. Do not include markdown formatting, preambles, or postscripts.";
+    // --- Initial Request Logic ---
+    if (messageType === 'initial_request') {
+      console.log('Processing initial request...');
+      // Store the initial request
+      await storeConversationHistory(sessionId, userId, { type: 'initial_request', request: data });
+
+      // Check if clarification is needed
+      if (needsClarification(topic, challenge, projectType, projectDescription)) {
+        const questions = generateClarifyingQuestions(topic, challenge, projectType, projectDescription);
+        // Store the clarification request
+        await storeConversationHistory(sessionId, userId, { type: 'clarification_request', questions: questions });
+        // Return clarification questions to the client
+        return { type: 'clarification_needed', questions: questions, sessionId: sessionId };
+      }
+      // Proceed to generate plan if no clarification needed
+    }
     
-    // Initialize userPrompt variable
+    // --- Build Prompt based on Message Type ---
+    let systemMessage = "You are an expert AI implementation consultant..."; // Keep base system message concise
     let userPrompt;
-    
-    // Check if this is an answer to a previous AI question
-    if (data.aiQuestion && data.aiAnswer) {
-      console.log('Processing answer to AI question:', data.aiQuestion);
-      console.log('User provided answer:', data.aiAnswer);
-      
-      // Special prompt for when AI asked a question and user provided an answer
-      userPrompt = `You previously asked the following clarifying question about revising a game plan:
-"${data.aiQuestion}"
+    const conversationHistory = await getConversationHistory(sessionId);
 
-The user has provided this answer:
-"${data.aiAnswer}"
-
-Based on this answer, please revise the original game plan:
-${data.previousPlan}
-
-Following the original revision request:
-"${data.revisionRequest}"
-
-MERMAID DIAGRAM INSTRUCTIONS:
-Revise the Mermaid **topology diagram** based on the user's answer. Visualize the high-level **tool and process landscape** of the final working setup, giving a "bird's eye view".
-
-- **Focus**: Update relationships between key tools, platforms, data flows, or major process areas based on the answer.
-- **DO NOT**: Visualize the implementation steps. This is about the final system structure.
-- **Diagram Type**: Use \`graph TD\` (top-down) or \`graph LR\` (left-right).
-- **Functions vs. Tools**: If the answer clarifies a tool choice, update the diagram. If not, represent the *function* and optionally list tool examples within the node: \`FunctionName[Function: Description<br>(e.g., ToolX, ToolY)]\`.
-- **Simplicity**: Keep the diagram focused on 5-10 key elements.
-- **Syntax**: Use basic Mermaid syntax.
-
-Your response MUST be a single, valid JSON object with the same structure as the original plan, containing ONLY the following fields:
-{
-  "project_summary": "A concise (1-2 sentence) summary interpreting the user's goal.",
-  "key_milestones": [
-    {"milestone": "High-level milestone 1", "description": "Brief description of what this entails."}, 
-    {"milestone": "High-level milestone 2", "description": "Brief description..."} 
-    // ... (Aim for 3-5 milestones total)
-  ],
-  "suggested_steps": [
-    {"step": "Actionable step 1", "details": "More details about executing this step."}, 
-    {"step": "Actionable step 2", "details": "More details..."} 
-    // ... (Aim for 5-10 detailed steps total, logically ordered)
-  ],
-  "recommended_technologies": [
-    {"name": "Tool/Platform Name 1", "reasoning": "Why this tool is suitable for the project and how it provides an all-in-one solution.", "type": "Core/Supporting/Optional"}, 
-    {"name": "Tool/Platform Name 2", "reasoning": "Why it's suitable and what problem it solves directly...", "type": "Core/Supporting/Optional"} 
-    // ... (Suggest 2-5 relevant tools/platforms total that minimize implementation effort)
-  ],
-  "learning_resources": [
-    {"title": "Resource Title 1", "url": "Valid URL", "type": "Tutorial/Documentation/Course/Example", "relevance": "How this helps with the specific project/steps."}, 
-    {"title": "Resource Title 2", "url": "Valid URL", "type": "Tutorial/Documentation/Course/Example", "relevance": "How it helps..."} 
-    // ... (Suggest 2-5 relevant resources total)
-  ],
-  "potential_roadblocks": [
-    {"roadblock": "Potential issue 1", "mitigation": "Suggestion on how to overcome or prepare for it."}, 
-    {"roadblock": "Potential issue 2", "mitigation": "Suggestion..."} 
-    // ... (Identify 1-3 likely roadblocks total)
-  ],
-  "success_metrics": [
-    {"metric": "Measurable outcome 1", "measurement": "How to track this metric."}, 
-    {"metric": "Measurable outcome 2", "measurement": "How to track..."} 
-    // ... (Define 1-3 key success metrics total)
-  ],
-  "mermaid_diagram": "The revised Mermaid code block visualizing the system topology. Provide only the diagram code itself, without markdown backticks.",
-  "next_steps_prompt": "A brief suggestion encouraging the user on how to start or refine the plan (e.g., 'Focus on Milestone 1 and explore the suggested resources.')."
-}`;
-
-      // Override system message for answering questions
-      systemMessage = "You are an expert AI implementation consultant specializing in revising implementation plans based on user feedback. Incorporate the user's answer to your clarifying question to improve the plan. Focus on recommending existing tools and platforms that minimize development work. Always maintain the exact JSON structure specified.";
-    }
-    // Check if this is a revision request
-    else if (data.previousPlan && data.revisionRequest) {
-      console.log('Processing revision request:', data.revisionRequest);
-      
-      // Determine if the AI needs to ask a clarifying question
-      const needsClarification = shouldAskClarifyingQuestion(data.revisionRequest);
-      
-      if (needsClarification) {
-        // Generate a clarifying question instead of a revised plan
-        const clarifyingPrompt = `You are helping a user refine this AI implementation game plan:
-${data.previousPlan}
-
-The user has requested this revision:
-"${data.revisionRequest}"
-
-Based on this request, you need more information before you can provide the best possible revised plan.
-Formulate ONE specific, clear question that would help you better understand what the user needs.
-Ask only the most important question that would help you refine the plan effectively.
-
-Your response must be a valid JSON object with a single field "ai_question" containing your question.
-Example: {"ai_question": "Could you specify which aspect of cloud deployment you'd like more details on?"}`;
-
-        const clarifyingSystemMsg = "You are an expert AI implementation consultant who knows when to ask clarifying questions. Ask only one specific question that would help you refine the plan. Focus on gathering information about technologies, scope, audience, or technical requirements that would significantly impact your recommendations.";
-        
-        // Call Grok to generate a clarifying question
-        const { text: questionText } = await generateText({
-          model: xai('grok-2-1212'),
-          system: clarifyingSystemMsg,
-          prompt: clarifyingPrompt,
-        });
-        
-        console.log("AI generated clarifying question:", questionText);
-        
-        try {
-          const questionResponse = JSON.parse(questionText);
-          if (questionResponse.ai_question) {
-            // Don't deduct a credit for asking a question
-            return { ai_question: questionResponse.ai_question };
-          } else {
-            // Fall through to normal revision if question format is invalid
-            console.log("Question format invalid, falling back to normal revision");
-          }
-        } catch (err) {
-          console.log("Error parsing question response, falling back to normal revision:", err);
-          // Continue with normal revision process
+    // Construct conversation context for the AI
+    let promptContext = "";
+    conversationHistory.forEach(turn => {
+        if (turn.type === 'initial_request' && turn.request) {
+            promptContext += `Initial Request:\nTopic: ${turn.request.topic}, Challenge: ${turn.request.challenge}, Type: ${turn.request.projectType}, Description: ${turn.request.projectDescription}\n\n`;
+        } else if (turn.type === 'clarification_request' && turn.questions) {
+            promptContext += `AI Question: ${turn.questions.join(' ')}\n\n`;
+        } else if (turn.type === 'clarification_response' && turn.response) {
+            promptContext += `User Response: ${turn.response}\n\n`;
+        } else if (turn.type === 'follow_up_request' && turn.question) {
+             promptContext += `User Follow-up: ${turn.question}\n\n`;
+        } else if (turn.type === 'plan_generated' && turn.plan && turn.plan.project_summary) {
+            // Include summary of last generated plan for context if needed
+            // promptContext += `Previous Plan Summary: ${turn.plan.project_summary}\n\n`; 
         }
-      }
-      
-      // Original revision prompt
-      userPrompt = `Revise the following AI implementation game plan based on the user's feedback.
-Original Plan: ${data.previousPlan}
-
-User's Revision Request: "${data.revisionRequest}"
-
-Generate a revised version of the plan that addresses the user's feedback while maintaining the comprehensive structure.
-
-Project Details:
-- Topic: ${data.topic || 'Not specified'}
-- Challenge: ${data.challenge || 'Not specified'}
-- Project Type: ${data.projectType || 'Not specified'}
-- Description: "${data.projectDescription || 'A project in the selected category'}"
-
-IMPORTANT GUIDANCE ON TECHNOLOGY RECOMMENDATIONS:
-For technology recommendations, prioritize ready-made, all-in-one solutions that minimize implementation effort based on the project type:
-
-- For Personal Projects: Recommend user-friendly, affordable tools with minimal setup that an individual can use without extensive technical knowledge. Focus on simple, turnkey solutions that work out of the box.
-
-- For Small Business: Recommend robust tools with good integrations, automation capabilities, and reasonable pricing. Balance ease of use with necessary business features.
-
-- For Enterprise Solutions: Recommend scalable, enterprise-grade platforms with comprehensive features, strong security, and integration capabilities.
-
-In all cases, prioritize recommending existing tools and platforms that solve most of the problem directly, rather than suggesting technologies the user would need to build solutions with from scratch.
-
-MERMAID DIAGRAM INSTRUCTIONS:
-Revise the Mermaid **topology diagram** based on user feedback. Visualize the high-level **tool and process landscape** of the final working setup, giving a "bird's eye view".
-
-- **Focus**: Update relationships between key tools, platforms, data flows, or major process areas based on the feedback.
-- **DO NOT**: Visualize the implementation steps. This is about the final system structure.
-- **Diagram Type**: Use \`graph TD\` (top-down) or \`graph LR\` (left-right).
-- **Functions vs. Tools**: If feedback clarifies a tool choice, update the diagram. If not, represent the *function* and optionally list tool examples within the node: \`FunctionName[Function: Description<br>(e.g., ToolX, ToolY)]\`.
-- **Simplicity**: Keep the diagram focused on 5-10 key elements.
-- **Syntax**: Use basic Mermaid syntax.
-
-Your response MUST be a single, valid JSON object with the same structure as the original plan, containing ONLY the following fields:
-{
-  "project_summary": "A concise (1-2 sentence) summary interpreting the user's goal.",
-  "key_milestones": [
-    {"milestone": "High-level milestone 1", "description": "Brief description of what this entails."}, 
-    {"milestone": "High-level milestone 2", "description": "Brief description..."} 
-    // ... (Aim for 3-5 milestones total)
-  ],
-  "suggested_steps": [
-    {"step": "Actionable step 1", "details": "More details about executing this step."}, 
-    {"step": "Actionable step 2", "details": "More details..."} 
-    // ... (Aim for 5-10 detailed steps total, logically ordered)
-  ],
-  "recommended_technologies": [
-    {"name": "Tool/Platform Name 1", "reasoning": "Why this tool is suitable for the project and how it provides an all-in-one solution.", "type": "Core/Supporting/Optional"}, 
-    {"name": "Tool/Platform Name 2", "reasoning": "Why it's suitable and what problem it solves directly...", "type": "Core/Supporting/Optional"} 
-    // ... (Suggest 2-5 relevant tools/platforms total that minimize implementation effort)
-  ],
-  "learning_resources": [
-    {"title": "Resource Title 1", "url": "Valid URL", "type": "Tutorial/Documentation/Course/Example", "relevance": "How this helps with the specific project/steps."}, 
-    {"title": "Resource Title 2", "url": "Valid URL", "type": "Tutorial/Documentation/Course/Example", "relevance": "How it helps..."} 
-    // ... (Suggest 2-5 relevant resources total)
-  ],
-  "potential_roadblocks": [
-    {"roadblock": "Potential issue 1", "mitigation": "Suggestion on how to overcome or prepare for it."}, 
-    {"roadblock": "Potential issue 2", "mitigation": "Suggestion..."} 
-    // ... (Identify 1-3 likely roadblocks total)
-  ],
-  "success_metrics": [
-    {"metric": "Measurable outcome 1", "measurement": "How to track this metric."}, 
-    {"metric": "Measurable outcome 2", "measurement": "How to track..."} 
-    // ... (Define 1-3 key success metrics total)
-  ],
-  "mermaid_diagram": "The revised Mermaid code block visualizing the system topology. Provide only the diagram code itself, without markdown backticks.",
-  "next_steps_prompt": "A brief suggestion encouraging the user on how to start or refine the plan (e.g., 'Focus on Milestone 1 and explore the suggested resources.')."
-}`;
-    } else {
-      // Original prompt for a new plan generation (existing code)
-      userPrompt = `Analyze the following project request and generate a comprehensive, actionable implementation game plan.
-Project Details:
-- Topic: ${data.topic || 'Not specified'}
-- Challenge: ${data.challenge || 'Not specified'}
-- Project Type: ${data.projectType || 'Not specified'}
-- Description: "${data.projectDescription || 'A project in the selected category'}"
-
-Assume standard best practices and make reasonable assumptions where details are missing to provide a valuable starting point.
-
-IMPORTANT GUIDANCE ON TECHNOLOGY RECOMMENDATIONS:
-For technology recommendations, prioritize ready-made, all-in-one solutions that minimize implementation effort based on the project type:
-
-- For Personal Projects: Recommend user-friendly, affordable tools with minimal setup that an individual can use without extensive technical knowledge. Focus on simple, turnkey solutions that work out of the box.
-
-- For Small Business: Recommend robust tools with good integrations, automation capabilities, and reasonable pricing. Balance ease of use with necessary business features.
-
-- For Enterprise Solutions: Recommend scalable, enterprise-grade platforms with comprehensive features, strong security, and integration capabilities.
-
-In all cases, prioritize recommending existing tools and platforms that solve most of the problem directly, rather than suggesting technologies the user would need to build solutions with from scratch.
-
-MERMAID DIAGRAM INSTRUCTIONS:
-Create a **topology diagram** visualizing the high-level **tool and process landscape** of the final working setup. This should give a "bird's eye view" of how components interact.
-
-- **Focus**: Show the relationships between key tools, platforms, data flows, or major process areas.
-- **DO NOT**: Visualize the implementation steps. This is about the final system structure.
-- **Diagram Type**: Use \`graph TD\` (top-down) or \`graph LR\` (left-right) for system architecture/topology.
-- **Functions vs. Tools**: If a specific tool isn't selected for a function (e.g., email marketing), represent the *function* in a node. Optionally, list tool examples within the node like: \`Email_Marketing[Function: Email Marketing<br>(e.g., Mailchimp, Brevo)]\`.
-- **Simplicity**: Keep the diagram focused on 5-10 key elements with clear labels and relationships.
-- **Syntax**: Use basic Mermaid syntax. Avoid overly complex features.
-
-Your response MUST be a single, valid JSON object containing ONLY the following fields:
-{
-  "project_summary": "A concise (1-2 sentence) summary interpreting the user's goal.",
-  "key_milestones": [
-    {"milestone": "High-level milestone 1", "description": "Brief description of what this entails."}, 
-    {"milestone": "High-level milestone 2", "description": "Brief description..."} 
-    // ... (Aim for 3-5 milestones total)
-  ],
-  "suggested_steps": [
-    {"step": "Actionable step 1", "details": "More details about executing this step."}, 
-    {"step": "Actionable step 2", "details": "More details..."} 
-    // ... (Aim for 5-10 detailed steps total, logically ordered)
-  ],
-  "recommended_technologies": [
-    {"name": "Tool/Platform Name 1", "reasoning": "Why this tool is suitable for the project and how it provides an all-in-one solution.", "type": "Core/Supporting/Optional"}, 
-    {"name": "Tool/Platform Name 2", "reasoning": "Why it's suitable and what problem it solves directly...", "type": "Core/Supporting/Optional"} 
-    // ... (Suggest 2-5 relevant tools/platforms total that minimize implementation effort)
-  ],
-  "learning_resources": [
-    {"title": "Resource Title 1", "url": "Valid URL", "type": "Tutorial/Documentation/Course/Example", "relevance": "How this helps with the specific project/steps."}, 
-    {"title": "Resource Title 2", "url": "Valid URL", "type": "Tutorial/Documentation/Course/Example", "relevance": "How it helps..."} 
-    // ... (Suggest 2-5 relevant resources total)
-  ],
-  "potential_roadblocks": [
-    {"roadblock": "Potential issue 1", "mitigation": "Suggestion on how to overcome or prepare for it."}, 
-    {"roadblock": "Potential issue 2", "mitigation": "Suggestion..."} 
-    // ... (Identify 1-3 likely roadblocks total)
-  ],
-  "success_metrics": [
-    {"metric": "Measurable outcome 1", "measurement": "How to track this metric."}, 
-    {"metric": "Measurable outcome 2", "measurement": "How to track..."} 
-    // ... (Define 1-3 key success metrics total)
-  ],
-  "mermaid_diagram": "A Mermaid code block visualizing the system topology. Provide only the diagram code itself, without markdown backticks.",
-  "next_steps_prompt": "A brief suggestion encouraging the user on how to start or refine the plan."
-}`;
-    }
-  
-    console.log(`Generating game plan for topic: ${data.topic}, challenge: ${data.challenge}, type: ${data.projectType}`);
-    if (data.revisionRequest) {
-      console.log('This is a revision request with feedback:', data.revisionRequest);
-    }
-    
-    // Call Grok using Vercel AI SDK
-    const { text } = await generateText({
-      model: xai('grok-2-1212'), // Using the correct model
-      system: systemMessage,
-      prompt: userPrompt,
-      // SDK should automatically pick up XAI_API_KEY environment variable
     });
+
+    if (messageType === 'clarification_response') {
+      console.log('Processing clarification response...');
+      await storeConversationHistory(sessionId, userId, { type: 'clarification_response', response: userResponse });
+      promptContext += `User Response: ${userResponse}\n\n`; // Add current response
+      userPrompt = `Based on the previous context and the user's latest response ("${userResponse}"), generate the full implementation game plan.`;
+      
+    } else if (messageType === 'follow_up') {
+      console.log('Processing follow-up request...');
+       await storeConversationHistory(sessionId, userId, { type: 'follow_up_request', question: userResponse });
+       promptContext += `User Follow-up: ${userResponse}\n\n`; // Add current question
+       systemMessage = "You are an AI assistant helping a user refine an existing game plan based on their follow-up question. Use the context provided."
+       userPrompt = `Address the user's follow-up question ("${userResponse}") based on the conversation history and the previously generated plan components. Provide a concise answer or refinement.`;
+       
+    } else { // Initial request (no clarification needed) or other cases
+       console.log('Generating plan directly...');
+       userPrompt = `Generate a full implementation game plan based on the initial request detailed in the context.`;
+    }
+
+    // Combine context and current prompt
+    const fullUserPrompt = `${promptContext}Current Task: ${userPrompt}\n\nMERMAID DIAGRAM INSTRUCTIONS:\nCreate a **topology diagram** visualizing the high-level **tool and process landscape** of the final working setup. This should give a "bird's eye view" of how components interact.\n\n- **Focus**: Show the relationships between key tools, platforms, data flows, or major process areas.\n- **DO NOT**: Visualize the implementation steps. This is about the final system structure.\n- **Diagram Type**: Use \`graph TD\` (top-down) or \`graph LR\` (left-right) for system architecture/topology.\n- **Functions vs. Tools**: If a specific tool isn't selected for a function (e.g., email marketing), represent the *function* in a node. Optionally, list tool examples within the node like: \`Email_Marketing[Function: Email Marketing<br>(e.g., Mailchimp, Brevo)]\`.\n- **Simplicity**: Keep the diagram focused on 5-10 key elements with clear labels and relationships.\n- **Syntax**: Use basic Mermaid syntax. Avoid overly complex features.\n\nRespond ONLY with a valid JSON object matching this structure:\n{\n  "project_summary": "...",\n  "key_milestones": [{"milestone": "...", "description": "..."}],\n  "suggested_steps": [{"step": "...", "details": "..."}],\n  "recommended_technologies": [{"name": "...", "reasoning": "...", "type": "..."}],\n  "learning_resources": [{"title": "...", "url": "...", "type": "...", "relevance": "..."}],\n  "potential_roadblocks": [{"roadblock": "...", "mitigation": "..."}],\n  "success_metrics": [{"metric": "...", "measurement": "..."}],\n  "mermaid_diagram": "Mermaid code...",\n  "next_steps_prompt": "..."\n}`;
     
+    console.log("Sending prompt to AI model...");
+    // --- Call AI Model ---
+    const { text } = await generateText({
+      model: xai('grok-2-1212'), 
+      system: systemMessage,
+      prompt: fullUserPrompt, 
+    });
     console.log("Raw response from AI SDK:", text);
-    
-    // Preprocess the response to extract JSON
-    // First, attempt to find JSON in the response if it's not already JSON
+
+    // --- Process Response ---
     let processedText = text.trim();
-    
-    // If response doesn't start with '{', try to extract JSON portion
-    if (!processedText.startsWith('{')) {
-      console.log("Response doesn't start with JSON, attempting to extract...");
-      
-      // Look for JSON between triple backticks or other common formats
-      const jsonPattern = /```(?:json)?([\s\S]*?)```|(\{[\s\S]*\})/m;
-      const match = processedText.match(jsonPattern);
-      
-      if (match && (match[1] || match[2])) {
-        processedText = (match[1] || match[2]).trim();
-        console.log("Extracted potential JSON:", processedText);
-      } else {
-        console.log("No JSON pattern found in response");
-      }
+    // Extract JSON (handle potential markdown code blocks)
+    if (processedText.startsWith('```json')) {
+        processedText = processedText.substring(7, processedText.length - 3).trim();
+    } else if (processedText.startsWith('```')) {
+         processedText = processedText.substring(3, processedText.length - 3).trim();
     }
-    
-    // Additional cleaning: ensure we have a valid JSON object by checking for opening/closing braces
-    if (!processedText.startsWith('{') || !processedText.endsWith('}')) {
-      console.error("Could not extract valid JSON from response");
-      throw new functions.https.HttpsError(
-        'internal',
-        'The AI provided an invalid response format. Please try again with a more specific request.'
-      );
+     if (!processedText.startsWith('{') || !processedText.endsWith('}')) {
+        const jsonMatch = processedText.match(/(\{[\s\S]*\})/);
+        if (jsonMatch && jsonMatch[1]) {
+            processedText = jsonMatch[1];
+        } else {
+             console.error("Failed to extract JSON from response:", processedText);
+             throw new Error('AI response was not valid JSON.');
+        }
     }
-    
-    // Attempt to parse the JSON response
+
     let parsedResponse;
     try {
       parsedResponse = JSON.parse(processedText);
-      
-      // Basic validation of parsed structure
-      if (!parsedResponse || typeof parsedResponse !== 'object') {
-           throw new Error('Parsed response is not a valid object.');
-      }
-      
-      // Ensure Mermaid diagram exists and is properly formatted
-      if (parsedResponse.mermaid_diagram) {
-        // Clean mermaid_diagram field - remove any lingering markdown code block syntax
-        let diagramText = parsedResponse.mermaid_diagram.trim();
-        
-        // Remove markdown code block tags if present
-        diagramText = diagramText.replace(/^```(?:mermaid)?\s*/, '');
-        diagramText = diagramText.replace(/\s*```$/, '');
-        
-        // Make sure diagrams start with proper syntax indicators
-        if (!diagramText.startsWith('graph ') && 
-            !diagramText.startsWith('sequenceDiagram') && 
-            !diagramText.startsWith('classDiagram') && 
-            !diagramText.startsWith('flowchart ')) {
-          // Default to flowchart if no valid syntax found
-          diagramText = 'graph TD\n' + diagramText;
-        }
-        
-        // Update the diagram in the parsed response
-        parsedResponse.mermaid_diagram = diagramText;
-      } else {
-        // If no diagram provided, add a simple default one
-        parsedResponse.mermaid_diagram = 'graph TD\n  A[Start] --> B[Implementation]\n  B --> C[Completion]';
-        console.log('No mermaid diagram provided, adding simple default');
-      }
-      
+       // Clean mermaid diagram
+       if (parsedResponse.mermaid_diagram) {
+           let diagramText = parsedResponse.mermaid_diagram.trim().replace(/^```(?:mermaid)?\s*/, '').replace(/\s*```$/, '');
+            // Basic validation/defaulting
+            if (!diagramText.startsWith('graph ') && !diagramText.startsWith('flowchart ')) {
+                 diagramText = 'graph TD\\n' + diagramText; // Default to TD graph
+            }
+           parsedResponse.mermaid_diagram = diagramText;
+       } else {
+            parsedResponse.mermaid_diagram = 'graph TD\\nA[No Diagram Provided]';
+       }
+
     } catch (parseError) {
-      console.error('Error parsing AI response JSON:', parseError, "Raw text was:", processedText);
-      throw new functions.https.HttpsError(
-        'internal',
-        'The AI response was not in the expected JSON format. Please try again.' + (parseError.message ? ` (${parseError.message})` : '')
-      );
+      console.error('Error parsing AI response JSON:', parseError, "Processed text was:", processedText);
+      throw new functions.https.HttpsError('internal', 'AI response format error.');
     }
-    
-    // Deduct one credit from the user - only if we're not asking a clarifying question
-    if (!parsedResponse.ai_question) {
-      await db.collection('users').doc(userId).update({
-        credits: admin.firestore.FieldValue.increment(-1)
-      });
+
+    // --- Store Results & Deduct Credits ---
+    if (messageType !== 'follow_up') { // Only deduct credit for initial plan or clarification response
+         await userRef.update({ credits: admin.firestore.FieldValue.increment(-1) });
+         console.log("Credit deducted.");
     }
-    
-    // Also save this game plan to the user's history if it's a new plan (not a revision)
-    if (!data.previousPlan && !data.revisionRequest && !data.aiQuestion) {
-      try {
-        // Generate a title from the project summary or topic/challenge
-        let planTitle = 'Game Plan';
-        if (parsedResponse.project_summary) {
-          const words = parsedResponse.project_summary.split(' ').slice(0, 6).join(' ');
-          planTitle = `${words}${words.endsWith('.') ? '' : '...'}`;
-        } else if (data.topic && data.challenge) {
-          planTitle = `${data.topic}: ${data.challenge}`;
-        } else if (data.topic) {
-          planTitle = data.topic;
-        }
-        
-        // Save to Firestore
-        await db.collection('users').doc(userId).collection('gamePlans').add({
-          title: planTitle,
-          topic: data.topic || '',
-          challenge: data.challenge || '',
-          projectType: data.projectType || '',
-          description: data.projectDescription || '',
-          plan: parsedResponse,
-          revisionHistory: [],
-          createdAt: admin.firestore.FieldValue.serverTimestamp(),
-          updatedAt: admin.firestore.FieldValue.serverTimestamp()
-        });
-        
-        console.log('Automatically saved new game plan to user history');
-      } catch (saveError) {
-        console.error('Error auto-saving game plan:', saveError);
-        // Don't fail the function if auto-save fails
-      }
+   
+    // Store the generated plan/answer
+    await storeConversationHistory(sessionId, userId, { 
+        type: messageType === 'follow_up' ? 'follow_up_response' : 'plan_generated', 
+        [messageType === 'follow_up' ? 'answer' : 'plan']: parsedResponse 
+    });
+
+    // --- Save Final Plan Snapshot (Optional but useful for saved plans list) ---
+    if (messageType !== 'follow_up') { // Save only when a full plan is generated/updated
+        try {
+             let planTitle = data.topic || 'Game Plan'; // Simple title
+             if (parsedResponse.project_summary) {
+                 planTitle = parsedResponse.project_summary.split(' ').slice(0, 6).join(' ') + '...';
+             }
+             await db.collection('users').doc(userId).collection('gamePlans').doc(sessionId).set({ // Use sessionId as doc ID for easy linking
+                 title: planTitle,
+                 topic: data.topic || '',
+                 challenge: data.challenge || '',
+                 projectType: data.projectType || '',
+                 description: data.projectDescription || '',
+                 plan: parsedResponse, // Store the latest plan snapshot
+                 createdAt: admin.firestore.FieldValue.serverTimestamp(), // Or use timestamp from session?
+                 updatedAt: admin.firestore.FieldValue.serverTimestamp()
+             }, { merge: true }); // Use merge to update if exists
+             console.log(`Saved/Updated final plan snapshot with ID: ${sessionId}`);
+         } catch (saveError) {
+             console.error('Error saving final plan snapshot:', saveError);
+         }
     }
-    
-    // Return the full parsed object from the AI
-    return parsedResponse;
-    } catch (error) {
+
+    // --- Return Response ---
+    if (messageType === 'follow_up') {
+         return { type: 'follow_up_answer', answer: parsedResponse, sessionId: sessionId }; // Assuming Grok can provide concise answer in structure
+    } else {
+         return { type: 'plan_generated', plan: parsedResponse, sessionId: sessionId };
+    }
+
+  } catch (error) {
     console.error('Error in generateGamePlan function:', error);
-    throw new functions.https.HttpsError(
-      'internal',
-      error.message || 'An unknown error occurred while generating the game plan.'
-    );
+     // Don't expose internal details unless it's an HttpsError we threw
+     const message = (error instanceof functions.https.HttpsError) ? error.message : 'An error occurred.';
+     const code = (error instanceof functions.https.HttpsError) ? error.code : 'internal';
+     // Rethrow HttpsError or wrap other errors
+     if (error instanceof functions.https.HttpsError) {
+         throw error;
+     } else {
+          throw new functions.https.HttpsError(code, message);
+     }
   }
 });
-
-// Helper function to determine if we should ask a clarifying question
-function shouldAskClarifyingQuestion(revisionRequest) {
-  // Simple heuristic: if the revision request contains a question or seems vague
-  const questionMarks = (revisionRequest.match(/\?/g) || []).length;
-  const vaguePhrases = [
-    'more details', 'tell me more', 'elaborate', 'explain', 'clarify', 
-    'what about', 'how would', 'can you provide', 'more information',
-    'additional', 'not clear', 'confused', 'don\'t understand'
-  ];
-  
-  // Check if the revision request has question marks or contains vague phrases
-  const hasQuestionMarks = questionMarks > 0;
-  const hasVaguePhrases = vaguePhrases.some(phrase => 
-    revisionRequest.toLowerCase().includes(phrase.toLowerCase())
-  );
-  
-  // If the revision is short and contains a question or vague phrase, ask for clarification
-  const isShort = revisionRequest.length < 100;
-  
-  // Randomize a bit so we don't always ask questions for similar requests
-  const randomFactor = Math.random() < 0.7; // 70% chance to ask a question if other conditions met
-  
-  return randomFactor && isShort && (hasQuestionMarks || hasVaguePhrases);
-}
