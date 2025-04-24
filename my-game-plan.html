@@ -565,39 +565,67 @@
             
             // Run Mermaid render when diagram is available
             React.useEffect(() => {
-              // Check if we have the necessary data and mermaid library
-              if (gamePlanResult && gamePlanResult.mermaid_diagram && typeof mermaid !== 'undefined') {
-                console.log("Attempting to render Mermaid diagram:", gamePlanResult.mermaid_diagram);
-                // Find the container specifically
-                const container = document.querySelector('.mermaid-diagram-render.mermaid');
-                if (container) {
-                  // Ensure container innerHTML matches the diagram code before running mermaid
-                  // This helps prevent unnecessary re-renders if the diagram hasn't changed
-                  if (container.innerHTML !== gamePlanResult.mermaid_diagram) {
-                     container.innerHTML = gamePlanResult.mermaid_diagram;
+              const diagramCode = gamePlanResult?.mermaid_diagram;
+              if (diagramCode && typeof mermaid !== 'undefined') {
+                console.log("Attempting to render Mermaid diagram:", diagramCode);
+                
+                // Target the container where the diagram code will be placed
+                // Note: We find the outer container, not the inner one where mermaid runs
+                const containerElement = document.querySelector('.mermaid-diagram-container'); 
+                const renderTarget = containerElement?.querySelector('.mermaid-diagram-render.mermaid');
+                
+                if (renderTarget) {
+                  // Always update the innerHTML first
+                  renderTarget.innerHTML = diagramCode; 
+                  
+                  // Add a data attribute to indicate it needs processing
+                  renderTarget.setAttribute('data-processed', 'false');
+                  
+                  // Use mermaid.render() to generate SVG and handle errors
+                  try {
+                     // Clear any previous error messages within this container
+                     const errorDisplay = containerElement.querySelector('.mermaid-error-display');
+                     if (errorDisplay) errorDisplay.remove();
+                     
+                     // Generate unique ID for rendering
+                     const svgId = `mermaid-svg-${Date.now()}`;
+                     
+                     mermaid.render(svgId, diagramCode, (svgCode, bindFunctions) => {
+                        // On successful render, replace placeholder with SVG
+                        renderTarget.innerHTML = svgCode;
+                        renderTarget.setAttribute('data-processed', 'true');
+                        if (bindFunctions) {
+                            bindFunctions(renderTarget);
+                        }
+                        console.log("Mermaid diagram rendering complete via mermaid.render().");
+                     });
+
+                  } catch (err) {
+                    // Catch errors DURING the mermaid.render call (e.g., syntax errors)
+                    console.error("Error during mermaid.render():", err);
+                    // Display error and the raw code
+                    renderTarget.innerHTML = ''; // Clear potentially broken diagram attempts
+                    const errorDiv = document.createElement('div');
+                    errorDiv.className = 'mermaid-error-display p-3 bg-red-100 border border-red-300 text-red-700 rounded text-sm';
+                    errorDiv.innerHTML = 
+                      `<strong>Diagram Error:</strong> ${err.message}<br><br>` +
+                      `<strong>Raw Diagram Code:</strong><pre class="mt-2 p-2 bg-gray-100 text-xs overflow-auto">${escapeHtml(diagramCode)}</pre>`;
+                    containerElement.appendChild(errorDiv);
                   }
-                  // Delay rendering slightly to ensure DOM update
-                  setTimeout(() => {
-                    try {
-                      // Re-initialize just in case?
-                      mermaid.initialize({
-                        startOnLoad: false,
-                        securityLevel: 'loose',
-                        theme: 'default'
-                      });
-                      mermaid.run({
-                        nodes: [container] // Target specific container
-                      });
-                      console.log("Mermaid diagram rendering complete for container.");
-                    } catch (err) {
-                      console.error("Error rendering Mermaid diagram:", err);
-                      container.innerHTML = `Error rendering diagram: ${err.message}`;
-                    }
-                  }, 150); // Slightly shorter delay might be okay
                 } else {
-                     console.warn("Mermaid diagram container not found in DOM yet.");
+                     console.warn("Mermaid diagram render target not found in DOM yet.");
                 }
               }
+              // Helper function to escape HTML for safe display
+              function escapeHtml(unsafe) {
+                  if (!unsafe) return '';
+                  return unsafe
+                       .replace(/&/g, "&amp;")
+                       .replace(/</g, "&lt;")
+                       .replace(/>/g, "&gt;")
+                       .replace(/"/g, "&quot;")
+                       .replace(/'/g, "&#039;");
+               }
             }, [gamePlanResult?.mermaid_diagram]); // Depend specifically on the diagram string
             
             // Get challenges based on topic
