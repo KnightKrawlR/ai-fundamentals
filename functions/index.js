@@ -1796,7 +1796,7 @@ function createGamePlanUserPrompt(messageType, initialRequestData, conversationH
     });
 
     let currentTaskDesc = "";
-    let jsonStructureNote = `Respond ONLY with a valid JSON object matching this structure (do not add text before or after):\n{\n  \"project_summary\": \"...\",\n  \"key_milestones\": [/* Array of objects */],\n  \"suggested_steps\": [/* Array of objects */],\n  \"recommended_technologies\": [/* Array of objects */],\n  \"learning_resources\": [/* Array of objects */],\n  \"potential_roadblocks\": [/* Array of objects */],\n  \"success_metrics\": [/* Array of objects */],\n  \"mermaid_diagram\": \"Mermaid code...\",\n  \"next_steps_prompt\": \"...\"\n}`;
+    let jsonStructureNote = `Respond ONLY with a valid JSON object matching this structure (do not add text before or after). \n**IMPORTANT**: Ensure ALL fields are populated, including nested fields within arrays (like 'reasoning', 'type', 'url', 'title', 'relevance', 'roadblock', 'measurement'). Do not leave fields null or undefined; provide meaningful content, even if brief.\n{\n  \"project_summary\": \"...\",\n  \"key_milestones\": [/* Array of objects */],\n  \"suggested_steps\": [/* Array of objects */],\n  \"recommended_technologies\": [/* Array of objects */],\n  \"learning_resources\": [/* Array of objects */],\n  \"potential_roadblocks\": [/* Array of objects */],\n  \"success_metrics\": [/* Array of objects */],\n  \"mermaid_diagram\": \"Mermaid code...\",\n  \"next_steps_prompt\": \"...\"\n}`;
 
     if (messageType === 'initial_request') {
         currentTaskDesc = "Generate the full implementation game plan based on the Initial Request provided in the context.";
@@ -1804,7 +1804,7 @@ function createGamePlanUserPrompt(messageType, initialRequestData, conversationH
         currentTaskDesc = `The user has responded to the clarification question(s). Use their answer ("${userResponse}") and the full context to generate the complete implementation game plan.`;
     } else if (messageType === 'follow_up') {
         currentTaskDesc = `Address the user\'s latest follow-up question ("${userResponse}") based on the conversation history and the previously generated plan (summary provided in context). Provide a concise answer.`;
-        // Simplify JSON example for follow-up as well
+        // **IMPORTANT**: The follow-up JSON structure does NOT need the emphasis, as it only returns an 'answer'.
         jsonStructureNote = `Respond ONLY with a valid JSON object containing an \"answer\" field: {\n  \"answer\": \"Your concise and helpful answer here...\"\n}`;
     }
 
