@@ -493,7 +493,7 @@
     </script>
 
     <!-- Load the enhanced game plan JavaScript with cache busting -->
-    <script src="my-game-plan-enhanced.js?v=6"></script>
+    <script src="my-game-plan-enhanced.js?v=7"></script>
 
     <!-- Inline Game Plan Component -->
     <script>
@@ -869,6 +869,62 @@
               return null;
             };
             
+            // Add state for email modal
+            const [showEmailModal, setShowEmailModal] = React.useState(false);
+            const [emailAddress, setEmailAddress] = React.useState('');
+            const [emailSending, setEmailSending] = React.useState(false);
+            const [emailResult, setEmailResult] = React.useState(null);
+            
+            // Initialize email with user's email if available
+            React.useEffect(() => {
+              if (firebase.auth().currentUser?.email) {
+                setEmailAddress(firebase.auth().currentUser.email);
+              }
+            }, []);
+            
+            // Function to handle emailing the game plan
+            const handleEmailGamePlan = async () => {
+              if (!emailAddress || !gamePlanResult) return;
+              
+              setEmailSending(true);
+              setEmailResult(null);
+              
+              try {
+                const emailGamePlan = firebase.functions().httpsCallable('emailGamePlan');
+                const result = await emailGamePlan({
+                  sessionId: sessionId,
+                  email: emailAddress,
+                  gameplan: gamePlanResult
+                });
+                
+                console.log("Email result:", result);
+                
+                if (result.data.success) {
+                  setEmailResult({
+                    success: true,
+                    message: `Game plan sent to ${emailAddress}!`
+                  });
+                  
+                  // Close modal after success with delay
+                  setTimeout(() => {
+                    setShowEmailModal(false);
+                    // Reset result after closing
+                    setTimeout(() => setEmailResult(null), 500);
+                  }, 2000);
+                } else {
+                  throw new Error(result.data.error || "Failed to send email");
+                }
+              } catch (err) {
+                console.error("Error sending email:", err);
+                setEmailResult({
+                  success: false,
+                  message: `Error: ${err.message || "Failed to send email"}`
+                });
+              } finally {
+                setEmailSending(false);
+              }
+            };
+            
             // Render the component
             return React.createElement('div', {
               className: 'max-w-4xl mx-auto p-5 font-sans'
@@ -1077,9 +1133,23 @@
               gamePlanResult && React.createElement('div', {
                 className: 'results-container space-y-8' // Add space between sections
               }, [
-                React.createElement('h2', {
-                  className: 'text-3xl font-bold text-gray-800 border-b pb-3 mb-6'
-                }, 'Your Generated Project Plan'),
+                // Header with email button
+                React.createElement('div', {
+                  className: 'flex justify-between items-center border-b pb-3 mb-6'
+                }, [
+                  React.createElement('h2', {
+                    className: 'text-3xl font-bold text-gray-800'
+                  }, 'Your Generated Project Plan'),
+                  
+                  // Email button
+                  React.createElement('button', {
+                    className: 'flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors',
+                    onClick: () => setShowEmailModal(true)
+                  }, [
+                    React.createElement('i', { className: 'fas fa-envelope' }),
+                    'Email Plan'
+                  ])
+                ]),
                 
                 // Project summary - Styled as a callout
                 React.createElement('div', { className: 'p-5 bg-blue-50 border border-blue-200 rounded-lg mb-8' }, [
@@ -1153,7 +1223,109 @@
                   title: 'Sample Code Snippets', 
                   content: gamePlanResult.code_snippets,
                   isOpenByDefault: true
-                })
+                }),
+              ]),
+              
+              // Email modal component
+              showEmailModal && React.createElement('div', {
+                className: 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50'
+              }, [
+                React.createElement('div', {
+                  className: 'bg-white rounded-lg p-6 max-w-md w-full shadow-xl'
+                }, [
+                  // Modal header
+                  React.createElement('div', {
+                    className: 'flex justify-between items-center mb-4'
+                  }, [
+                    React.createElement('h3', {
+                      className: 'text-xl font-bold text-gray-800'
+                    }, 'Email Your Game Plan'),
+                    React.createElement('button', {
+                      className: 'text-gray-500 hover:text-gray-700',
+                      onClick: () => setShowEmailModal(false)
+                    }, [
+                      React.createElement('i', { className: 'fas fa-times' })
+                    ])
+                  ]),
+                  
+                  // Form
+                  React.createElement('div', {
+                    className: 'space-y-4'
+                  }, [
+                    // Email input
+                    React.createElement('div', {}, [
+                      React.createElement('label', {
+                        htmlFor: 'email',
+                        className: 'block mb-1 font-medium text-gray-700'
+                      }, 'Email Address'),
+                      React.createElement('input', {
+                        type: 'email',
+                        id: 'email',
+                        value: emailAddress,
+                        onChange: (e) => setEmailAddress(e.target.value),
+                        className: 'w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500',
+                        placeholder: 'Enter your email address'
+                      })
+                    ]),
+                    
+                    // Email format options (future enhancement)
+                    React.createElement('div', {}, [
+                      React.createElement('label', {
+                        className: 'block mb-1 font-medium text-gray-700'
+                      }, 'Format Options'),
+                      React.createElement('div', {
+                        className: 'flex gap-4'
+                      }, [
+                        React.createElement('label', {
+                          className: 'flex items-center'
+                        }, [
+                          React.createElement('input', {
+                            type: 'checkbox',
+                            className: 'mr-2',
+                            defaultChecked: true
+                          }),
+                          'Include diagram'
+                        ]),
+                        React.createElement('label', {
+                          className: 'flex items-center'
+                        }, [
+                          React.createElement('input', {
+                            type: 'checkbox',
+                            className: 'mr-2',
+                            defaultChecked: true
+                          }),
+                          'Include code snippets'
+                        ])
+                      ])
+                    ]),
+                    
+                    // Note about PDF
+                    React.createElement('p', {
+                      className: 'text-sm text-gray-600 italic'
+                    }, 'Your game plan will be sent as a PDF attachment to the email address provided.'),
+                    
+                    // Result message (success/error)
+                    emailResult && React.createElement('div', {
+                      className: `p-3 rounded ${emailResult.success ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`
+                    }, emailResult.message),
+                    
+                    // Submit button
+                    React.createElement('button', {
+                      className: 'w-full bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-colors',
+                      disabled: !emailAddress || emailSending,
+                      onClick: handleEmailGamePlan
+                    }, emailSending ? 
+                      React.createElement('div', { className: 'flex items-center justify-center' }, [
+                        React.createElement('svg', { className: 'animate-spin -ml-1 mr-3 h-5 w-5 text-white', xmlns: 'http://www.w3.org/2000/svg', fill: 'none', viewBox: '0 0 24 24' }, [
+                          React.createElement('circle', { className: 'opacity-25', cx: '12', cy: '12', r: '10', stroke: 'currentColor', strokeWidth: '4' }),
+                          React.createElement('path', { className: 'opacity-75', fill: 'currentColor', d: 'M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z' })
+                        ]),
+                        'Sending...'
+                      ]) 
+                      : 'Send Game Plan'
+                    )
+                  ])
+                ])
               ])
             ]);
           }

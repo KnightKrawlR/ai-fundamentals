@@ -2037,3 +2037,84 @@ exports.generateGamePlan = functions.https.onCall(async (data, context) => {
     }
   }
 });
+
+// Health check function
+exports.healthCheck = functions.https.onCall(async (data, context) => {
+  return { status: 'ok', timestamp: Date.now() };
+});
+
+// Email game plan function
+exports.emailGamePlan = functions.https.onCall(async (data, context) => {
+  // User must be authenticated
+  if (!context.auth) {
+    throw new functions.https.HttpsError(
+      'unauthenticated',
+      'You must be logged in to email a game plan'
+    );
+  }
+
+  try {
+    const { email, gameplan, sessionId } = data;
+    
+    if (!email || !gameplan) {
+      throw new functions.https.HttpsError(
+        'invalid-argument',
+        'Email and game plan data are required'
+      );
+    }
+    
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      throw new functions.https.HttpsError(
+        'invalid-argument',
+        'Invalid email format'
+      );
+    }
+    
+    // Log API usage
+    await logAPIUsage(context.auth.uid, 'emailGamePlan', { 
+      sessionId, 
+      emailSent: true,
+      timestamp: admin.firestore.FieldValue.serverTimestamp()
+    });
+    
+    // In a production environment, you would use a service like SendGrid, Mailgun, etc.
+    // For this example, we'll simulate sending an email
+    console.log(`Sending game plan to email: ${email}`);
+    
+    // TODO: Implement actual email sending with a service like SendGrid or Mailgun
+    // Example with SendGrid (you would need to add the library):
+    // const msg = {
+    //   to: email,
+    //   from: 'support@ai-fundamentals.me',
+    //   subject: 'Your AI Fundamentals Game Plan',
+    //   text: 'Attached is your AI Fundamentals Game Plan.',
+    //   html: generateGamePlanHTML(gameplan),
+    //   attachments: [
+    //     {
+    //       content: await generateGamePlanPDF(gameplan),
+    //       filename: 'ai-fundamentals-game-plan.pdf',
+    //       type: 'application/pdf',
+    //       disposition: 'attachment'
+    //     }
+    //   ]
+    // };
+    // await sgMail.send(msg);
+    
+    // For now, just return success
+    return { 
+      success: true, 
+      message: `Game plan sent to ${email}`,
+      // In real implementation, you might include details like:
+      // emailId: generatedEmailId,
+      // timestamp: admin.firestore.FieldValue.serverTimestamp()
+    };
+  } catch (error) {
+    console.error('Error sending email:', error);
+    throw new functions.https.HttpsError(
+      'internal',
+      `Failed to send email: ${error.message}`
+    );
+  }
+});
