@@ -14,6 +14,54 @@ const cors = require('cors')({
 });
 const { VertexAI } = require('@google-cloud/vertexai');
 const { v4: uuidv4 } = require('uuid'); // Import UUID library
+// Replace SendGrid with Twilio
+const twilio = require('twilio');
+// Add Nodemailer for email
+const nodemailer = require('nodemailer');
+
+// Initialize Twilio client with credentials
+let twilioClient = null;
+try {
+  if (functions.config().twilio && functions.config().twilio.sid && functions.config().twilio.token) {
+    twilioClient = twilio(functions.config().twilio.sid, functions.config().twilio.token);
+    console.log('Twilio client initialized');
+  } else if (process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN) {
+    twilioClient = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
+    console.log('Twilio client initialized from environment variables');
+  } else {
+    console.warn('Twilio credentials not found. SMS functionality will be limited.');
+  }
+} catch (error) {
+  console.error('Error initializing Twilio client:', error);
+}
+
+// Initialize email transporter with Gmail
+let emailTransporter = null;
+try {
+  if (functions.config().gmail && functions.config().gmail.email && functions.config().gmail.password) {
+    emailTransporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: functions.config().gmail.email,
+        pass: functions.config().gmail.password
+      }
+    });
+    console.log('Gmail transporter initialized');
+  } else if (process.env.GMAIL_EMAIL && process.env.GMAIL_PASSWORD) {
+    emailTransporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.GMAIL_EMAIL,
+        pass: process.env.GMAIL_PASSWORD
+      }
+    });
+    console.log('Gmail transporter initialized from environment variables');
+  } else {
+    console.warn('Gmail credentials not found. Email functionality will be limited.');
+  }
+} catch (error) {
+  console.error('Error initializing email transporter:', error);
+}
 
 // Import Vercel AI SDK components
 const { xai } = require("@ai-sdk/xai");
@@ -2043,78 +2091,355 @@ exports.healthCheck = functions.https.onCall(async (data, context) => {
   return { status: 'ok', timestamp: Date.now() };
 });
 
-// Email game plan function
+// Email game plan function (now supports both email and SMS)
 exports.emailGamePlan = functions.https.onCall(async (data, context) => {
   // User must be authenticated
   if (!context.auth) {
     throw new functions.https.HttpsError(
       'unauthenticated',
-      'You must be logged in to email a game plan'
+      'You must be logged in to share a game plan'
     );
   }
 
   try {
-    const { email, gameplan, sessionId } = data;
+    const { email, phone, gameplan, sessionId } = data;
     
-    if (!email || !gameplan) {
+    // Validate either email or phone is provided
+    if ((!email && !phone) || !gameplan) {
       throw new functions.https.HttpsError(
         'invalid-argument',
-        'Email and game plan data are required'
+        'Email/phone and game plan data are required'
       );
     }
     
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      throw new functions.https.HttpsError(
-        'invalid-argument',
-        'Invalid email format'
-      );
+    // Validate email format if provided
+    if (email) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        throw new functions.https.HttpsError(
+          'invalid-argument',
+          'Invalid email format'
+        );
+      }
+    }
+    
+    // Validate phone format if provided
+    if (phone) {
+      // Basic phone validation - improves upon this for production
+      const phoneRegex = /^\+?[1-9]\d{1,14}$/;
+      if (!phoneRegex.test(phone)) {
+        throw new functions.https.HttpsError(
+          'invalid-argument',
+          'Invalid phone format. Please use E.164 format (e.g., +12125551234)'
+        );
+      }
     }
     
     // Log API usage
-    await logAPIUsage(context.auth.uid, 'emailGamePlan', { 
+    await logAPIUsage(context.auth.uid, 'shareGamePlan', { 
       sessionId, 
-      emailSent: true,
+      emailSent: !!email,
+      smsSent: !!phone,
       timestamp: admin.firestore.FieldValue.serverTimestamp()
     });
     
-    // In a production environment, you would use a service like SendGrid, Mailgun, etc.
-    // For this example, we'll simulate sending an email
-    console.log(`Sending game plan to email: ${email}`);
-    
-    // TODO: Implement actual email sending with a service like SendGrid or Mailgun
-    // Example with SendGrid (you would need to add the library):
-    // const msg = {
-    //   to: email,
-    //   from: 'support@ai-fundamentals.me',
-    //   subject: 'Your AI Fundamentals Game Plan',
-    //   text: 'Attached is your AI Fundamentals Game Plan.',
-    //   html: generateGamePlanHTML(gameplan),
-    //   attachments: [
-    //     {
-    //       content: await generateGamePlanPDF(gameplan),
-    //       filename: 'ai-fundamentals-game-plan.pdf',
-    //       type: 'application/pdf',
-    //       disposition: 'attachment'
-    //     }
-    //   ]
-    // };
-    // await sgMail.send(msg);
-    
-    // For now, just return success
-    return { 
-      success: true, 
-      message: `Game plan sent to ${email}`,
-      // In real implementation, you might include details like:
-      // emailId: generatedEmailId,
-      // timestamp: admin.firestore.FieldValue.serverTimestamp()
+    // Prepare result for return
+    const result = { 
+      success: true,
+      sessionId
     };
+    
+    // If email is provided, handle email with Gmail
+    if (email && emailTransporter) {
+      try {
+        // Generate HTML email content
+        const htmlContent = generateEmailHTML(gameplan);
+        
+        // Create text version for fallback
+        const textContent = generateEmailText(gameplan);
+        
+        // Setup email data
+        const mailOptions = {
+          from: functions.config().gmail?.email || process.env.GMAIL_EMAIL || 'noreply@ai-fundamentals.me',
+          to: email,
+          subject: 'Your AI Fundamentals Game Plan',
+          text: textContent,
+          html: htmlContent
+        };
+        
+        // Send email with Nodemailer
+        const info = await emailTransporter.sendMail(mailOptions);
+        
+        console.log(`Email sent to ${email}, messageId: ${info.messageId}`);
+        
+        // Log the email in Firestore
+        await admin.firestore().collection('sentMessages').add({
+          userId: context.auth.uid,
+          recipientEmail: email,
+          sessionId: sessionId,
+          messageId: info.messageId,
+          timestamp: admin.firestore.FieldValue.serverTimestamp(),
+          type: 'email',
+          success: true
+        });
+        
+        result.emailMessage = `Game plan sent to ${email}`;
+        result.emailId = info.messageId;
+      } catch (emailError) {
+        console.error('Nodemailer error:', emailError);
+        
+        // Log the failed attempt
+        await admin.firestore().collection('sentMessages').add({
+          userId: context.auth.uid,
+          recipientEmail: email,
+          sessionId: sessionId,
+          timestamp: admin.firestore.FieldValue.serverTimestamp(),
+          type: 'email',
+          success: false,
+          error: emailError.message
+        });
+        
+        result.emailError = `Failed to send email: ${emailError.message}`;
+      }
+    } else if (email) {
+      // Email requested but no transporter
+      console.log(`Would send email to: ${email}`);
+      result.emailMessage = `Game plan would be sent to ${email} (Email service not configured)`;
+      result.simulated = true;
+    }
+    
+    // If phone is provided and Twilio is configured, send SMS
+    if (phone && twilioClient) {
+      try {
+        // Generate text message content - keep it short for SMS
+        const smsContent = generateSMSContent(gameplan);
+        
+        // Send the SMS via Twilio
+        const message = await twilioClient.messages.create({
+          body: smsContent,
+          from: functions.config().twilio.phoneNumber || process.env.TWILIO_PHONE_NUMBER,
+          to: phone
+        });
+        
+        console.log(`SMS sent to ${phone}, SID: ${message.sid}`);
+        
+        // Log the SMS in Firestore
+        await admin.firestore().collection('sentMessages').add({
+          userId: context.auth.uid,
+          recipientPhone: phone,
+          sessionId: sessionId,
+          messageSid: message.sid,
+          timestamp: admin.firestore.FieldValue.serverTimestamp(),
+          type: 'sms',
+          success: true
+        });
+        
+        result.smsMessage = `Game plan SMS sent to ${phone}`;
+        result.smsSid = message.sid;
+      } catch (smsError) {
+        console.error('Twilio SMS error:', smsError);
+        
+        // Log the failed attempt
+        await admin.firestore().collection('sentMessages').add({
+          userId: context.auth.uid,
+          recipientPhone: phone,
+          sessionId: sessionId,
+          timestamp: admin.firestore.FieldValue.serverTimestamp(),
+          type: 'sms',
+          success: false,
+          error: smsError.message
+        });
+        
+        result.smsError = `Failed to send SMS: ${smsError.message}`;
+      }
+    } else if (phone) {
+      // Twilio not configured but phone provided
+      console.log(`Would send SMS to: ${phone}`);
+      result.smsMessage = `Game plan would be sent to ${phone} (Twilio not configured)`;
+      result.simulated = true;
+    }
+    
+    return result;
   } catch (error) {
-    console.error('Error sending email:', error);
+    console.error('Error sharing game plan:', error);
     throw new functions.https.HttpsError(
       'internal',
-      `Failed to send email: ${error.message}`
+      `Failed to share game plan: ${error.message}`
     );
   }
 });
+
+// Helper function to generate SMS content
+function generateSMSContent(gameplan) {
+  try {
+    // Keep SMS content brief due to length limitations
+    let sms = 'Your AI Implementation Game Plan\n\n';
+    
+    // Add project summary (shortened)
+    const summary = gameplan.project_summary || gameplan.project_description || 'No summary provided';
+    sms += `Summary: ${summary.substring(0, 100)}${summary.length > 100 ? '...' : ''}\n\n`;
+    
+    // Add key milestones (limited)
+    sms += 'Key Milestones:\n';
+    if (gameplan.key_milestones && gameplan.key_milestones.length > 0) {
+      gameplan.key_milestones.slice(0, 3).forEach((m, i) => {
+        const milestone = m.milestone || m.title || '';
+        sms += `${i+1}. ${milestone.substring(0, 50)}${milestone.length > 50 ? '...' : ''}\n`;
+      });
+      
+      if (gameplan.key_milestones.length > 3) {
+        sms += `+ ${gameplan.key_milestones.length - 3} more milestones\n`;
+      }
+    } else {
+      sms += 'None provided\n';
+    }
+    
+    // Add footer with link
+    sms += '\nView your complete game plan at https://ai-fundamentals.me/my-game-plan.html';
+    
+    return sms;
+  } catch (error) {
+    console.error('Error generating SMS content:', error);
+    return 'Your AI Implementation Game Plan is ready. View it at https://ai-fundamentals.me/my-game-plan.html';
+  }
+}
+
+// Helper function to generate HTML email content
+function generateEmailHTML(gameplan) {
+  try {
+    const getItemsHTML = (items, itemType) => {
+      if (!items || !Array.isArray(items) || items.length === 0) return '<p>None provided</p>';
+      
+      let html = '<ul style="padding-left: 20px;">';
+      
+      items.forEach((item, index) => {
+        if (itemType === 'milestones' || itemType === 'steps') {
+          const title = item.milestone || item.step || '';
+          const details = item.description || '';
+          html += `<li><strong>${title}</strong>${details ? `<br>${details}` : ''}</li>`;
+        } else if (itemType === 'technologies') {
+          html += `<li><strong>${item.name || ''}</strong>: ${item.reasoning || ''}</li>`;
+        } else if (itemType === 'resources') {
+          html += `<li><a href="${item.url || '#'}" style="color: #0366d6;">${item.title || 'Resource'}</a>: ${item.relevance || ''}</li>`;
+        } else if (itemType === 'roadblocks' || itemType === 'metrics') {
+          html += `<li>${item.roadblock || item.metric || ''}</li>`;
+        } else {
+          html += `<li>${JSON.stringify(item)}</li>`;
+        }
+      });
+      
+      html += '</ul>';
+      return html;
+    };
+    
+    return `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Your AI Fundamentals Game Plan</title>
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 800px; margin: 0 auto; padding: 20px; }
+          h1 { color: #0366d6; border-bottom: 1px solid #eaecef; padding-bottom: 10px; }
+          h2 { color: #0366d6; margin-top: 30px; padding-top: 10px; }
+          .box { background-color: #f6f8fa; border: 1px solid #eaecef; border-radius: 6px; padding: 16px; margin-bottom: 20px; }
+          .footer { margin-top: 50px; padding-top: 20px; border-top: 1px solid #eaecef; font-size: 0.8em; color: #586069; }
+        </style>
+      </head>
+      <body>
+        <h1>Your AI Implementation Game Plan</h1>
+        
+        <div class="box">
+          <h2>Project Summary</h2>
+          <p>${gameplan.project_summary || 'No summary provided'}</p>
+        </div>
+        
+        <h2>Key Milestones</h2>
+        ${getItemsHTML(gameplan.key_milestones, 'milestones')}
+        
+        <h2>Implementation Steps</h2>
+        ${getItemsHTML(gameplan.suggested_steps, 'steps')}
+        
+        <h2>Recommended Technologies</h2>
+        ${getItemsHTML(gameplan.recommended_technologies, 'technologies')}
+        
+        <h2>Learning Resources</h2>
+        ${getItemsHTML(gameplan.learning_resources, 'resources')}
+        
+        <h2>Potential Roadblocks</h2>
+        ${getItemsHTML(gameplan.potential_roadblocks, 'roadblocks')}
+        
+        <h2>Success Metrics</h2>
+        ${getItemsHTML(gameplan.success_metrics, 'metrics')}
+        
+        <h2>Mermaid Diagram Code</h2>
+        <pre style="background-color: #f6f8fa; padding: 16px; border-radius: 6px; overflow-x: auto;">${gameplan.mermaid_diagram || 'No diagram provided'}</pre>
+        
+        <div class="footer">
+          <p>Generated by AI Fundamentals. Visit <a href="https://ai-fundamentals.me" style="color: #0366d6;">ai-fundamentals.me</a> to create your own implementation plans.</p>
+        </div>
+      </body>
+      </html>
+    `;
+  } catch (error) {
+    console.error('Error generating HTML email:', error);
+    return `<html><body><h1>Your Game Plan</h1><p>There was an error formatting your game plan. Please view it on the website.</p></body></html>`;
+  }
+}
+
+// Helper function to generate plain text email content
+function generateEmailText(gameplan) {
+  try {
+    let text = 'Your AI Implementation Game Plan\n\n';
+    
+    // Project Summary
+    text += 'PROJECT SUMMARY:\n';
+    text += (gameplan.project_summary || 'None provided') + '\n\n';
+    
+    // Add key milestones
+    text += 'KEY MILESTONES:\n';
+    if (gameplan.key_milestones && gameplan.key_milestones.length > 0) {
+      gameplan.key_milestones.forEach((m, i) => {
+        const milestone = m.milestone || '';
+        text += `${i+1}. ${milestone}\n`;
+      });
+    } else {
+      text += 'None provided\n';
+    }
+    text += '\n';
+    
+    // Add implementation steps
+    text += 'IMPLEMENTATION STEPS:\n';
+    if (gameplan.suggested_steps && gameplan.suggested_steps.length > 0) {
+      gameplan.suggested_steps.forEach((s, i) => {
+        const step = s.step || '';
+        text += `${i+1}. ${step}\n`;
+      });
+    } else {
+      text += 'None provided\n';
+    }
+    text += '\n';
+    
+    // Add recommended technologies
+    text += 'RECOMMENDED TECHNOLOGIES:\n';
+    if (gameplan.recommended_technologies && gameplan.recommended_technologies.length > 0) {
+      gameplan.recommended_technologies.forEach((t, i) => {
+        const tech = t.name || '';
+        const reason = t.reasoning || '';
+        text += `${i+1}. ${tech}${reason ? ` - ${reason}` : ''}\n`;
+      });
+    } else {
+      text += 'None provided\n';
+    }
+    text += '\n';
+    
+    // Add footer
+    text += 'Generated by AI Fundamentals. Visit https://ai-fundamentals.me to create your own implementation plans.';
+    
+    return text;
+    } catch (error) {
+    console.error('Error generating text email:', error);
+    return 'Your AI Implementation Game Plan. Please view it on the website at https://ai-fundamentals.me/my-game-plan.html';
+  }
+}

@@ -493,7 +493,7 @@
     </script>
 
     <!-- Load the enhanced game plan JavaScript with cache busting -->
-    <script src="my-game-plan-enhanced.js?v=7"></script>
+    <script src="my-game-plan-enhanced.js?v=9"></script>
 
     <!-- Inline Game Plan Component -->
     <script>
@@ -872,6 +872,8 @@
             // Add state for email modal
             const [showEmailModal, setShowEmailModal] = React.useState(false);
             const [emailAddress, setEmailAddress] = React.useState('');
+            const [phoneNumber, setPhoneNumber] = React.useState('');
+            const [deliveryMethod, setDeliveryMethod] = React.useState('email');
             const [emailSending, setEmailSending] = React.useState(false);
             const [emailResult, setEmailResult] = React.useState(null);
             
@@ -884,7 +886,9 @@
             
             // Function to handle emailing the game plan
             const handleEmailGamePlan = async () => {
-              if (!emailAddress || !gamePlanResult) return;
+              if ((deliveryMethod === 'email' && !emailAddress) || 
+                  (deliveryMethod === 'sms' && !phoneNumber) || 
+                  !gamePlanResult) return;
               
               setEmailSending(true);
               setEmailResult(null);
@@ -893,16 +897,22 @@
                 const emailGamePlan = firebase.functions().httpsCallable('emailGamePlan');
                 const result = await emailGamePlan({
                   sessionId: sessionId,
-                  email: emailAddress,
+                  email: deliveryMethod === 'email' ? emailAddress : null,
+                  phone: deliveryMethod === 'sms' ? phoneNumber : null,
                   gameplan: gamePlanResult
                 });
                 
-                console.log("Email result:", result);
+                console.log("Share result:", result);
                 
                 if (result.data.success) {
+                  const recipient = deliveryMethod === 'email' ? emailAddress : phoneNumber;
+                  const method = deliveryMethod === 'email' ? 'email' : 'SMS';
+                  
                   setEmailResult({
                     success: true,
-                    message: `Game plan sent to ${emailAddress}!`
+                    message: result.data.simulated 
+                      ? `Game plan would be sent to ${recipient} (${method} service not fully configured)` 
+                      : `Game plan sent to ${recipient}!`
                   });
                   
                   // Close modal after success with delay
@@ -912,13 +922,13 @@
                     setTimeout(() => setEmailResult(null), 500);
                   }, 2000);
                 } else {
-                  throw new Error(result.data.error || "Failed to send email");
+                  throw new Error(result.data.error || "Failed to send game plan");
                 }
               } catch (err) {
-                console.error("Error sending email:", err);
+                console.error("Error sending game plan:", err);
                 setEmailResult({
                   success: false,
-                  message: `Error: ${err.message || "Failed to send email"}`
+                  message: `Error: ${err.message || "Failed to send game plan"}`
                 });
               } finally {
                 setEmailSending(false);
@@ -1146,8 +1156,8 @@
                     className: 'flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors',
                     onClick: () => setShowEmailModal(true)
                   }, [
-                    React.createElement('i', { className: 'fas fa-envelope' }),
-                    'Email Plan'
+                    React.createElement('i', { className: 'fas fa-share-alt' }),
+                    'Share Plan'
                   ])
                 ]),
                 
@@ -1239,7 +1249,7 @@
                   }, [
                     React.createElement('h3', {
                       className: 'text-xl font-bold text-gray-800'
-                    }, 'Email Your Game Plan'),
+                    }, 'Share Your Game Plan'),
                     React.createElement('button', {
                       className: 'text-gray-500 hover:text-gray-700',
                       onClick: () => setShowEmailModal(false)
@@ -1252,8 +1262,28 @@
                   React.createElement('div', {
                     className: 'space-y-4'
                   }, [
+                    // Delivery method selection
+                    React.createElement('div', {
+                      className: 'flex border rounded-md overflow-hidden divide-x divide-gray-200'
+                    }, [
+                      React.createElement('button', {
+                        className: `flex-1 py-2 px-4 flex justify-center items-center gap-2 ${deliveryMethod === 'email' ? 'bg-blue-50 text-blue-600 font-medium' : 'bg-white text-gray-700'}`,
+                        onClick: () => setDeliveryMethod('email')
+                      }, [
+                        React.createElement('i', { className: 'fas fa-envelope' }),
+                        'Email'
+                      ]),
+                      React.createElement('button', {
+                        className: `flex-1 py-2 px-4 flex justify-center items-center gap-2 ${deliveryMethod === 'sms' ? 'bg-blue-50 text-blue-600 font-medium' : 'bg-white text-gray-700'}`,
+                        onClick: () => setDeliveryMethod('sms')
+                      }, [
+                        React.createElement('i', { className: 'fas fa-sms' }),
+                        'SMS'
+                      ])
+                    ]),
+                    
                     // Email input
-                    React.createElement('div', {}, [
+                    deliveryMethod === 'email' && React.createElement('div', {}, [
                       React.createElement('label', {
                         htmlFor: 'email',
                         className: 'block mb-1 font-medium text-gray-700'
@@ -1268,8 +1298,27 @@
                       })
                     ]),
                     
-                    // Email format options (future enhancement)
-                    React.createElement('div', {}, [
+                    // Phone input
+                    deliveryMethod === 'sms' && React.createElement('div', {}, [
+                      React.createElement('label', {
+                        htmlFor: 'phone',
+                        className: 'block mb-1 font-medium text-gray-700'
+                      }, 'Phone Number'),
+                      React.createElement('input', {
+                        type: 'tel',
+                        id: 'phone',
+                        value: phoneNumber,
+                        onChange: (e) => setPhoneNumber(e.target.value),
+                        className: 'w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500',
+                        placeholder: '+1 (123) 456-7890'
+                      }),
+                      React.createElement('p', {
+                        className: 'mt-1 text-xs text-gray-500'
+                      }, 'Enter in E.164 format (+12125551234)')
+                    ]),
+                    
+                    // Format options (simplified for SMS)
+                    deliveryMethod === 'email' && React.createElement('div', {}, [
                       React.createElement('label', {
                         className: 'block mb-1 font-medium text-gray-700'
                       }, 'Format Options'),
@@ -1299,10 +1348,13 @@
                       ])
                     ]),
                     
-                    // Note about PDF
+                    // Note about delivery
                     React.createElement('p', {
                       className: 'text-sm text-gray-600 italic'
-                    }, 'Your game plan will be sent as a PDF attachment to the email address provided.'),
+                    }, deliveryMethod === 'email' 
+                      ? 'Your game plan will be sent as an email to the address provided.'
+                      : 'A summary of your game plan with a link to view will be sent via SMS.'
+                    ),
                     
                     // Result message (success/error)
                     emailResult && React.createElement('div', {
@@ -1312,7 +1364,9 @@
                     // Submit button
                     React.createElement('button', {
                       className: 'w-full bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-colors',
-                      disabled: !emailAddress || emailSending,
+                      disabled: (deliveryMethod === 'email' && !emailAddress) || 
+                                (deliveryMethod === 'sms' && !phoneNumber) || 
+                                emailSending,
                       onClick: handleEmailGamePlan
                     }, emailSending ? 
                       React.createElement('div', { className: 'flex items-center justify-center' }, [
@@ -1322,7 +1376,7 @@
                         ]),
                         'Sending...'
                       ]) 
-                      : 'Send Game Plan'
+                      : deliveryMethod === 'email' ? 'Send Email' : 'Send SMS'
                     )
                   ])
                 ])
@@ -1393,34 +1447,75 @@
                 // Clear previous content
                 container.innerHTML = '';
                 
+                // Sanitize and fix common Mermaid syntax issues
+                let sanitizedContent = content.trim();
+                
+                // Make sure the diagram starts with graph TD or graph LR
+                if (!sanitizedContent.match(/^(graph|flowchart)\s+(TD|LR|TB|BT|RL)/i)) {
+                  console.log('Adding graph TD prefix to diagram');
+                  sanitizedContent = 'graph TD\n' + sanitizedContent;
+                }
+                
+                // Fix any invalid characters
+                sanitizedContent = sanitizedContent
+                  .replace(/[""'']/g, '"')  // Replace smart quotes
+                  .replace(/[^\x00-\x7F]/g, ''); // Remove non-ASCII chars
+                
+                console.log('Rendering diagram with content:', sanitizedContent);
+                
                 // Create a new div for mermaid to render into
                 const diagramDiv = document.createElement('div');
                 diagramDiv.className = 'mermaid';
-                diagramDiv.textContent = content;
+                diagramDiv.textContent = sanitizedContent;
                 container.appendChild(diagramDiv);
                 
-                // Run mermaid rendering
+                // First try to parse the diagram to catch syntax errors early
                 if (window.mermaid) {
-                  console.log('Rendering diagram with mermaid');
-                  window.mermaid.run({
-                    nodes: [diagramDiv]
-                  }).catch(err => {
-                    console.error('Mermaid rendering error:', err);
-                    // If rendering fails, show the code
-                    showDiagramCode();
-                  });
+                  try {
+                    // Configure Mermaid with more permissive settings
+                    window.mermaid.initialize({
+                      startOnLoad: false,
+                      securityLevel: 'loose',
+                      theme: 'default',
+                      logLevel: 'error',
+                      flowchart: { 
+                        htmlLabels: true,
+                        useMaxWidth: true, 
+                        curve: 'basis'
+                      }
+                    });
+                    
+                    // Run mermaid rendering with a timeout to ensure DOM is ready
+                    setTimeout(() => {
+                      window.mermaid.run({
+                        nodes: [diagramDiv]
+                      }).then(() => {
+                        console.log('Mermaid diagram rendered successfully');
+                        // Hide loading indicator
+                        const loadingEl = container.querySelector('.mermaid-loading');
+                        if (loadingEl) loadingEl.style.display = 'none';
+                      }).catch(err => {
+                        console.error('Mermaid rendering error:', err);
+                        // If rendering fails, show the code
+                        showDiagramCode(sanitizedContent, err.message);
+                      });
+                    }, 300);
+                  } catch (parsingError) {
+                    console.error('Mermaid parsing error:', parsingError);
+                    showDiagramCode(sanitizedContent, parsingError.message);
+                  }
                 } else {
                   console.error('Mermaid library not available');
-                  showDiagramCode();
+                  showDiagramCode(sanitizedContent, 'Mermaid library not loaded');
                 }
               } catch (err) {
-                console.error('Error rendering diagram:', err);
-                showDiagramCode();
+                console.error('Error in diagram rendering process:', err);
+                showDiagramCode(content, err.message);
               }
             };
             
             // Fallback to show code if rendering fails
-            const showDiagramCode = () => {
+            const showDiagramCode = (diagramCode, errorMessage) => {
               const container = document.querySelector('.mermaid-diagram-render');
               if (!container) return;
               
@@ -1429,20 +1524,71 @@
               // Add explanation
               const messageEl = document.createElement('div');
               messageEl.className = 'mb-4 text-gray-700';
-              messageEl.textContent = 'Here is the Mermaid diagram code for your implementation:';
+              messageEl.innerHTML = `<div class="p-4 border-l-4 border-red-500 bg-red-100 text-red-700 mb-4">
+                <p class="font-bold">Diagram Rendering Error</p>
+                <p>${errorMessage || 'Could not render diagram'}</p>
+              </div>
+              <p>Here is the Mermaid diagram code for your implementation:</p>`;
               container.appendChild(messageEl);
               
               // Add code in preformatted block
               const preEl = document.createElement('pre');
               preEl.className = 'bg-gray-100 p-4 rounded-lg overflow-auto text-sm font-mono';
-              preEl.textContent = content;
+              preEl.textContent = diagramCode;
               container.appendChild(preEl);
+              
+              // Add button to try manual rendering with a corrected version
+              const fixButtonEl = document.createElement('div');
+              fixButtonEl.className = 'mt-4';
+              fixButtonEl.innerHTML = `
+                <a href="https://mermaid.live/edit#${encodeURIComponent('graph TD\nA[Input Data] --> B[Processing]\nB --> C[Output]')}" 
+                  target="_blank" 
+                  class="inline-block bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 mr-3">
+                  <i class="fas fa-external-link-alt mr-2"></i> Edit in Mermaid Live
+                </a>
+                <button 
+                  class="inline-block bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700" 
+                  id="try-simple-diagram">
+                  <i class="fas fa-sync mr-2"></i> Try Simple Diagram
+                </button>
+              `;
+              container.appendChild(fixButtonEl);
               
               // Add note about using the code
               const noteEl = document.createElement('div');
               noteEl.className = 'mt-3 text-sm text-gray-600 italic';
-              noteEl.textContent = 'You can copy this code and use it in any Mermaid-enabled editor or website.';
+              noteEl.textContent = 'You can copy this code and fix it in any Mermaid-enabled editor or website.';
               container.appendChild(noteEl);
+              
+              // Add event listener for the simple diagram button
+              setTimeout(() => {
+                const trySimpleButton = document.getElementById('try-simple-diagram');
+                if (trySimpleButton) {
+                  trySimpleButton.addEventListener('click', () => {
+                    const simpleDiagram = `graph TD
+  A[Input Data] --> B[Processing]
+  B --> C[Output Result]
+  C --> D[User Interface]
+  A --> E[Data Storage]
+  E --> B`;
+                    
+                    // Clear container and create new Mermaid div
+                    container.innerHTML = '';
+                    const diagramDiv = document.createElement('div');
+                    diagramDiv.className = 'mermaid';
+                    diagramDiv.textContent = simpleDiagram;
+                    container.appendChild(diagramDiv);
+                    
+                    // Render the simple diagram
+                    window.mermaid.run({
+                      nodes: [diagramDiv]
+                    }).catch(err => {
+                      console.error('Error rendering simple diagram:', err);
+                      container.innerHTML = '<div class="p-4 border-l-4 border-red-500 bg-red-100 text-red-700">Failed to render even a simple diagram. Mermaid may not be properly initialized.</div>';
+                    });
+                  });
+                }
+              }, 100);
             };
             
             // Render diagram with slight delay to ensure DOM is ready
@@ -1462,9 +1608,16 @@
                 style: { minHeight: '200px' }
               }, [
                 React.createElement('div', {
+                  className: 'text-center text-gray-500 mb-4 mermaid-loading',
+                }, [
+                  React.createElement('div', { 
+                    className: 'inline-block animate-spin h-5 w-5 mr-2 border-t-2 border-blue-500 rounded-full'
+                  }),
+                  'Rendering diagram...'
+                ]),
+                React.createElement('div', {
                   className: 'mermaid-diagram-render',
-                  style: { width: '100%' },
-                  dangerouslySetInnerHTML: { __html: '<div class="flex justify-center items-center h-full"><div class="spinner" style="border: 4px solid rgba(0,0,0,.1); width: 36px; height: 36px; border-radius: 50%; border-left-color: #0ea5e9; animation: spin 1s linear infinite;"></div></div>' }
+                  style: { width: '100%' }
                 })
               ])
             ]);
