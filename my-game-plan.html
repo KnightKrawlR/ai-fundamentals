@@ -493,7 +493,7 @@
     </script>
 
     <!-- Load the enhanced game plan JavaScript with cache busting -->
-    <script src="my-game-plan-enhanced.js?v=5"></script>
+    <script src="my-game-plan-enhanced.js?v=6"></script>
 
     <!-- Inline Game Plan Component -->
     <script>
@@ -1136,7 +1136,7 @@
                   sectionKey: 'roadblocks', 
                   title: 'Potential Roadblocks', 
                   content: gamePlanResult.potential_roadblocks,
-                  isOpenByDefault: false
+                  isOpenByDefault: true
                 }),
                   
                 // 7. Collapsible metrics section
@@ -1144,7 +1144,7 @@
                   sectionKey: 'metrics', 
                   title: 'Success Metrics', 
                   content: gamePlanResult.success_metrics,
-                  isOpenByDefault: false
+                  isOpenByDefault: true
                 }),
                   
                 // 8. Code snippets section (if available)
@@ -1152,7 +1152,7 @@
                   sectionKey: 'code', 
                   title: 'Sample Code Snippets', 
                   content: gamePlanResult.code_snippets,
-                  isOpenByDefault: false
+                  isOpenByDefault: true
                 })
               ])
             ]);
@@ -1198,24 +1198,92 @@
       function CollapsibleSection({ title, content, isOpenByDefault = true, sectionKey }) {
         const [isOpen, setIsOpen] = React.useState(isOpenByDefault);
         
-        // Icon mapping for different section types
+        // Icon mapping for different section types - updated with Font Awesome icons
         const iconMap = {
-          diagram: '📊',
-          milestones: '🏆',
-          steps: '📋',
-          technologies: '💻',
-          resources: '📚',
-          roadblocks: '⚠️',
-          metrics: '📈',
-          code: '📝'
+          diagram: '<i class="fas fa-project-diagram text-blue-600"></i>',
+          milestones: '<i class="fas fa-flag-checkered text-green-600"></i>',
+          steps: '<i class="fas fa-tasks text-indigo-600"></i>',
+          technologies: '<i class="fas fa-laptop-code text-purple-600"></i>',
+          resources: '<i class="fas fa-book text-yellow-600"></i>',
+          roadblocks: '<i class="fas fa-exclamation-triangle text-red-600"></i>',
+          metrics: '<i class="fas fa-chart-line text-teal-600"></i>',
+          code: '<i class="fas fa-code text-gray-700"></i>'
         };
+        
+        // UseEffect hook to render Mermaid diagram when the component is visible
+        React.useEffect(() => {
+          if (sectionKey === 'diagram' && isOpen && content) {
+            const renderDiagram = () => {
+              try {
+                const container = document.querySelector('.mermaid-diagram-render');
+                if (!container) return;
+                
+                // Clear previous content
+                container.innerHTML = '';
+                
+                // Create a new div for mermaid to render into
+                const diagramDiv = document.createElement('div');
+                diagramDiv.className = 'mermaid';
+                diagramDiv.textContent = content;
+                container.appendChild(diagramDiv);
+                
+                // Run mermaid rendering
+                if (window.mermaid) {
+                  console.log('Rendering diagram with mermaid');
+                  window.mermaid.run({
+                    nodes: [diagramDiv]
+                  }).catch(err => {
+                    console.error('Mermaid rendering error:', err);
+                    // If rendering fails, show the code
+                    showDiagramCode();
+                  });
+                } else {
+                  console.error('Mermaid library not available');
+                  showDiagramCode();
+                }
+              } catch (err) {
+                console.error('Error rendering diagram:', err);
+                showDiagramCode();
+              }
+            };
+            
+            // Fallback to show code if rendering fails
+            const showDiagramCode = () => {
+              const container = document.querySelector('.mermaid-diagram-render');
+              if (!container) return;
+              
+              container.innerHTML = '';
+              
+              // Add explanation
+              const messageEl = document.createElement('div');
+              messageEl.className = 'mb-4 text-gray-700';
+              messageEl.textContent = 'Here is the Mermaid diagram code for your implementation:';
+              container.appendChild(messageEl);
+              
+              // Add code in preformatted block
+              const preEl = document.createElement('pre');
+              preEl.className = 'bg-gray-100 p-4 rounded-lg overflow-auto text-sm font-mono';
+              preEl.textContent = content;
+              container.appendChild(preEl);
+              
+              // Add note about using the code
+              const noteEl = document.createElement('div');
+              noteEl.className = 'mt-3 text-sm text-gray-600 italic';
+              noteEl.textContent = 'You can copy this code and use it in any Mermaid-enabled editor or website.';
+              container.appendChild(noteEl);
+            };
+            
+            // Render diagram with slight delay to ensure DOM is ready
+            setTimeout(renderDiagram, 100);
+          }
+        }, [isOpen, content, sectionKey]);
         
         // Render content based on type and section key
         const renderContent = () => {
           // Special handling for mermaid diagrams
           if (sectionKey === 'diagram') {
             return React.createElement('div', {
-              className: 'mt-3 bg-white p-4 rounded border',
+              className: 'mt-3 bg-white p-4 rounded-lg border',
             }, [
               React.createElement('div', {
                 className: 'mermaid-diagram-container',
@@ -1224,7 +1292,8 @@
                 React.createElement('div', {
                   className: 'mermaid-diagram-render',
                   style: { width: '100%' },
-                }, content)
+                  dangerouslySetInnerHTML: { __html: '<div class="flex justify-center items-center h-full"><div class="spinner" style="border: 4px solid rgba(0,0,0,.1); width: 36px; height: 36px; border-radius: 50%; border-left-color: #0ea5e9; animation: spin 1s linear infinite;"></div></div>' }
+                })
               ])
             ]);
           }
@@ -1335,7 +1404,10 @@
             React.createElement('h3', {
               className: 'text-lg font-medium flex items-center'
             }, [
-              React.createElement('span', { className: 'mr-2' }, iconMap[sectionKey] || '📄'),
+              React.createElement('span', { 
+                className: 'mr-2 w-6 text-center',
+                dangerouslySetInnerHTML: { __html: iconMap[sectionKey] || '<i class="fas fa-file-alt text-gray-600"></i>' }
+              }),
               title
             ]),
             React.createElement('span', {
