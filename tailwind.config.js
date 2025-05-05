@@ -1,40 +1,68 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
-    "./src/**/*.{html,js}",
-    "./*.html",
+    "./src/**/*.{html,js,jsx,ts,tsx}",
+    "./public/**/*.html"
   ],
   theme: {
     extend: {
       colors: {
-        primary: {
-          50: '#f5f3ff',
-          100: '#ede9fe',
-          200: '#ddd6fe',
-          300: '#c4b5fd',
-          400: '#a78bfa',
-          500: '#8b5cf6',
-          600: '#7c3aed',
-          700: '#6d28d9',
-          800: '#5b21b6',
-          900: '#4c1d95',
+        purple: {
+          50: '#F5F3FA',
+          100: '#E9E4F5',
+          200: '#D3C9EB',
+          300: '#BDAEE0',
+          400: '#A793D6',
+          500: '#9178CC',
+          600: '#7B5DC2',
+          700: '#4B2E83', // Primary brand color
+          800: '#3A2266',
+          900: '#29174A',
+        },
+        blue: {
+          500: '#3498DB', // Secondary accent color
         },
       },
       fontFamily: {
-        'sans': ['Inter', 'ui-sans-serif', 'system-ui'],
+        sans: ['Inter', 'sans-serif'],
+        heading: ['Poppins', 'sans-serif'],
+      },
+      boxShadow: {
+        'card': '0 4px 20px rgba(0, 0, 0, 0.08)',
+        'card-hover': '0 10px 30px rgba(0, 0, 0, 0.12)',
       },
       animation: {
-        'fade-in': 'fadeIn 0.5s ease-out',
-        'slide-in': 'slideIn 0.5s ease-out',
+        'float': 'float 6s ease-in-out infinite',
+        'fade-up': 'fadeUp 0.5s ease-out',
+        'fade-down': 'fadeDown 0.5s ease-out',
+        'fade-left': 'fadeLeft 0.5s ease-out',
+        'fade-right': 'fadeRight 0.5s ease-out',
+        'fade-scale': 'fadeScale 0.5s ease-out',
       },
       keyframes: {
-        fadeIn: {
-          '0%': { opacity: '0' },
-          '100%': { opacity: '1' },
+        float: {
+          '0%, 100%': { transform: 'translateY(0)' },
+          '50%': { transform: 'translateY(-20px)' },
         },
-        slideIn: {
-          '0%': { transform: 'translateY(20px)', opacity: '0' },
-          '100%': { transform: 'translateY(0)', opacity: '1' },
+        fadeUp: {
+          '0%': { opacity: 0, transform: 'translateY(20px)' },
+          '100%': { opacity: 1, transform: 'translateY(0)' }
+        },
+        fadeDown: {
+          '0%': { opacity: 0, transform: 'translateY(-20px)' },
+          '100%': { opacity: 1, transform: 'translateY(0)' }
+        },
+        fadeLeft: {
+          '0%': { opacity: 0, transform: 'translateX(20px)' },
+          '100%': { opacity: 1, transform: 'translateX(0)' }
+        },
+        fadeRight: {
+          '0%': { opacity: 0, transform: 'translateX(-20px)' },
+          '100%': { opacity: 1, transform: 'translateX(0)' }
+        },
+        fadeScale: {
+          '0%': { opacity: 0, transform: 'scale(0.9)' },
+          '100%': { opacity: 1, transform: 'scale(1)' }
         },
       },
     },
