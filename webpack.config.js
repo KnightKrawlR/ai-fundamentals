@@ -6,7 +6,7 @@ module.exports = {
   output: {
     path: path.resolve(__dirname, './'),
     filename: 'homepage_bundle.js',
-    publicPath: '',
+    publicPath: '/',
   },
   module: {
     rules: [
@@ -45,9 +45,10 @@ module.exports = {
   },
   plugins: [
     new HtmlWebpackPlugin({
-      template: './public/index.html',
+      // template: './public/index.html',
       filename: 'index.html',
-      inject: true
+      inject: true,
+      title: 'AI Fundamentals'
     }),
   ],
   devServer: {
