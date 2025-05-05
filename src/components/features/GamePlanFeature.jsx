@@ -1,66 +1,158 @@
 import React from 'react';
-
-const FeatureCard = ({ icon, title, description }) => (
-  <div className="bg-white rounded-xl p-6 shadow-card hover:shadow-card-hover transition-shadow">
-    <div className="w-12 h-12 bg-purple-100 text-purple-700 rounded-lg flex items-center justify-center mb-4">
-      {icon}
-    </div>
-    <h3 className="text-xl font-bold text-purple-800 mb-2">{title}</h3>
-    <p className="text-gray-600">{description}</p>
-  </div>
-);
+import { motion } from 'framer-motion';
+import Button from '../ui/Button';
 
 const GamePlanFeature = () => {
   return (
-    <section id="gameplan-feature" className="py-20 bg-purple-50">
+    <section className="py-20 bg-white">
       <div className="container mx-auto px-4">
-        <div className="max-w-3xl mx-auto text-center mb-16">
-          <h2 className="text-4xl font-bold text-purple-800 mb-4">
-            Riding the AI Wave
-          </h2>
-          <p className="text-lg text-gray-600">
-            The AI revolution is transforming every industry. Our personalized
-            AI Game Plan gives you a clear roadmap to implement AI in your specific
-            domain - whether for work, business, or personal projects.
+        <motion.div 
+          className="max-w-4xl mx-auto text-center mb-16"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
+          viewport={{ once: true, margin: "-100px" }}
+        >
+          <h2 className="text-4xl md:text-5xl font-bold text-purple-900 mb-6">Create Your AI Implementation Game Plan</h2>
+          <p className="text-xl text-gray-600">
+            Transform how you approach AI projects with a personalized implementation strategy tailored to your specific needs and challenges.
           </p>
-        </div>
-        
-        <div className="grid md:grid-cols-3 gap-8">
-          <FeatureCard 
-            icon={<svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-            </svg>}
-            title="Personalized AI Strategy"
-            description="Get a customized implementation plan tailored to your specific challenge, technical expertise, and project requirements."
-          />
-          
-          <FeatureCard 
-            icon={<svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-            </svg>}
-            title="Implementation Roadmap"
-            description="Follow clear, actionable steps with the right technologies, resources, and best practices for your AI project."
-          />
-          
-          <FeatureCard 
-            icon={<svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-            </svg>}
-            title="AI Project Templates"
-            description="Leverage proven frameworks and templates that reduce development time and increase your chances of success."
-          />
-        </div>
-        
-        <div className="mt-16 text-center">
-          <a 
-            href="/my-game-plan.html" 
-            className="inline-flex items-center gap-2 bg-purple-700 text-white px-6 py-3 rounded-lg hover:bg-purple-800 transition-colors font-medium"
+        </motion.div>
+
+        <div className="grid md:grid-cols-2 gap-12 items-center">
+          {/* Feature description */}
+          <motion.div
+            initial={{ opacity: 0, x: -30 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+            viewport={{ once: true, margin: "-100px" }}
           >
-            Get Started with Your Game Plan
-            <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
-            </svg>
-          </a>
+            <h3 className="text-2xl font-bold text-purple-800 mb-4">How It Works</h3>
+            
+            <div className="space-y-6">
+              <div className="flex items-start">
+                <div className="bg-purple-100 rounded-full p-3 mr-4">
+                  <span className="flex items-center justify-center w-6 h-6 bg-purple-700 text-white rounded-full font-bold">1</span>
+                </div>
+                <div>
+                  <h4 className="text-xl font-semibold text-purple-900 mb-2">Select Your Topic</h4>
+                  <p className="text-gray-600">Choose from a range of AI topics including Machine Learning, NLP, Computer Vision, and more.</p>
+                </div>
+              </div>
+              
+              <div className="flex items-start">
+                <div className="bg-purple-100 rounded-full p-3 mr-4">
+                  <span className="flex items-center justify-center w-6 h-6 bg-purple-700 text-white rounded-full font-bold">2</span>
+                </div>
+                <div>
+                  <h4 className="text-xl font-semibold text-purple-900 mb-2">Define Your Challenge</h4>
+                  <p className="text-gray-600">Specify the particular challenge or problem you're trying to solve with AI.</p>
+                </div>
+              </div>
+              
+              <div className="flex items-start">
+                <div className="bg-purple-100 rounded-full p-3 mr-4">
+                  <span className="flex items-center justify-center w-6 h-6 bg-purple-700 text-white rounded-full font-bold">3</span>
+                </div>
+                <div>
+                  <h4 className="text-xl font-semibold text-purple-900 mb-2">Choose Project Type</h4>
+                  <p className="text-gray-600">Select the type of project that best matches your implementation goals.</p>
+                </div>
+              </div>
+              
+              <div className="flex items-start">
+                <div className="bg-purple-100 rounded-full p-3 mr-4">
+                  <span className="flex items-center justify-center w-6 h-6 bg-purple-700 text-white rounded-full font-bold">4</span>
+                </div>
+                <div>
+                  <h4 className="text-xl font-semibold text-purple-900 mb-2">Get Your Game Plan</h4>
+                  <p className="text-gray-600">Receive a detailed, step-by-step implementation plan tailored to your specific needs.</p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="mt-10">
+              <a href="my-game-plan.html">
+                <Button 
+                  variant="primary" 
+                  size="large"
+                >
+                  Create Your Game Plan
+                </Button>
+              </a>
+            </div>
+          </motion.div>
+          
+          {/* Feature visual */}
+          <motion.div
+            className="bg-purple-50 p-6 rounded-xl shadow-lg"
+            initial={{ opacity: 0, x: 30 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8, delay: 0.4 }}
+            viewport={{ once: true, margin: "-100px" }}
+          >
+            <div className="bg-white rounded-lg p-6 shadow-sm">
+              <h3 className="text-2xl font-bold text-purple-900 mb-6">Create Your Implementation Game Plan</h3>
+              
+              <div className="space-y-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Topic</label>
+                  <div className="relative">
+                    <select className="block w-full pl-3 pr-10 py-3 text-base border-gray-300 focus:outline-none focus:ring-purple-500 focus:border-purple-500 rounded-md shadow-sm">
+                      <option>Select a topic</option>
+                      <option>Machine Learning</option>
+                      <option>Natural Language Processing</option>
+                      <option>Computer Vision</option>
+                      <option>Generative AI</option>
+                    </select>
+                  </div>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Challenge</label>
+                  <div className="relative">
+                    <select className="block w-full pl-3 pr-10 py-3 text-base border-gray-300 focus:outline-none focus:ring-purple-500 focus:border-purple-500 rounded-md shadow-sm">
+                      <option>Select a challenge</option>
+                      <option>Data Analysis</option>
+                      <option>Automation</option>
+                      <option>Prediction</option>
+                      <option>Content Generation</option>
+                    </select>
+                  </div>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Project Type</label>
+                  <div className="relative">
+                    <select className="block w-full pl-3 pr-10 py-3 text-base border-gray-300 focus:outline-none focus:ring-purple-500 focus:border-purple-500 rounded-md shadow-sm">
+                      <option>Select a project type</option>
+                      <option>Proof of Concept</option>
+                      <option>Prototype</option>
+                      <option>Production System</option>
+                      <option>Research Project</option>
+                    </select>
+                  </div>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Additional Details (Optional)</label>
+                  <textarea 
+                    className="block w-full px-3 py-3 text-base border-gray-300 focus:outline-none focus:ring-purple-500 focus:border-purple-500 rounded-md shadow-sm"
+                    rows="3"
+                    placeholder="Provide any context, goals, or constraints for your project..."
+                  ></textarea>
+                </div>
+                
+                <div>
+                  <a href="my-game-plan.html">
+                    <button className="w-full bg-purple-700 hover:bg-purple-800 text-white font-semibold py-3 px-6 rounded-lg shadow-md hover:shadow-lg transition-all duration-300">
+                      Generate Game Plan
+                    </button>
+                  </a>
+                </div>
+              </div>
+            </div>
+          </motion.div>
         </div>
       </div>
     </section>

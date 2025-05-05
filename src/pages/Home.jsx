@@ -1,11 +1,11 @@
 import React from 'react';
 import useResponsive from '../hooks/useResponsive';
-import TransitionEffect from '../components/animations/TransitionEffect.jsx';
-import Navbar from '../components/navigation/Navbar.jsx';
-import HeroSection from '../components/hero/HeroSection.jsx';
-import GamePlanFeature from '../components/features/GamePlanFeature.jsx';
-import GamePlanCreator from '../components/game-plan/GamePlanCreator.jsx';
-import Footer from '../components/layout/Footer.jsx';
+import TransitionEffect from '../components/animations/TransitionEffect';
+import Navbar from '../components/navigation/Navbar';
+import HeroSection from '../components/hero/HeroSection';
+import GamePlanFeature from '../components/features/GamePlanFeature';
+import GamePlanCreator from '../components/game-plan/GamePlanCreator';
+import Footer from '../components/layout/Footer';
 
 const Home = () => {
   const { isMobile, isTablet, isDesktop } = useResponsive();

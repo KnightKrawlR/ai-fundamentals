@@ -1,58 +1,80 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
+import { motion } from 'framer-motion';
 
 const TransitionEffect = ({ children, direction = 'up', delay = 0, duration = 0.5, className = '' }) => {
-  const [isVisible, setIsVisible] = useState(false);
-  
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsVisible(true);
-    }, delay * 1000);
-    
-    return () => clearTimeout(timer);
-  }, [delay]);
-  
-  // Define CSS classes based on direction
-  const getTransitionClass = () => {
-    if (!isVisible) return 'opacity-0';
-    
-    switch(direction) {
-      case 'up':
-        return 'animate-fade-up';
-      case 'down':
-        return 'animate-fade-down';
-      case 'left':
-        return 'animate-fade-left';
-      case 'right':
-        return 'animate-fade-right';
-      case 'scale':
-        return 'animate-fade-scale';
-      default:
-        return 'animate-fade-up';
+  // Define different transition effects based on direction
+  const variants = {
+    up: {
+      hidden: { y: 50, opacity: 0 },
+      visible: { 
+        y: 0, 
+        opacity: 1,
+        transition: {
+          duration: duration,
+          delay: delay,
+          ease: [0.25, 0.1, 0.25, 1.0]
+        }
+      }
+    },
+    down: {
+      hidden: { y: -50, opacity: 0 },
+      visible: { 
+        y: 0, 
+        opacity: 1,
+        transition: {
+          duration: duration,
+          delay: delay,
+          ease: [0.25, 0.1, 0.25, 1.0]
+        }
+      }
+    },
+    left: {
+      hidden: { x: 50, opacity: 0 },
+      visible: { 
+        x: 0, 
+        opacity: 1,
+        transition: {
+          duration: duration,
+          delay: delay,
+          ease: [0.25, 0.1, 0.25, 1.0]
+        }
+      }
+    },
+    right: {
+      hidden: { x: -50, opacity: 0 },
+      visible: { 
+        x: 0, 
+        opacity: 1,
+        transition: {
+          duration: duration,
+          delay: delay,
+          ease: [0.25, 0.1, 0.25, 1.0]
+        }
+      }
+    },
+    scale: {
+      hidden: { scale: 0.8, opacity: 0 },
+      visible: { 
+        scale: 1, 
+        opacity: 1,
+        transition: {
+          duration: duration,
+          delay: delay,
+          ease: [0.25, 0.1, 0.25, 1.0]
+        }
+      }
     }
   };
-  
-  const transitionStyle = {
-    opacity: isVisible ? 1 : 0,
-    transform: isVisible ? 'none' : getInitialTransform(),
-    transition: `opacity ${duration}s, transform ${duration}s`,
-    transitionTimingFunction: 'cubic-bezier(0.25, 0.1, 0.25, 1.0)'
-  };
-  
-  function getInitialTransform() {
-    switch(direction) {
-      case 'up': return 'translateY(50px)';
-      case 'down': return 'translateY(-50px)';
-      case 'left': return 'translateX(50px)';
-      case 'right': return 'translateX(-50px)';
-      case 'scale': return 'scale(0.8)';
-      default: return 'translateY(50px)';
-    }
-  }
-  
+
   return (
-    <div className={className} style={transitionStyle}>
+    <motion.div
+      className={className}
+      initial="hidden"
+      animate="visible"
+      variants={variants[direction]}
+    >
       {children}
-    </div>
+    </motion.div>
   );
 };
 

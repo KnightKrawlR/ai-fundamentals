@@ -1,28 +1,18 @@
-import { useState, useEffect } from 'react';
+import React from 'react';
+import { useMediaQuery } from 'react-responsive';
 
 const useResponsive = () => {
-  const [screenSize, setScreenSize] = useState({
-    isMobile: window.innerWidth < 768,
-    isTablet: window.innerWidth >= 768 && window.innerWidth < 1200,
-    isDesktop: window.innerWidth >= 1200,
-  });
-
-  useEffect(() => {
-    const handleResize = () => {
-      setScreenSize({
-        isMobile: window.innerWidth < 768,
-        isTablet: window.innerWidth >= 768 && window.innerWidth < 1200,
-        isDesktop: window.innerWidth >= 1200,
-      });
-    };
-
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
+  // Define responsive breakpoints
+  const isMobile = useMediaQuery({ maxWidth: 767 });
+  const isTablet = useMediaQuery({ minWidth: 768, maxWidth: 1199 });
+  const isDesktop = useMediaQuery({ minWidth: 1200 });
+  
+  // Return responsive state
   return {
-    ...screenSize,
-    screenSize: screenSize.isMobile ? 'mobile' : screenSize.isTablet ? 'tablet' : 'desktop'
+    isMobile,
+    isTablet,
+    isDesktop,
+    screenSize: isMobile ? 'mobile' : isTablet ? 'tablet' : 'desktop'
   };
 };
 
