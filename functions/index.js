@@ -2279,7 +2279,7 @@ function generateSMSContent(gameplan) {
     const summary = gameplan.project_summary || gameplan.project_description || 'No summary provided';
     sms += `Summary: ${summary.substring(0, 100)}${summary.length > 100 ? '...' : ''}\n\n`;
     
-    // Add key milestones (limited)
+    // Add key milestones (limited) 
     sms += 'Key Milestones:\n';
     if (gameplan.key_milestones && gameplan.key_milestones.length > 0) {
       gameplan.key_milestones.slice(0, 3).forEach((m, i) => {
