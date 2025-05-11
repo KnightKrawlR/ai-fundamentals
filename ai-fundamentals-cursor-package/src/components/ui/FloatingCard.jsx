@@ -11,6 +11,7 @@ const FloatingCard = ({
 }) => {
   const floatingAnimation = {
     animate: {
+      opacity: 1, // Added opacity here
       y: [0, -y, 0],
       transition: {
         duration: duration,
@@ -26,10 +27,9 @@ const FloatingCard = ({
     <motion.div
       className={`bg-white rounded-xl shadow-xl p-6 ${className}`}
       initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, delay: delay * 0.2 }}
+      // Removed direct animate and transition props
       variants={floatingAnimation}
-      animate="animate"
+      animate="animate" // This will now use the 'animate' key from floatingAnimation
       {...props}
     >
       {children}
@@ -38,3 +38,4 @@ const FloatingCard = ({
 };
 
 export default FloatingCard;
+
