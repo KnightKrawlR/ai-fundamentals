@@ -10,14 +10,6 @@
       }
     },
     {
-      "src": "my-games/package.json",
-      "use": "@vercel/static-build",
-      "config": {
-        "distDir": ".",
-        "buildCommand": "cd my-games && npm install && npm run build"
-      }
-    },
-    {
       "src": "*.html",
       "use": "@vercel/static"
     },
@@ -40,21 +32,12 @@
   ],
   "routes": [
     {
-      "src": "/",
-      "dest": "/ai-fundamentals-cursor-package/dist/index.html"
-    },
-    {
       "src": "/assets/(.*)",
       "dest": "/ai-fundamentals-cursor-package/dist/assets/$1"
     },
     {
-      "src": "/my-games/(.*)",
-      "dest": "/my-games/$1"
-    },
-    { "src": "/css/(.*)", "dest": "/css/$1" },
-    { "src": "/js/(.*)", "dest": "/js/$1" },
-    { "src": "/images/(.*)", "dest": "/images/$1" },
-    { "src": "/learning/(.*)", "dest": "/learning/$1" },
-    { "src": "/(?<page>[^/.]+).html$", "dest": "/$page.html" }
+      "src": "/(.*)",
+      "dest": "/ai-fundamentals-cursor-package/dist/index.html"
+    }
   ]
 } 
