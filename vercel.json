@@ -6,7 +6,15 @@
       "use": "@vercel/static-build",
       "config": {
         "distDir": "dist",
-        "buildCommand": "npm install && npm run build"
+        "buildCommand": "cd ai-fundamentals-cursor-package && npm install && npm run build"
+      }
+    },
+    {
+      "src": "my-games/package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": ".",
+        "buildCommand": "cd my-games && npm install && npm run build"
       }
     },
     {
@@ -31,7 +39,22 @@
     }
   ],
   "routes": [
-    { "handle": "filesystem" },
-    { "src": "/.*", "dest": "/index.html" }
+    {
+      "src": "/",
+      "dest": "/ai-fundamentals-cursor-package/dist/index.html"
+    },
+    {
+      "src": "/assets/(.*)",
+      "dest": "/ai-fundamentals-cursor-package/dist/assets/$1"
+    },
+    {
+      "src": "/my-games/(.*)",
+      "dest": "/my-games/$1"
+    },
+    { "src": "/css/(.*)", "dest": "/css/$1" },
+    { "src": "/js/(.*)", "dest": "/js/$1" },
+    { "src": "/images/(.*)", "dest": "/images/$1" },
+    { "src": "/learning/(.*)", "dest": "/learning/$1" },
+    { "src": "/(?<page>[^/.]+).html$", "dest": "/$page.html" }
   ]
 } 
