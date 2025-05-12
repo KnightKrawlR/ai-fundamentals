@@ -10,10 +10,6 @@
       }
     },
     {
-      "src": "*.html",
-      "use": "@vercel/static"
-    },
-    {
       "src": "css/**",
       "use": "@vercel/static"
     },
@@ -37,7 +33,7 @@
     },
     {
       "src": "/(.*)",
-      "dest": "/ai-fundamentals-cursor-package/dist/index.html"
+      "dest": "/index.html"
     }
   ]
 } 
