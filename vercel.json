@@ -2,12 +2,15 @@
   "version": 2,
   "builds": [
     {
-      "src": "ai-fundamentals-cursor-package/package.json",
-      "use": "@vercel/static-build",
+      "src": "package.json",
+      "use": "@vercel/node",
       "config": {
-        "distDir": "dist",
-        "buildCommand": "cd ai-fundamentals-cursor-package && npm install && npm run build"
+        "buildCommand": "npm run build-vite-copy"
       }
+    },
+    {
+      "src": "public-homepage/**",
+      "use": "@vercel/static"
     },
     {
       "src": "css/**",
@@ -29,11 +32,11 @@
   "routes": [
     {
       "src": "/assets/(.*)",
-      "dest": "/ai-fundamentals-cursor-package/dist/assets/$1"
+      "dest": "/public-homepage/assets/$1"
     },
     {
       "src": "/(.*)",
-      "dest": "/ai-fundamentals-cursor-package/dist/index.html"
+      "dest": "/public-homepage/index.html"
     }
   ]
 } 

@@ -7,6 +7,7 @@
     "build": "webpack --mode production",
     "dev": "webpack --watch --mode development",
     "build-homepage-vite": "cd ai-fundamentals-cursor-package && npm install && npm run build",
+    "build-vite-copy": "node build-vite-homepage.js",
     "build-homepage": "node build-homepage.js"
   },
   "dependencies": {
