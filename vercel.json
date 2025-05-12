@@ -33,7 +33,7 @@
     },
     {
       "src": "/(.*)",
-      "dest": "/index.html"
+      "dest": "/ai-fundamentals-cursor-package/dist/index.html"
     }
   ]
 } 
