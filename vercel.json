@@ -2,14 +2,7 @@
   "version": 2,
   "builds": [
     {
-      "src": "package.json",
-      "use": "@vercel/node",
-      "config": {
-        "buildCommand": "npm run build-vite-copy"
-      }
-    },
-    {
-      "src": "public-homepage/**",
+      "src": "homepage-static/**",
       "use": "@vercel/static"
     },
     {
@@ -32,11 +25,18 @@
   "routes": [
     {
       "src": "/assets/(.*)",
-      "dest": "/public-homepage/assets/$1"
+      "dest": "/homepage-static/assets/$1"
+    },
+    {
+      "src": "/",
+      "dest": "/homepage-static/index.html"
     },
     {
       "src": "/(.*)",
-      "dest": "/public-homepage/index.html"
+      "continue": true,
+      "headers": {
+        "cache-control": "public, max-age=0, must-revalidate"
+      }
     }
   ]
 } 
