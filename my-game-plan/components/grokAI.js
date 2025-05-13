@@ -34,7 +34,7 @@ class GrokAI {
       const generateGamePlan = this._functions.httpsCallable('generateGamePlan');
       
       const response = await generateGamePlan({
-        projectDescription,
+          projectDescription, 
         topic,
         challenge,
         projectType,
