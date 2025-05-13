@@ -24,19 +24,20 @@
   ],
   "routes": [
     {
+      "handle": "filesystem"
+    },
+    {
       "src": "/assets/(.*)",
       "dest": "/homepage-static/assets/$1"
     },
     {
-      "src": "/",
+      "src": "^/$",
       "dest": "/homepage-static/index.html"
     },
     {
-      "src": "/(.*)",
-      "continue": true,
-      "headers": {
-        "cache-control": "public, max-age=0, must-revalidate"
-      }
+      "src": "^/((?!my-game-plan\\.html|ai-tools\\.html|account\\.html|games\\.html|premium\\.html|learning-paths\\.html|login\\.html|my-games\\.html).*)",
+      "headers": { "cache-control": "public, max-age=0, must-revalidate" },
+      "continue": true
     }
   ]
 } 
