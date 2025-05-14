@@ -269,7 +269,6 @@ const GamePlanCreator = () => {
     // Simulate API call
     setTimeout(() => {
       setIsGenerating(false);
-      // Potentially navigate to a results page or show results here
       console.log("Generated plan for: ", inputValue);
       // setInputValue(''); // Optionally clear input after generation
     }, 3000);
@@ -278,24 +277,60 @@ const GamePlanCreator = () => {
   return (
     <motion.div 
       className="w-full max-w-3xl mx-auto relative z-30" // Ensure it's above hero overlays
-      initial={{ opacity: 0, y: 50 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.8, delay: 1.2, ease: "circOut" }} // Synced with hero text appearance
+      initial={{ opacity: 0, y: 80, scale: 0.95 }} // Start further down and slightly smaller
+      animate={{
+        opacity: 1, 
+        y: 0, 
+        scale: 1,
+        // Subtle continuous bobbing animation
+      }}
+      transition={{ 
+        opacity: { duration: 0.8, delay: 1.2, ease: "circOut" },
+        y: { duration: 0.8, delay: 1.2, ease: "circOut" },
+        scale: { duration: 0.8, delay: 1.2, ease: "circOut" },
+      }}
     >
-      <div className={`relative bg-black/30 backdrop-blur-xl border ${isFocused ? 'border-purple-500' : 'border-purple-800/70'} rounded-2xl shadow-2xl transition-all duration-300`}>
+      <motion.div
+        animate={{ y: ["0%", "-1.5%", "0%"] }} // Subtle bobbing effect
+        transition={{
+          duration: 4,
+          repeat: Infinity,
+          repeatType: "mirror",
+          ease: "easeInOut",
+        }}
+        className={`relative bg-black/40 backdrop-blur-xl border ${isFocused ? 'border-purple-400 shadow-purple-500/40' : 'border-purple-700/60 shadow-indigo-500/30'} rounded-2xl shadow-2xl transition-all duration-400`}
+      >
         {/* Glowing effect when focused */}
         {isFocused && (
           <motion.div 
-            className="absolute -inset-0.5 rounded-2xl bg-gradient-to-r from-purple-600 via-pink-500 to-purple-600 opacity-75 blur-md animate-pulse-slow z-0"
+            className="absolute -inset-1 rounded-[17px] bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 opacity-100 blur-lg z-0"
             initial={{ opacity: 0 }}
-            animate={{ opacity: 0.75 }}
-            transition={{ duration: 0.5 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.4 }}
           />
         )}
+         {/* Additional subtle shine/glint animation */}
+        <motion.div
+          className="absolute top-0 left-0 h-full w-1/2 z-10 opacity-30"
+          style={{
+            background: 'linear-gradient(to right, rgba(255,255,255,0.15), transparent)',
+          }}
+          animate={{
+            x: ["-100%", "150%"],
+            opacity: [0, 0.3, 0]
+          }}
+          transition={{
+            duration: 3.5,
+            repeat: Infinity,
+            delay: 2, // Stagger the glint
+            ease: "linear"
+          }}
+        />
 
-        <div className="relative p-1.5 z-10">
+        <div className="relative p-1.5 z-20"> {/* Increased z-index */}
           <textarea
-            className="w-full min-h-[80px] md:min-h-[100px] p-4 sm:p-6 bg-transparent text-lg sm:text-xl text-purple-100 placeholder-purple-300/70 resize-none focus:outline-none transition-all duration-300 rounded-t-xl"
+            className="w-full min-h-[90px] md:min-h-[110px] p-5 sm:p-7 bg-transparent text-lg sm:text-xl text-purple-100 placeholder-purple-300/60 resize-none focus:outline-none transition-all duration-300 rounded-t-xl"
             placeholder="Describe your AI vision... What challenges can we solve?"
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
@@ -304,18 +339,18 @@ const GamePlanCreator = () => {
             rows={3}
             disabled={isGenerating}
           />
-          <div className="flex flex-col sm:flex-row items-center justify-between p-3 sm:p-4 bg-black/20 rounded-b-xl border-t border-purple-800/50">
-            <p className="text-xs text-purple-300/80 mb-2 sm:mb-0">
+          <div className="flex flex-col sm:flex-row items-center justify-between p-4 sm:p-5 bg-black/30 rounded-b-xl border-t border-purple-700/40">
+            <p className="text-xs text-purple-300/70 mb-2 sm:mb-0">
               AI-Powered Strategic Blueprint Generation
             </p>
             <motion.button
               onClick={handleGenerate}
               disabled={isGenerating || !inputValue.trim()}
-              className={`px-6 py-3 rounded-lg font-semibold text-white transition-all duration-300 flex items-center justify-center
-                ${isGenerating || !inputValue.trim() ? 'bg-purple-700/50 cursor-not-allowed' : 'bg-gradient-to-r from-purple-600 via-pink-500 to-red-500 hover:from-purple-700 hover:via-pink-600 hover:to-red-600 shadow-lg hover:shadow-pink-500/40'}
+              className={`px-7 py-3.5 rounded-lg font-semibold text-white transition-all duration-300 flex items-center justify-center
+                ${isGenerating || !inputValue.trim() ? 'bg-purple-600/40 cursor-not-allowed' : 'bg-gradient-to-r from-purple-600 via-pink-500 to-red-500 hover:from-purple-700 hover:via-pink-600 hover:to-red-600 shadow-xl hover:shadow-pink-500/50'}
               `}
-              whileHover={{ scale: (isGenerating || !inputValue.trim()) ? 1 : 1.05 }}
-              whileTap={{ scale: (isGenerating || !inputValue.trim()) ? 1 : 0.98 }}
+              whileHover={{ scale: (isGenerating || !inputValue.trim()) ? 1 : 1.08, y: (isGenerating || !inputValue.trim())? 0: -2 }}
+              whileTap={{ scale: (isGenerating || !inputValue.trim()) ? 1 : 0.97 }}
             >
               {isGenerating ? (
                 <>
@@ -336,11 +371,16 @@ const GamePlanCreator = () => {
             </motion.button>
           </div>
         </div>
-      </div>
+      </motion.div>
       {isGenerating && (
-        <div className="mt-4 text-center">
-            <p className="text-purple-300 text-sm animate-pulse">Our AI is crafting your strategic document...</p>
-        </div>
+        <motion.div 
+            className="mt-6 text-center"
+            initial={{opacity: 0, y: 10}}
+            animate={{opacity: 1, y: 0}}
+            transition={{duration: 0.5}}
+        >
+            <p className="text-purple-200 text-sm animate-pulse-fast">Our AI is crafting your strategic document...</p>
+        </motion.div>
       )}
     </motion.div>
   );

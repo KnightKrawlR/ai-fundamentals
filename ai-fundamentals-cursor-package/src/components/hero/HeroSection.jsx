@@ -67,18 +67,8 @@ const HeroSection = () => {
           Describe your vision. We generate the A<span className="opacity-0">I</span>I blueprint. Experience the future of AI-driven strategy, tailored to your enterprise.
         </motion.p>
         
-        {/* Placeholder for the new chat input - will be part of GamePlanCreator */}
-        {/* This section will be replaced by the actual chat input later */}
-        <motion.div 
-          className="w-full max-w-2xl mt-8 p-1 bg-white/5 rounded-xl shadow-2xl border border-purple-500/30 backdrop-blur-sm"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 1.5, ease: "easeOut" }}
-        >
-            <div className="h-20 w-full flex items-center justify-center">
-                <p className="text-purple-300 text-lg italic">[Futuristic Chat Interface Coming Soon]</p>
-            </div>
-        </motion.div>
+        {/* The GamePlanCreator component (chat interface) will be rendered here by Home.jsx */}
+        {/* No placeholder needed anymore */}
 
       </motion.div>
     </section>
