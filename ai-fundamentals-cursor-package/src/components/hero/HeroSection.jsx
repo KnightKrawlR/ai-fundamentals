@@ -4,7 +4,7 @@ import ParticleBackground from '../animations/ParticleBackground';
 
 const HeroSection = () => {
   return (
-    <section className="relative min-h-screen h-screen w-full flex items-center justify-center bg-gradient-to-br from-purple-900 via-indigo-900 to-black text-white overflow-hidden p-4">
+    <section className="relative min-h-[70vh] h-[70vh] w-full flex items-start justify-center bg-gradient-to-br from-purple-900 via-indigo-900 to-black text-white overflow-hidden p-4 pt-20 sm:pt-24 md:pt-32">
       {/* Advanced Particle Background - more dynamic */}
       <ParticleBackground 
         color="#8A2BE2" // Brighter purple for particles
@@ -38,9 +38,9 @@ const HeroSection = () => {
         }}
       />
       
-      {/* Content Container - Centered with high-impact text */}
+      {/* Content Container - Centered with high-impact text, pushed higher */}
       <motion.div 
-        className="relative z-20 flex flex-col items-center justify-start text-center max-w-4xl mx-auto pt-20 sm:pt-24 md:pt-28"
+        className="relative z-20 flex flex-col items-center justify-start text-center max-w-4xl mx-auto" // justify-start to push content up
         initial={{ opacity: 0, scale: 0.8 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 1, delay: 0.5, ease: "circOut" }}
@@ -59,7 +59,7 @@ const HeroSection = () => {
         </motion.h1>
         
         <motion.p 
-          className="text-lg sm:text-xl md:text-2xl mb-8 sm:mb-10 text-purple-200/90 max-w-2xl leading-relaxed"
+          className="text-lg sm:text-xl md:text-2xl mb-10 sm:mb-12 text-purple-200/90 max-w-2xl leading-relaxed"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 1, ease: "easeOut" }}
@@ -67,7 +67,8 @@ const HeroSection = () => {
           Describe your vision. We generate the A<span className="opacity-0">I</span>I blueprint. Experience the future of AI-driven strategy, tailored to your enterprise.
         </motion.p>
         
-        {/* The GamePlanCreator component (chat interface) will be rendered via absolute positioning in Home.jsx */}
+        {/* The GamePlanCreator component (chat interface) will be rendered here by Home.jsx */}
+        {/* No placeholder needed anymore */}
 
       </motion.div>
     </section>
