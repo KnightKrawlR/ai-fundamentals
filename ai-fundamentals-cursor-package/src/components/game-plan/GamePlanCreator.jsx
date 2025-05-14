@@ -11,7 +11,7 @@ const RobotCharacter = () => {
   
   // For scroll tracking
   const { scrollY } = useScroll();
-  const eyeYPosition = useTransform(scrollY, [0, 1000], [0, 15]);
+  const eyeYPosition = useTransform(scrollY, [0, 500, 1000], [0, 20, 40]);
   
   useEffect(() => {
     const handleMouseMove = (e) => {
@@ -37,18 +37,18 @@ const RobotCharacter = () => {
     };
   }, []);
   
-  // Calculate eye movements
+  // Calculate eye movements with more dramatic range
   const calculateEyePosition = () => {
     const centerX = windowDimensions.width / 2;
     const centerY = windowDimensions.height / 2;
     
-    // Limit the eye movement range
-    const maxMovement = 7;
+    // Increased movement range for more dramatic effect
+    const maxMovement = 15;
     
-    // Calculate x direction (left-right)
-    let xOffset = ((mousePosition.x - centerX) / centerX) * maxMovement;
-    // Calculate y direction (up-down) - combine with scroll position
-    let yOffset = ((mousePosition.y - centerY) / centerY) * maxMovement;
+    // Calculate x direction (left-right) with increased sensitivity
+    let xOffset = ((mousePosition.x - centerX) / centerX) * maxMovement * 1.5;
+    // Calculate y direction (up-down) with increased sensitivity
+    let yOffset = ((mousePosition.y - centerY) / centerY) * maxMovement * 1.5;
     
     // Clamp values
     xOffset = Math.min(Math.max(xOffset, -maxMovement), maxMovement);
@@ -64,79 +64,129 @@ const RobotCharacter = () => {
   
   return (
     <div className="mx-auto w-full max-w-xs md:max-w-sm relative">
-      {/* Robot Head */}
+      {/* Robot Head - skinnier and more chrome-like with reflective gradient */}
       <motion.div 
-        className="relative bg-gradient-to-b from-slate-200 to-slate-300 rounded-3xl p-6 shadow-lg border-4 border-slate-400"
+        className="relative w-4/5 mx-auto bg-gradient-to-b from-slate-100 via-slate-300 to-slate-200 rounded-2xl p-6 shadow-xl border-t-4 border-l-4 border-r-4 border-b-2 border-slate-100/80 overflow-hidden"
         initial={{ y: 20 }}
         animate={{ y: [0, -5, 0] }}
         transition={{ duration: 4, repeat: Infinity, repeatType: "reverse" }}
+        style={{
+          backgroundImage: "linear-gradient(135deg, rgba(255,255,255,0.8) 0%, rgba(192,202,222,1) 50%, rgba(130,138,158,1) 100%)"
+        }}
       >
+        {/* Reflective highlights */}
+        <div className="absolute inset-0 bg-gradient-to-br from-white/50 via-transparent to-transparent rounded-2xl opacity-80"></div>
+        <div className="absolute top-0 right-0 w-20 h-8 bg-white/40 blur-sm rounded-full transform rotate-45 translate-x-5 -translate-y-1"></div>
+        <div className="absolute bottom-10 left-5 w-10 h-4 bg-white/30 blur-sm rounded-full"></div>
+        
         {/* Antenna */}
         <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-12 flex flex-col items-center">
-          <div className="w-1.5 h-8 bg-slate-400 rounded-full"></div>
-          <div className="w-4 h-4 rounded-full bg-red-500 animate-pulse"></div>
+          <div className="w-1 h-10 bg-gradient-to-b from-slate-300 to-slate-400 rounded-full"></div>
+          <motion.div 
+            className="w-4 h-4 rounded-full bg-red-500 shadow-xl"
+            animate={{ 
+              boxShadow: ['0 0 5px 2px rgba(239, 68, 68, 0.5)', '0 0 15px 5px rgba(239, 68, 68, 0.8)', '0 0 5px 2px rgba(239, 68, 68, 0.5)'] 
+            }}
+            transition={{ duration: 2, repeat: Infinity }}
+          />
         </div>
         
         {/* Face Elements */}
-        <div className="flex flex-col items-center">
-          {/* Eyes Container */}
-          <div className="flex justify-center space-x-8 mb-6">
-            {/* Left Eye */}
-            <div className="relative w-12 h-12 bg-slate-800 rounded-full flex items-center justify-center">
+        <div className="flex flex-col items-center relative z-10">
+          {/* Eyes Container - Spaced wider apart */}
+          <div className="flex justify-center space-x-12 mb-6">
+            {/* Left Eye - Larger and more dramatic */}
+            <div className="relative w-10 h-10 bg-slate-800 rounded-full flex items-center justify-center overflow-hidden shadow-inner border border-slate-700">
               <motion.div 
-                className="absolute w-7 h-7 bg-blue-400 rounded-full flex items-center justify-center"
+                className="absolute w-6 h-6 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center"
                 style={{ 
-                  x: eyePosition.x,
-                  y: useTransform(scrollY, [0, 500, 1000], [eyePosition.y, eyePosition.y + 5, eyePosition.y + 10])
+                  x: useTransform(
+                    () => eyePosition.x, 
+                    value => value * 1.5 // Amplify the movement
+                  ),
+                  y: useTransform(
+                    scrollY, 
+                    [0, 300, 600, 1000], 
+                    [eyePosition.y, eyePosition.y + 10, eyePosition.y - 10, eyePosition.y + 20]
+                  )
                 }}
+                animate={{
+                  boxShadow: ['0 0 5px 2px rgba(96, 165, 250, 0.5)', '0 0 10px 2px rgba(96, 165, 250, 0.7)', '0 0 5px 2px rgba(96, 165, 250, 0.5)']
+                }}
+                transition={{ duration: 3, repeat: Infinity }}
               >
-                <div className="w-3 h-3 bg-blue-700 rounded-full"></div>
+                <div className="w-3 h-3 bg-blue-800 rounded-full"></div>
               </motion.div>
+              
+              {/* Eye highlight */}
+              <div className="absolute top-1 right-2 w-2 h-2 bg-white/70 rounded-full"></div>
             </div>
             
-            {/* Right Eye */}
-            <div className="relative w-12 h-12 bg-slate-800 rounded-full flex items-center justify-center">
+            {/* Right Eye - Larger and more dramatic */}
+            <div className="relative w-10 h-10 bg-slate-800 rounded-full flex items-center justify-center overflow-hidden shadow-inner border border-slate-700">
               <motion.div 
-                className="absolute w-7 h-7 bg-blue-400 rounded-full flex items-center justify-center"
+                className="absolute w-6 h-6 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center"
                 style={{ 
-                  x: eyePosition.x,
-                  y: useTransform(scrollY, [0, 500, 1000], [eyePosition.y, eyePosition.y + 5, eyePosition.y + 10])
+                  x: useTransform(
+                    () => eyePosition.x, 
+                    value => value * 1.5 // Amplify the movement
+                  ),
+                  y: useTransform(
+                    scrollY, 
+                    [0, 300, 600, 1000], 
+                    [eyePosition.y, eyePosition.y + 10, eyePosition.y - 10, eyePosition.y + 20]
+                  )
                 }}
+                animate={{
+                  boxShadow: ['0 0 5px 2px rgba(96, 165, 250, 0.5)', '0 0 10px 2px rgba(96, 165, 250, 0.7)', '0 0 5px 2px rgba(96, 165, 250, 0.5)']
+                }}
+                transition={{ duration: 3, repeat: Infinity }}
               >
-                <div className="w-3 h-3 bg-blue-700 rounded-full"></div>
+                <div className="w-3 h-3 bg-blue-800 rounded-full"></div>
               </motion.div>
+              
+              {/* Eye highlight */}
+              <div className="absolute top-1 right-2 w-2 h-2 bg-white/70 rounded-full"></div>
             </div>
           </div>
           
-          {/* Mouth */}
+          {/* Mouth - slimmer and more modern */}
           <motion.div 
-            className="w-20 h-2 bg-slate-700 rounded-full mb-3"
-            initial={{ width: 60 }}
-            animate={{ width: [60, 80, 60] }}
+            className="w-16 h-1 bg-gradient-to-r from-slate-600 via-slate-800 to-slate-600 rounded-full mb-3"
+            initial={{ width: 40 }}
+            animate={{ width: [40, 60, 40] }}
             transition={{ duration: 5, repeat: Infinity, repeatType: "reverse" }}
           />
           
           {/* Speech Bubble */}
           <motion.div 
-            className="relative mt-4 px-6 py-4 bg-purple-100 rounded-xl border border-purple-300 shadow-md"
+            className="relative mt-4 px-6 py-4 bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl border border-purple-200 shadow-lg"
             initial={{ scale: 0.95, opacity: 0.8 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: 2, repeat: Infinity, repeatType: "reverse" }}
           >
-            <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 w-4 h-4 bg-purple-100 border-l border-t border-purple-300 rotate-45"></div>
+            <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 w-4 h-4 bg-purple-50 border-l border-t border-purple-200 rotate-45"></div>
             <p className="text-center text-purple-800 font-medium">
               What would you like to build today?
             </p>
           </motion.div>
         </div>
         
-        {/* Robot Details */}
-        <div className="absolute bottom-3 right-3 w-6 h-6 rounded-full bg-slate-500 flex items-center justify-center">
-          <div className="w-4 h-4 rounded-full bg-green-400 animate-pulse"></div>
-        </div>
-        <div className="absolute bottom-3 left-3 w-6 h-6 rounded-full bg-slate-500 flex items-center justify-center">
-          <div className="w-4 h-4 rounded-full bg-green-400 animate-pulse"></div>
-        </div>
+        {/* Robot Details - Glowing indicators */}
+        <motion.div 
+          className="absolute bottom-3 right-3 w-5 h-5 rounded-full bg-gradient-to-r from-slate-400 to-slate-500 flex items-center justify-center"
+          animate={{ boxShadow: ['0 0 2px 1px rgba(74, 222, 128, 0.2)', '0 0 6px 3px rgba(74, 222, 128, 0.4)', '0 0 2px 1px rgba(74, 222, 128, 0.2)'] }}
+          transition={{ duration: 2, repeat: Infinity }}
+        >
+          <div className="w-3 h-3 rounded-full bg-green-400"></div>
+        </motion.div>
+        <motion.div 
+          className="absolute bottom-3 left-3 w-5 h-5 rounded-full bg-gradient-to-r from-slate-400 to-slate-500 flex items-center justify-center"
+          animate={{ boxShadow: ['0 0 2px 1px rgba(74, 222, 128, 0.2)', '0 0 6px 3px rgba(74, 222, 128, 0.4)', '0 0 2px 1px rgba(74, 222, 128, 0.2)'] }}
+          transition={{ duration: 2, repeat: Infinity, delay: 0.5 }}
+        >
+          <div className="w-3 h-3 rounded-full bg-green-400"></div>
+        </motion.div>
       </motion.div>
     </div>
   );
