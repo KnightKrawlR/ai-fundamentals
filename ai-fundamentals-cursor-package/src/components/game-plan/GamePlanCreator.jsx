@@ -1,98 +1,201 @@
-import React from 'react';
-import { motion } from 'framer-motion';
+import React, { useState, useEffect } from 'react';
+import { motion, useScroll, useTransform } from 'framer-motion';
 import HoverEffect from '../animations/HoverEffect';
+
+const RobotCharacter = () => {
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const [windowDimensions, setWindowDimensions] = useState({ 
+    width: typeof window !== 'undefined' ? window.innerWidth : 0, 
+    height: typeof window !== 'undefined' ? window.innerHeight : 0 
+  });
+  
+  // For scroll tracking
+  const { scrollY } = useScroll();
+  const eyeYPosition = useTransform(scrollY, [0, 1000], [0, 15]);
+  
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      setMousePosition({
+        x: e.clientX,
+        y: e.clientY
+      });
+    };
+    
+    const handleResize = () => {
+      setWindowDimensions({
+        width: window.innerWidth,
+        height: window.innerHeight
+      });
+    };
+    
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('resize', handleResize);
+    
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
+  
+  // Calculate eye movements
+  const calculateEyePosition = () => {
+    const centerX = windowDimensions.width / 2;
+    const centerY = windowDimensions.height / 2;
+    
+    // Limit the eye movement range
+    const maxMovement = 7;
+    
+    // Calculate x direction (left-right)
+    let xOffset = ((mousePosition.x - centerX) / centerX) * maxMovement;
+    // Calculate y direction (up-down) - combine with scroll position
+    let yOffset = ((mousePosition.y - centerY) / centerY) * maxMovement;
+    
+    // Clamp values
+    xOffset = Math.min(Math.max(xOffset, -maxMovement), maxMovement);
+    yOffset = Math.min(Math.max(yOffset, -maxMovement), maxMovement);
+    
+    return {
+      x: xOffset,
+      y: yOffset
+    };
+  };
+  
+  const eyePosition = calculateEyePosition();
+  
+  return (
+    <div className="mx-auto w-full max-w-xs md:max-w-sm relative">
+      {/* Robot Head */}
+      <motion.div 
+        className="relative bg-gradient-to-b from-slate-200 to-slate-300 rounded-3xl p-6 shadow-lg border-4 border-slate-400"
+        initial={{ y: 20 }}
+        animate={{ y: [0, -5, 0] }}
+        transition={{ duration: 4, repeat: Infinity, repeatType: "reverse" }}
+      >
+        {/* Antenna */}
+        <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-12 flex flex-col items-center">
+          <div className="w-1.5 h-8 bg-slate-400 rounded-full"></div>
+          <div className="w-4 h-4 rounded-full bg-red-500 animate-pulse"></div>
+        </div>
+        
+        {/* Face Elements */}
+        <div className="flex flex-col items-center">
+          {/* Eyes Container */}
+          <div className="flex justify-center space-x-8 mb-6">
+            {/* Left Eye */}
+            <div className="relative w-12 h-12 bg-slate-800 rounded-full flex items-center justify-center">
+              <motion.div 
+                className="absolute w-7 h-7 bg-blue-400 rounded-full flex items-center justify-center"
+                style={{ 
+                  x: eyePosition.x,
+                  y: useTransform(scrollY, [0, 500, 1000], [eyePosition.y, eyePosition.y + 5, eyePosition.y + 10])
+                }}
+              >
+                <div className="w-3 h-3 bg-blue-700 rounded-full"></div>
+              </motion.div>
+            </div>
+            
+            {/* Right Eye */}
+            <div className="relative w-12 h-12 bg-slate-800 rounded-full flex items-center justify-center">
+              <motion.div 
+                className="absolute w-7 h-7 bg-blue-400 rounded-full flex items-center justify-center"
+                style={{ 
+                  x: eyePosition.x,
+                  y: useTransform(scrollY, [0, 500, 1000], [eyePosition.y, eyePosition.y + 5, eyePosition.y + 10])
+                }}
+              >
+                <div className="w-3 h-3 bg-blue-700 rounded-full"></div>
+              </motion.div>
+            </div>
+          </div>
+          
+          {/* Mouth */}
+          <motion.div 
+            className="w-20 h-2 bg-slate-700 rounded-full mb-3"
+            initial={{ width: 60 }}
+            animate={{ width: [60, 80, 60] }}
+            transition={{ duration: 5, repeat: Infinity, repeatType: "reverse" }}
+          />
+          
+          {/* Speech Bubble */}
+          <motion.div 
+            className="relative mt-4 px-6 py-4 bg-purple-100 rounded-xl border border-purple-300 shadow-md"
+            initial={{ scale: 0.95, opacity: 0.8 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ duration: 2, repeat: Infinity, repeatType: "reverse" }}
+          >
+            <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 w-4 h-4 bg-purple-100 border-l border-t border-purple-300 rotate-45"></div>
+            <p className="text-center text-purple-800 font-medium">
+              What would you like to build today?
+            </p>
+          </motion.div>
+        </div>
+        
+        {/* Robot Details */}
+        <div className="absolute bottom-3 right-3 w-6 h-6 rounded-full bg-slate-500 flex items-center justify-center">
+          <div className="w-4 h-4 rounded-full bg-green-400 animate-pulse"></div>
+        </div>
+        <div className="absolute bottom-3 left-3 w-6 h-6 rounded-full bg-slate-500 flex items-center justify-center">
+          <div className="w-4 h-4 rounded-full bg-green-400 animate-pulse"></div>
+        </div>
+      </motion.div>
+    </div>
+  );
+};
 
 const GamePlanCreator = () => {
   return (
-    <section className="py-16 bg-gradient-to-t from-white via-indigo-50 to-white relative overflow-hidden">
+    <section className="py-24 bg-gradient-to-t from-white via-indigo-50 to-white relative overflow-hidden">
       {/* Decorative elements */}
       <div className="absolute top-40 right-20 w-72 h-72 bg-indigo-200 opacity-20 rounded-full filter blur-[100px]"></div>
       <div className="absolute bottom-20 left-20 w-80 h-80 bg-purple-200 opacity-30 rounded-full filter blur-[120px]"></div>
       
-      <div className="container mx-auto px-4 relative z-10 max-w-7xl">
+      <div className="container mx-auto px-4 relative z-10">
         <motion.div 
-          className="max-w-4xl mx-auto text-center mb-10"
+          className="max-w-4xl mx-auto text-center mb-16"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
           viewport={{ once: true, margin: "-100px" }}
         >
-          <span className="inline-block py-1 px-3 rounded-full bg-indigo-100 text-indigo-800 text-sm font-medium mb-3">
+          <span className="inline-block py-1 px-3 rounded-full bg-indigo-100 text-indigo-800 text-sm font-medium mb-4">
             Personalized Plan
           </span>
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-purple-900 mb-4">
+          <h2 className="text-4xl md:text-5xl font-bold text-purple-900 mb-6">
             Start Your <span className="bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-700">AI Journey</span> Now
           </h2>
-          <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
             Create your personalized AI implementation game plan in just a few clicks
           </p>
         </motion.div>
 
-        <div className="grid md:grid-cols-2 gap-8 items-start">
-          <motion.div 
-            className="bg-white/80 backdrop-blur-md rounded-2xl shadow-2xl overflow-hidden border border-indigo-100 relative col-span-full md:col-span-1"
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-            viewport={{ once: true, margin: "-100px" }}
-            whileHover={{ y: -5 }}
-          >
-            {/* Subtle gradient accent */}
-            <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-purple-500 to-indigo-500"></div>
+        <motion.div 
+          className="max-w-3xl mx-auto bg-white/80 backdrop-blur-md rounded-2xl shadow-2xl overflow-hidden border border-indigo-100 relative"
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.2 }}
+          viewport={{ once: true, margin: "-100px" }}
+          whileHover={{ y: -5 }}
+        >
+          {/* Subtle gradient accent */}
+          <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-purple-500 to-indigo-500"></div>
+          
+          <div className="p-10">
+            {/* Robot character */}
+            <div className="mb-10">
+              <RobotCharacter />
+            </div>
             
-            <div className="p-6">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Topic</label>
-                  <HoverEffect scale={1.02}>
-                    <div className="relative">
-                      <select className="block w-full pl-3 pr-10 py-2.5 text-base border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 rounded-xl shadow-sm transition-all duration-300 hover:border-indigo-300">
-                        <option>Select a topic</option>
-                        <option>Machine Learning</option>
-                        <option>Natural Language Processing</option>
-                        <option>Computer Vision</option>
-                        <option>Generative AI</option>
-                      </select>
-                      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-purple-600">
-                        <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                          <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-                        </svg>
-                      </div>
-                    </div>
-                  </HoverEffect>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Challenge</label>
-                  <HoverEffect scale={1.02}>
-                    <div className="relative">
-                      <select className="block w-full pl-3 pr-10 py-2.5 text-base border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 rounded-xl shadow-sm transition-all duration-300 hover:border-indigo-300">
-                        <option>Select a challenge</option>
-                        <option>Data Analysis</option>
-                        <option>Automation</option>
-                        <option>Prediction</option>
-                        <option>Content Generation</option>
-                      </select>
-                      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-purple-600">
-                        <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                          <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-                        </svg>
-                      </div>
-                    </div>
-                  </HoverEffect>
-                </div>
-              </div>
-              
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Project Type</label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Topic</label>
                 <HoverEffect scale={1.02}>
                   <div className="relative">
-                    <select className="block w-full pl-3 pr-10 py-2.5 text-base border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 rounded-xl shadow-sm transition-all duration-300 hover:border-indigo-300">
-                      <option>Select a project type</option>
-                      <option>Proof of Concept</option>
-                      <option>Prototype</option>
-                      <option>Production System</option>
-                      <option>Research Project</option>
+                    <select className="block w-full pl-4 pr-10 py-3.5 text-base border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 rounded-xl shadow-sm transition-all duration-300 hover:border-indigo-300">
+                      <option>Select a topic</option>
+                      <option>Machine Learning</option>
+                      <option>Natural Language Processing</option>
+                      <option>Computer Vision</option>
+                      <option>Generative AI</option>
                     </select>
                     <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-purple-600">
                       <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -103,97 +206,113 @@ const GamePlanCreator = () => {
                 </HoverEffect>
               </div>
               
-              <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Additional Details (Optional)</label>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Challenge</label>
                 <HoverEffect scale={1.02}>
-                  <textarea 
-                    className="block w-full px-3 py-2.5 text-base border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 rounded-xl shadow-sm transition-all duration-300 hover:border-indigo-300"
-                    rows="3"
-                    placeholder="Provide any context, goals, or constraints for your project..."
-                  ></textarea>
+                  <div className="relative">
+                    <select className="block w-full pl-4 pr-10 py-3.5 text-base border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 rounded-xl shadow-sm transition-all duration-300 hover:border-indigo-300">
+                      <option>Select a challenge</option>
+                      <option>Data Analysis</option>
+                      <option>Automation</option>
+                      <option>Prediction</option>
+                      <option>Content Generation</option>
+                    </select>
+                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-purple-600">
+                      <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                  </div>
                 </HoverEffect>
               </div>
-              
-              <motion.div
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                transition={{ type: "spring", stiffness: 400, damping: 17 }}
+            </div>
+            
+            <div className="mb-8">
+              <label className="block text-sm font-medium text-gray-700 mb-2">Project Type</label>
+              <HoverEffect scale={1.02}>
+                <div className="relative">
+                  <select className="block w-full pl-4 pr-10 py-3.5 text-base border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 rounded-xl shadow-sm transition-all duration-300 hover:border-indigo-300">
+                    <option>Select a project type</option>
+                    <option>Proof of Concept</option>
+                    <option>Prototype</option>
+                    <option>Production System</option>
+                    <option>Research Project</option>
+                  </select>
+                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-purple-600">
+                    <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                </div>
+              </HoverEffect>
+            </div>
+            
+            <div className="mb-10">
+              <label className="block text-sm font-medium text-gray-700 mb-2">Additional Details (Optional)</label>
+              <HoverEffect scale={1.02}>
+                <textarea 
+                  className="block w-full px-4 py-3.5 text-base border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 rounded-xl shadow-sm transition-all duration-300 hover:border-indigo-300"
+                  rows="4"
+                  placeholder="Provide any context, goals, or constraints for your project..."
+                ></textarea>
+              </HoverEffect>
+            </div>
+            
+            <motion.div
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.98 }}
+              transition={{ type: "spring", stiffness: 400, damping: 17 }}
+            >
+              <button 
+                className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-semibold py-4 px-8 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
+                onClick={() => window.location.href = '/my-game-plan.html'}
               >
-                <button 
-                  className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-semibold py-3 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
-                  onClick={() => window.location.href = '/my-game-plan.html'}
-                >
-                  Generate Your AI Game Plan
-                </button>
-              </motion.div>
-              
-              <div className="mt-4 flex items-center justify-center space-x-2 text-xs text-gray-500">
-                <svg className="h-4 w-4 text-green-500" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                </svg>
-                <span>Your data remains private and secure</span>
-              </div>
+                Generate Your AI Game Plan
+              </button>
+            </motion.div>
+            
+            <div className="mt-6 flex items-center justify-center space-x-2 text-sm text-gray-500">
+              <svg className="h-5 w-5 text-green-500" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+              </svg>
+              <span>Your data remains private and secure</span>
             </div>
-          </motion.div>
-          
+          </div>
+        </motion.div>
+        
+        <div className="mt-16 text-center">
           <motion.div 
-            className="flex flex-col space-y-6 md:pl-8 col-span-full md:col-span-1"
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.3 }}
-            viewport={{ once: true, margin: "-100px" }}
+            className="flex flex-wrap justify-center gap-6"
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            transition={{ duration: 0.8, delay: 0.4 }}
+            viewport={{ once: true }}
           >
-            <h3 className="text-2xl font-bold text-purple-900 mb-2">What You'll Get</h3>
-            
-            <div className="bg-white/60 backdrop-blur-sm p-4 rounded-xl shadow-md">
-              <div className="flex items-start">
-                <div className="bg-indigo-100 rounded-full p-2 mr-3">
-                  <svg className="h-6 w-6 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                  </svg>
-                </div>
-                <div>
-                  <h4 className="font-semibold text-gray-800 mb-1">Custom Implementation Steps</h4>
-                  <p className="text-gray-600 text-sm">Step-by-step guidance tailored specifically to your project needs</p>
-                </div>
-              </div>
-            </div>
-            
-            <div className="bg-white/60 backdrop-blur-sm p-4 rounded-xl shadow-md">
-              <div className="flex items-start">
-                <div className="bg-indigo-100 rounded-full p-2 mr-3">
-                  <svg className="h-6 w-6 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                  </svg>
-                </div>
-                <div>
-                  <h4 className="font-semibold text-gray-800 mb-1">Detailed Resources</h4>
-                  <p className="text-gray-600 text-sm">Access to relevant documentation, tutorials, and learning materials</p>
-                </div>
-              </div>
-            </div>
-            
-            <div className="bg-white/60 backdrop-blur-sm p-4 rounded-xl shadow-md">
-              <div className="flex items-start">
-                <div className="bg-indigo-100 rounded-full p-2 mr-3">
-                  <svg className="h-6 w-6 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                  </svg>
-                </div>
-                <div>
-                  <h4 className="font-semibold text-gray-800 mb-1">Implementation Shortcuts</h4>
-                  <p className="text-gray-600 text-sm">Time-saving approaches, code snippets, and best practices</p>
-                </div>
-              </div>
-            </div>
-            
-            <div className="mt-2 flex justify-start">
-              <div className="inline-flex items-center bg-gradient-to-r from-purple-600/10 to-indigo-600/10 px-4 py-2 rounded-full">
-                <svg className="h-5 w-5 text-purple-600 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <div className="flex items-center bg-white/80 backdrop-blur-sm px-5 py-3 rounded-full shadow-sm">
+              <div className="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center mr-2">
+                <svg className="h-4 w-4 text-green-600" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                 </svg>
-                <span className="text-gray-700 text-sm font-medium">Ready in minutes</span>
               </div>
+              <span className="text-gray-600 text-sm">Custom Implementation Steps</span>
+            </div>
+            
+            <div className="flex items-center bg-white/80 backdrop-blur-sm px-5 py-3 rounded-full shadow-sm">
+              <div className="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center mr-2">
+                <svg className="h-4 w-4 text-green-600" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <span className="text-gray-600 text-sm">Detailed Resources</span>
+            </div>
+            
+            <div className="flex items-center bg-white/80 backdrop-blur-sm px-5 py-3 rounded-full shadow-sm">
+              <div className="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center mr-2">
+                <svg className="h-4 w-4 text-green-600" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <span className="text-gray-600 text-sm">Relevant Examples</span>
             </div>
           </motion.div>
         </div>
