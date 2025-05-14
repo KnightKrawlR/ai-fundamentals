@@ -4,7 +4,7 @@ import ParticleBackground from '../animations/ParticleBackground';
 
 const HeroSection = () => {
   return (
-    <section className="relative min-h-screen bg-gradient-to-b from-[#2D1B54] to-[#3D2866] text-white overflow-hidden w-screen flex items-start justify-center pt-16">
+    <section className="relative min-h-screen bg-gradient-to-b from-[#2D1B54] to-[#3D2866] text-white overflow-hidden w-screen flex items-start justify-center pt-24">
       {/* Animated background */}
       <ParticleBackground color="#8A7CB4" count={60} />
       
@@ -23,10 +23,12 @@ const HeroSection = () => {
             }}
           >
             <span className="bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-pink-400 to-purple-300">
-              Unlock AI Potential.
+              Develop An AI
             </span>
             <br />
-            Instantly.
+            <span className="bg-clip-text text-transparent bg-gradient-to-r from-purple-300 via-pink-300 to-purple-200">
+              GamePlan Instantly
+            </span>
           </motion.h1>
           
           {/* Removed subtitle paragraph */}
