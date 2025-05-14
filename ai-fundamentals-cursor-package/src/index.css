@@ -26,13 +26,13 @@ html, body {
   overflow-x: hidden;
   margin: 0;
   padding: 0;
-  background-color: #4B2E83;
+  background-color: #2D1B54;
 }
 
 body {
   font-family: "Inter", sans-serif;
   color: var(--color-text-dark);
-  background-color: #4B2E83;
+  background-color: #2D1B54;
   margin: 0;
   padding: 0;
   overflow-x: hidden;
@@ -40,7 +40,7 @@ body {
 
 #root {
   width: 100%;
-  background-color: #4B2E83;
+  background-color: #2D1B54;
   overflow-x: hidden;
 }
 

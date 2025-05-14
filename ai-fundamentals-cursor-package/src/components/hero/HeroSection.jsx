@@ -4,14 +4,14 @@ import ParticleBackground from '../animations/ParticleBackground';
 
 const HeroSection = () => {
   return (
-    <section className="relative min-h-screen bg-gradient-to-b from-purple-900 to-purple-800 text-white overflow-hidden w-screen">
+    <section className="relative min-h-screen bg-gradient-to-b from-[#2D1B54] to-[#3D2866] text-white overflow-hidden w-screen flex items-center justify-center">
       {/* Animated background */}
       <ParticleBackground color="#8A7CB4" count={60} />
       
       {/* Content container */}
-      <div className="w-screen px-0 py-12 md:py-20 relative z-10">
+      <div className="w-full flex justify-center items-center py-12 md:py-20 relative z-10">
         <motion.div 
-          className="relative z-20 flex flex-col items-center justify-center text-center max-w-4xl mx-auto"
+          className="relative z-20 flex flex-col items-center justify-center text-center max-w-4xl"
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 1, delay: 0.5, ease: "circOut" }}
