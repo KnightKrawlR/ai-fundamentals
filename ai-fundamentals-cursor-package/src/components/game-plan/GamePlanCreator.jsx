@@ -276,21 +276,22 @@ const GamePlanCreator = () => {
 
   return (
     <motion.div 
-      className="w-full max-w-3xl mx-auto relative z-30 mt-2 sm:mt-4" 
-      initial={{ opacity: 0, y: 50, scale: 0.95 }} 
+      className="w-full max-w-3xl mx-auto relative z-30" // Ensure it's above hero overlays
+      initial={{ opacity: 0, y: 80, scale: 0.95 }} // Start further down and slightly smaller
       animate={{
         opacity: 1, 
         y: 0, 
         scale: 1,
+        // Subtle continuous bobbing animation
       }}
       transition={{ 
-        opacity: { duration: 0.8, delay: 0.8, ease: "circOut" },
-        y: { duration: 0.8, delay: 0.8, ease: "circOut" },
-        scale: { duration: 0.8, delay: 0.8, ease: "circOut" },
+        opacity: { duration: 0.8, delay: 1.2, ease: "circOut" },
+        y: { duration: 0.8, delay: 1.2, ease: "circOut" },
+        scale: { duration: 0.8, delay: 1.2, ease: "circOut" },
       }}
     >
       <motion.div
-        animate={{ y: ["0%", "-1.5%", "0%"] }} 
+        animate={{ y: ["0%", "-1.5%", "0%"] }} // Subtle bobbing effect
         transition={{
           duration: 4,
           repeat: Infinity,
@@ -327,26 +328,25 @@ const GamePlanCreator = () => {
           }}
         />
 
-        <div className="relative p-1.5 z-20"> 
+        <div className="relative p-1.5 z-20"> {/* Increased z-index */}
           <textarea
-            className="w-full p-3 sm:p-4 bg-transparent text-base sm:text-lg text-purple-100 placeholder-purple-300/60 resize-none focus:outline-none transition-all duration-300 rounded-t-xl"
+            className="w-full min-h-[60px] md:min-h-[80px] p-4 sm:p-5 bg-transparent text-lg sm:text-xl text-purple-100 placeholder-purple-300/60 resize-none focus:outline-none transition-all duration-300 rounded-t-xl"
             placeholder="Describe your AI vision... What challenges can we solve?"
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             onFocus={() => setIsFocused(true)}
             onBlur={() => setIsFocused(false)}
-            rows={1}
+            rows={2}
             disabled={isGenerating}
-            style={{ minHeight: '50px' }}
           />
-          <div className="flex flex-col sm:flex-row items-center justify-between p-2 sm:p-3 bg-black/30 rounded-b-xl border-t border-purple-700/40">
+          <div className="flex flex-col sm:flex-row items-center justify-between p-3 sm:p-3 bg-black/30 rounded-b-xl border-t border-purple-700/40">
             <p className="text-xs text-purple-300/70 mb-2 sm:mb-0">
               AI-Powered Strategic Blueprint Generation
             </p>
             <motion.button
               onClick={handleGenerate}
               disabled={isGenerating || !inputValue.trim()}
-              className={`px-4 py-2 rounded-lg font-semibold text-white transition-all duration-300 flex items-center justify-center text-sm
+              className={`px-7 py-3.5 rounded-lg font-semibold text-white transition-all duration-300 flex items-center justify-center
                 ${isGenerating || !inputValue.trim() ? 'bg-purple-600/40 cursor-not-allowed' : 'bg-gradient-to-r from-purple-600 via-pink-500 to-red-500 hover:from-purple-700 hover:via-pink-600 hover:to-red-600 shadow-xl hover:shadow-pink-500/50'}
               `}
               whileHover={{ scale: (isGenerating || !inputValue.trim()) ? 1 : 1.08, y: (isGenerating || !inputValue.trim())? 0: -2 }}
@@ -354,16 +354,16 @@ const GamePlanCreator = () => {
             >
               {isGenerating ? (
                 <>
-                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                   </svg>
-                  Generating...
+                  Generating Blueprint...
                 </>
               ) : (
                 <>
-                  <span className="mr-1.5">Unleash AI</span>
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                  <span className="mr-2">Unleash AI</span>
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L9 9.414V13a1 1 0 102 0V9.414l1.293 1.293a1 1 0 001.414-1.414z" clipRule="evenodd" />
                   </svg>
                 </>
@@ -374,7 +374,7 @@ const GamePlanCreator = () => {
       </motion.div>
       {isGenerating && (
         <motion.div 
-            className="mt-4 text-center"
+            className="mt-6 text-center"
             initial={{opacity: 0, y: 10}}
             animate={{opacity: 1, y: 0}}
             transition={{duration: 0.5}}
