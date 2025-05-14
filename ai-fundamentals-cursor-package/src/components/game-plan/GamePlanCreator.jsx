@@ -256,122 +256,93 @@ const ChatInput = () => {
   );
 };
 
+// Main component for the Game Plan Creator Section / Chat Interface
 const GamePlanCreator = () => {
-  const [processingStep, setProcessingStep] = useState(2);
-  
-  // Simulate stepping through the process
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setProcessingStep(prev => prev < 5 ? prev + 1 : 1);
+  const [inputValue, setInputValue] = useState('');
+  const [isFocused, setIsFocused] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
+
+  // Simulate AI response and reset
+  const handleGenerate = () => {
+    if (!inputValue.trim()) return; // Don't generate if input is empty
+    setIsGenerating(true);
+    // Simulate API call
+    setTimeout(() => {
+      setIsGenerating(false);
+      // Potentially navigate to a results page or show results here
+      console.log("Generated plan for: ", inputValue);
+      // setInputValue(''); // Optionally clear input after generation
     }, 3000);
-    
-    return () => clearInterval(timer);
-  }, []);
+  };
 
   return (
-    <section className="py-24 bg-gradient-to-br from-purple-50 to-white relative overflow-hidden">
-      {/* Decorative elements */}
-      <div className="absolute top-40 right-20 w-72 h-72 bg-indigo-200 opacity-20 rounded-full filter blur-[100px]"></div>
-      <div className="absolute bottom-20 left-20 w-80 h-80 bg-purple-200 opacity-30 rounded-full filter blur-[120px]"></div>
-      
-      <div className="container mx-auto px-4 relative z-10">
-        <motion.div 
-          className="max-w-3xl mx-auto text-center mb-16"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          viewport={{ once: true, margin: "-100px" }}
-        >
-          <span className="inline-block py-1 px-3 rounded-full bg-purple-100 text-purple-800 text-sm font-medium mb-4">
-            All currencies, one app
-          </span>
-          <h2 className="text-4xl md:text-5xl font-bold text-purple-900 mb-6">
-            <span className="bg-clip-text text-transparent bg-gradient-to-r from-purple-800 to-indigo-600">Simple, fast &amp; safe</span>
-          </h2>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Connect with our AI to create your personalized implementation plan
-          </p>
-        </motion.div>
+    <motion.div 
+      className="w-full max-w-3xl mx-auto relative z-30" // Ensure it's above hero overlays
+      initial={{ opacity: 0, y: 50 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.8, delay: 1.2, ease: "circOut" }} // Synced with hero text appearance
+    >
+      <div className={`relative bg-black/30 backdrop-blur-xl border ${isFocused ? 'border-purple-500' : 'border-purple-800/70'} rounded-2xl shadow-2xl transition-all duration-300`}>
+        {/* Glowing effect when focused */}
+        {isFocused && (
+          <motion.div 
+            className="absolute -inset-0.5 rounded-2xl bg-gradient-to-r from-purple-600 via-pink-500 to-purple-600 opacity-75 blur-md animate-pulse-slow z-0"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 0.75 }}
+            transition={{ duration: 0.5 }}
+          />
+        )}
 
-        <div className="max-w-4xl mx-auto">
-          <div className="grid md:grid-cols-2 gap-8 items-center">
-            {/* Robot Character */}
-            <motion.div
-              initial={{ opacity: 0, x: -30 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8 }}
-              viewport={{ once: true }}
+        <div className="relative p-1.5 z-10">
+          <textarea
+            className="w-full min-h-[80px] md:min-h-[100px] p-4 sm:p-6 bg-transparent text-lg sm:text-xl text-purple-100 placeholder-purple-300/70 resize-none focus:outline-none transition-all duration-300 rounded-t-xl"
+            placeholder="Describe your AI vision... What challenges can we solve?"
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+            onFocus={() => setIsFocused(true)}
+            onBlur={() => setIsFocused(false)}
+            rows={3}
+            disabled={isGenerating}
+          />
+          <div className="flex flex-col sm:flex-row items-center justify-between p-3 sm:p-4 bg-black/20 rounded-b-xl border-t border-purple-800/50">
+            <p className="text-xs text-purple-300/80 mb-2 sm:mb-0">
+              AI-Powered Strategic Blueprint Generation
+            </p>
+            <motion.button
+              onClick={handleGenerate}
+              disabled={isGenerating || !inputValue.trim()}
+              className={`px-6 py-3 rounded-lg font-semibold text-white transition-all duration-300 flex items-center justify-center
+                ${isGenerating || !inputValue.trim() ? 'bg-purple-700/50 cursor-not-allowed' : 'bg-gradient-to-r from-purple-600 via-pink-500 to-red-500 hover:from-purple-700 hover:via-pink-600 hover:to-red-600 shadow-lg hover:shadow-pink-500/40'}
+              `}
+              whileHover={{ scale: (isGenerating || !inputValue.trim()) ? 1 : 1.05 }}
+              whileTap={{ scale: (isGenerating || !inputValue.trim()) ? 1 : 0.98 }}
             >
-              <RobotCharacter />
-              <ProcessingSteps currentStep={processingStep} />
-            </motion.div>
-            
-            {/* Chat Interface */}
-            <motion.div
-              className="bg-white p-6 rounded-2xl shadow-xl border border-gray-100"
-              initial={{ opacity: 0, x: 30 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
-              viewport={{ once: true }}
-              whileHover={{ y: -5 }}
-            >
-              <div className="mb-4">
-                <h3 className="text-xl font-bold text-gray-800 mb-2">Talk to our AI</h3>
-                <p className="text-gray-500 text-sm">Describe your AI implementation needs and get a personalized game plan.</p>
-              </div>
-              
-              <ChatInput />
-              
-              <div className="mt-4 flex items-center justify-center gap-2 text-xs text-gray-500">
-                <svg className="h-4 w-4 text-green-500" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                </svg>
-                <span>Your data remains private and secure</span>
-              </div>
-            </motion.div>
-          </div>
-        </div>
-        
-        {/* Features */}
-        <div className="max-w-5xl mx-auto mt-24">
-          <div className="grid md:grid-cols-3 gap-6">
-            {[
-              { 
-                icon: <svg className="w-6 h-6 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>,
-                title: "Fast Generation",
-                description: "Get your AI game plan in seconds, not hours"
-              },
-              { 
-                icon: <svg className="w-6 h-6 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>,
-                title: "Secure & Private",
-                description: "Your data and plans are never shared"
-              },
-              { 
-                icon: <svg className="w-6 h-6 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path></svg>,
-                title: "Personalized",
-                description: "Unique plans tailored to your specific needs"
-              }
-            ].map((feature, index) => (
-              <motion.div
-                key={index}
-                className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100"
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-                viewport={{ once: true }}
-                whileHover={{ y: -5, transition: { duration: 0.2 } }}
-              >
-                <div className="rounded-full bg-purple-100 w-12 h-12 flex items-center justify-center mb-4">
-                  {feature.icon}
-                </div>
-                <h3 className="text-xl font-bold text-gray-800 mb-2">{feature.title}</h3>
-                <p className="text-gray-500">{feature.description}</p>
-              </motion.div>
-            ))}
+              {isGenerating ? (
+                <>
+                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Generating Blueprint...
+                </>
+              ) : (
+                <>
+                  <span className="mr-2">Unleash AI</span>
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L9 9.414V13a1 1 0 102 0V9.414l1.293 1.293a1 1 0 001.414-1.414z" clipRule="evenodd" />
+                  </svg>
+                </>
+              )}
+            </motion.button>
           </div>
         </div>
       </div>
-    </section>
+      {isGenerating && (
+        <div className="mt-4 text-center">
+            <p className="text-purple-300 text-sm animate-pulse">Our AI is crafting your strategic document...</p>
+        </div>
+      )}
+    </motion.div>
   );
 };
 
