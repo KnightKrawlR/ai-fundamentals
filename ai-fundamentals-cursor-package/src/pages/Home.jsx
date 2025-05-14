@@ -14,13 +14,13 @@ const Home = () => {
     <div className="min-h-screen flex flex-col bg-black w-full overflow-x-hidden">
       <Navbar />
       
-      <main className="flex-grow relative flex flex-col">
+      <main className="flex-grow relative flex flex-col items-center">
         <TransitionEffect>
           <HeroSection />
         </TransitionEffect>
         
-        <div className="w-full flex justify-center px-4">
-          <div className="relative z-10 w-full" style={{ marginTop: '-5vh'}}>
+        <div className="w-full max-w-4xl mx-auto flex justify-center px-4">
+          <div className="relative z-10 w-full" style={{ marginTop: '-1vh'}}>
             <GamePlanCreator />
           </div>
         </div>

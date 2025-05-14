@@ -4,7 +4,7 @@ import ParticleBackground from '../animations/ParticleBackground';
 
 const HeroSection = () => {
   return (
-    <section className="relative min-h-[70vh] h-[70vh] w-full flex items-start justify-center bg-gradient-to-br from-purple-900 via-indigo-900 to-black text-white overflow-hidden p-4 pt-20 sm:pt-24 md:pt-32">
+    <section className="relative min-h-[65vh] h-[65vh] w-full max-w-[100vw] flex items-start justify-center bg-gradient-to-br from-purple-900 via-indigo-900 to-black text-white overflow-hidden p-4 pt-20 sm:pt-24 md:pt-28">
       {/* Advanced Particle Background - more dynamic */}
       <ParticleBackground 
         color="#8A2BE2" // Brighter purple for particles
@@ -40,13 +40,13 @@ const HeroSection = () => {
       
       {/* Content Container - Centered with high-impact text, pushed higher */}
       <motion.div 
-        className="relative z-20 flex flex-col items-center justify-start text-center max-w-4xl mx-auto" // justify-start to push content up
+        className="relative z-20 flex flex-col items-center justify-start text-center max-w-4xl mx-auto pt-4" 
         initial={{ opacity: 0, scale: 0.8 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 1, delay: 0.5, ease: "circOut" }}
       >
         <motion.h1 
-          className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-extrabold mb-6 sm:mb-8 tracking-tight"
+          className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-extrabold mb-4 sm:mb-6 tracking-tight"
           style={{
             textShadow: '0 0 15px rgba(196, 138, 247, 0.5), 0 0 30px rgba(196, 138, 247, 0.3)',
           }}
@@ -59,7 +59,7 @@ const HeroSection = () => {
         </motion.h1>
         
         <motion.p 
-          className="text-lg sm:text-xl md:text-2xl mb-10 sm:mb-12 text-purple-200/90 max-w-2xl leading-relaxed"
+          className="text-lg sm:text-xl md:text-2xl mb-8 sm:mb-10 text-purple-200/90 max-w-2xl leading-relaxed"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 1, ease: "easeOut" }}

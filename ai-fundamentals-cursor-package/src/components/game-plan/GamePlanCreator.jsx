@@ -276,21 +276,21 @@ const GamePlanCreator = () => {
 
   return (
     <motion.div 
-      className="w-full max-w-3xl mx-auto relative z-30" // Ensure it's above hero overlays
-      initial={{ opacity: 0, y: 80, scale: 0.95 }} // Start further down and slightly smaller
+      className="w-full max-w-3xl mx-auto relative z-30 mt-2 sm:mt-4" 
+      initial={{ opacity: 0, y: 50, scale: 0.95 }} 
       animate={{
         opacity: 1, 
         y: 0, 
         scale: 1,
       }}
       transition={{ 
-        opacity: { duration: 0.8, delay: 1.2, ease: "circOut" },
-        y: { duration: 0.8, delay: 1.2, ease: "circOut" },
-        scale: { duration: 0.8, delay: 1.2, ease: "circOut" },
+        opacity: { duration: 0.8, delay: 0.8, ease: "circOut" },
+        y: { duration: 0.8, delay: 0.8, ease: "circOut" },
+        scale: { duration: 0.8, delay: 0.8, ease: "circOut" },
       }}
     >
       <motion.div
-        animate={{ y: ["0%", "-1.5%", "0%"] }} // Subtle bobbing effect
+        animate={{ y: ["0%", "-1.5%", "0%"] }} 
         transition={{
           duration: 4,
           repeat: Infinity,
@@ -327,26 +327,26 @@ const GamePlanCreator = () => {
           }}
         />
 
-        <div className="relative p-1.5 z-20"> {/* Increased z-index */}
+        <div className="relative p-1.5 z-20"> 
           <textarea
-            className="w-full p-4 sm:p-5 bg-transparent text-base sm:text-lg text-purple-100 placeholder-purple-300/60 resize-none focus:outline-none transition-all duration-300 rounded-t-xl"
+            className="w-full p-3 sm:p-4 bg-transparent text-base sm:text-lg text-purple-100 placeholder-purple-300/60 resize-none focus:outline-none transition-all duration-300 rounded-t-xl"
             placeholder="Describe your AI vision... What challenges can we solve?"
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             onFocus={() => setIsFocused(true)}
             onBlur={() => setIsFocused(false)}
-            rows={2}
+            rows={1}
             disabled={isGenerating}
-            style={{ minHeight: '60px' }}
+            style={{ minHeight: '50px' }}
           />
-          <div className="flex flex-col sm:flex-row items-center justify-between p-3 sm:p-4 bg-black/30 rounded-b-xl border-t border-purple-700/40">
+          <div className="flex flex-col sm:flex-row items-center justify-between p-2 sm:p-3 bg-black/30 rounded-b-xl border-t border-purple-700/40">
             <p className="text-xs text-purple-300/70 mb-2 sm:mb-0">
               AI-Powered Strategic Blueprint Generation
             </p>
             <motion.button
               onClick={handleGenerate}
               disabled={isGenerating || !inputValue.trim()}
-              className={`px-6 py-2.5 rounded-lg font-semibold text-white transition-all duration-300 flex items-center justify-center text-sm sm:text-base
+              className={`px-4 py-2 rounded-lg font-semibold text-white transition-all duration-300 flex items-center justify-center text-sm
                 ${isGenerating || !inputValue.trim() ? 'bg-purple-600/40 cursor-not-allowed' : 'bg-gradient-to-r from-purple-600 via-pink-500 to-red-500 hover:from-purple-700 hover:via-pink-600 hover:to-red-600 shadow-xl hover:shadow-pink-500/50'}
               `}
               whileHover={{ scale: (isGenerating || !inputValue.trim()) ? 1 : 1.08, y: (isGenerating || !inputValue.trim())? 0: -2 }}
@@ -374,7 +374,7 @@ const GamePlanCreator = () => {
       </motion.div>
       {isGenerating && (
         <motion.div 
-            className="mt-6 text-center"
+            className="mt-4 text-center"
             initial={{opacity: 0, y: 10}}
             animate={{opacity: 1, y: 0}}
             transition={{duration: 0.5}}
