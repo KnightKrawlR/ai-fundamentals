@@ -11,7 +11,6 @@ const RobotCharacter = () => {
   
   // For scroll tracking
   const { scrollY } = useScroll();
-  const eyeYPosition = useTransform(scrollY, [0, 500, 1000], [0, 20, 40]);
   
   useEffect(() => {
     const handleMouseMove = (e) => {
@@ -37,22 +36,31 @@ const RobotCharacter = () => {
     };
   }, []);
   
-  // Calculate eye movements with more dramatic range
+  // Calculate eye movements with more dramatic range but still contained
   const calculateEyePosition = () => {
     const centerX = windowDimensions.width / 2;
     const centerY = windowDimensions.height / 2;
     
-    // Increased movement range for more dramatic effect
-    const maxMovement = 15;
+    // Increase the eye movement range for more dramatic effect
+    const maxMovement = 12; // Increased from 7
+    const containerRadius = 15; // Size of the eye socket
+    const pupilRadius = 8; // Size of the pupil
+    const maxAllowedDistance = containerRadius - pupilRadius; // Maximum distance to keep pupil inside
     
-    // Calculate x direction (left-right) with increased sensitivity
-    let xOffset = ((mousePosition.x - centerX) / centerX) * maxMovement * 1.5;
-    // Calculate y direction (up-down) with increased sensitivity
-    let yOffset = ((mousePosition.y - centerY) / centerY) * maxMovement * 1.5;
+    // Calculate x direction (left-right)
+    let xOffset = ((mousePosition.x - centerX) / centerX) * maxMovement;
+    // Calculate y direction (up-down)
+    let yOffset = ((mousePosition.y - centerY) / centerY) * maxMovement;
     
-    // Clamp values
-    xOffset = Math.min(Math.max(xOffset, -maxMovement), maxMovement);
-    yOffset = Math.min(Math.max(yOffset, -maxMovement), maxMovement);
+    // Calculate the distance from center
+    const distance = Math.sqrt(xOffset * xOffset + yOffset * yOffset);
+    
+    // If distance exceeds the maximum allowed, scale it down
+    if (distance > maxAllowedDistance) {
+      const scale = maxAllowedDistance / distance;
+      xOffset *= scale;
+      yOffset *= scale;
+    }
     
     return {
       x: xOffset,
@@ -62,131 +70,155 @@ const RobotCharacter = () => {
   
   const eyePosition = calculateEyePosition();
   
+  // Add scroll-based animation for extra dramatic effect
+  const scrollXOffset = useTransform(scrollY, [0, 300, 600, 900], [0, 5, -5, 0]);
+  const scrollYOffset = useTransform(scrollY, [0, 300, 600, 900], [0, 8, -3, 0]);
+  
   return (
-    <div className="mx-auto w-full max-w-xs md:max-w-sm relative">
-      {/* Robot Head - skinnier and more chrome-like with reflective gradient */}
+    <div className="mx-auto w-full max-w-md relative">
+      {/* Robot Head - with chrome styling */}
       <motion.div 
-        className="relative w-4/5 mx-auto bg-gradient-to-b from-slate-100 via-slate-300 to-slate-200 rounded-2xl p-6 shadow-xl border-t-4 border-l-4 border-r-4 border-b-2 border-slate-100/80 overflow-hidden"
-        initial={{ y: 20 }}
-        animate={{ y: [0, -5, 0] }}
-        transition={{ duration: 4, repeat: Infinity, repeatType: "reverse" }}
+        className="relative rounded-3xl p-8 shadow-xl overflow-hidden"
         style={{
-          backgroundImage: "linear-gradient(135deg, rgba(255,255,255,0.8) 0%, rgba(192,202,222,1) 50%, rgba(130,138,158,1) 100%)"
+          background: 'linear-gradient(135deg, #e2e8f0 0%, #a0aec0 100%)'
         }}
+        initial={{ y: 20 }}
+        animate={{ y: [0, -8, 0] }}
+        transition={{ duration: 4, repeat: Infinity, repeatType: "reverse" }}
       >
+        {/* Chrome effect overlay */}
+        <div className="absolute inset-0 bg-gradient-to-br from-white/60 via-transparent to-black/20 z-0"></div>
+        
+        {/* Shine effect */}
+        <motion.div 
+          className="absolute -inset-full h-[200%] w-[200%] z-0"
+          animate={{
+            background: [
+              'radial-gradient(circle at 30% 30%, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0) 25%)',
+              'radial-gradient(circle at 70% 70%, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0) 25%)'
+            ],
+          }}
+          transition={{ duration: 8, repeat: Infinity, repeatType: "mirror" }}
+        />
+        
         {/* Reflective highlights */}
-        <div className="absolute inset-0 bg-gradient-to-br from-white/50 via-transparent to-transparent rounded-2xl opacity-80"></div>
-        <div className="absolute top-0 right-0 w-20 h-8 bg-white/40 blur-sm rounded-full transform rotate-45 translate-x-5 -translate-y-1"></div>
-        <div className="absolute bottom-10 left-5 w-10 h-4 bg-white/30 blur-sm rounded-full"></div>
+        <div className="absolute top-0 left-0 right-0 h-1/3 bg-gradient-to-b from-white/30 to-transparent z-0"></div>
         
         {/* Antenna */}
-        <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-12 flex flex-col items-center">
-          <div className="w-1 h-10 bg-gradient-to-b from-slate-300 to-slate-400 rounded-full"></div>
-          <motion.div 
-            className="w-4 h-4 rounded-full bg-red-500 shadow-xl"
-            animate={{ 
-              boxShadow: ['0 0 5px 2px rgba(239, 68, 68, 0.5)', '0 0 15px 5px rgba(239, 68, 68, 0.8)', '0 0 5px 2px rgba(239, 68, 68, 0.5)'] 
-            }}
-            transition={{ duration: 2, repeat: Infinity }}
-          />
+        <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-16 flex flex-col items-center z-10">
+          <div className="w-2 h-10 bg-gradient-to-b from-slate-300 to-slate-500 rounded-full"></div>
+          <div className="w-5 h-5 rounded-full bg-red-500 animate-pulse shadow-lg shadow-red-500/50"></div>
         </div>
         
-        {/* Face Elements */}
+        {/* Face Elements - above the chrome effect */}
         <div className="flex flex-col items-center relative z-10">
-          {/* Eyes Container - Spaced wider apart */}
-          <div className="flex justify-center space-x-12 mb-6">
-            {/* Left Eye - Larger and more dramatic */}
-            <div className="relative w-10 h-10 bg-slate-800 rounded-full flex items-center justify-center overflow-hidden shadow-inner border border-slate-700">
+          {/* Eyes Container */}
+          <div className="flex justify-center space-x-10 mb-8">
+            {/* Left Eye */}
+            <div className="relative w-14 h-14 bg-gradient-to-br from-slate-800 to-slate-950 rounded-full flex items-center justify-center overflow-hidden shadow-inner shadow-black/50">
+              {/* Eye shine */}
+              <div className="absolute top-1 right-1 w-3 h-3 bg-white/40 rounded-full"></div>
+              
               <motion.div 
-                className="absolute w-6 h-6 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center"
+                className="absolute w-9 h-9 bg-gradient-to-br from-blue-300 to-blue-500 rounded-full flex items-center justify-center"
                 style={{ 
-                  x: useTransform(
-                    () => eyePosition.x, 
-                    value => value * 1.5 // Amplify the movement
-                  ),
-                  y: useTransform(
-                    scrollY, 
-                    [0, 300, 600, 1000], 
-                    [eyePosition.y, eyePosition.y + 10, eyePosition.y - 10, eyePosition.y + 20]
-                  )
+                  x: useTransform(() => eyePosition.x + scrollXOffset.get()),
+                  y: useTransform(() => eyePosition.y + scrollYOffset.get())
                 }}
                 animate={{
-                  boxShadow: ['0 0 5px 2px rgba(96, 165, 250, 0.5)', '0 0 10px 2px rgba(96, 165, 250, 0.7)', '0 0 5px 2px rgba(96, 165, 250, 0.5)']
+                  scale: [1, 1.05, 1],
                 }}
-                transition={{ duration: 3, repeat: Infinity }}
+                transition={{ duration: 2, repeat: Infinity }}
               >
-                <div className="w-3 h-3 bg-blue-800 rounded-full"></div>
+                <motion.div 
+                  className="w-4 h-4 bg-gradient-to-br from-blue-800 to-black rounded-full"
+                  animate={{
+                    scale: [1, 1.2, 1],
+                  }}
+                  transition={{ duration: 3, repeat: Infinity, repeatType: "reverse" }}
+                />
               </motion.div>
-              
-              {/* Eye highlight */}
-              <div className="absolute top-1 right-2 w-2 h-2 bg-white/70 rounded-full"></div>
             </div>
             
-            {/* Right Eye - Larger and more dramatic */}
-            <div className="relative w-10 h-10 bg-slate-800 rounded-full flex items-center justify-center overflow-hidden shadow-inner border border-slate-700">
+            {/* Right Eye */}
+            <div className="relative w-14 h-14 bg-gradient-to-br from-slate-800 to-slate-950 rounded-full flex items-center justify-center overflow-hidden shadow-inner shadow-black/50">
+              {/* Eye shine */}
+              <div className="absolute top-1 right-1 w-3 h-3 bg-white/40 rounded-full"></div>
+              
               <motion.div 
-                className="absolute w-6 h-6 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center"
+                className="absolute w-9 h-9 bg-gradient-to-br from-blue-300 to-blue-500 rounded-full flex items-center justify-center"
                 style={{ 
-                  x: useTransform(
-                    () => eyePosition.x, 
-                    value => value * 1.5 // Amplify the movement
-                  ),
-                  y: useTransform(
-                    scrollY, 
-                    [0, 300, 600, 1000], 
-                    [eyePosition.y, eyePosition.y + 10, eyePosition.y - 10, eyePosition.y + 20]
-                  )
+                  x: useTransform(() => eyePosition.x + scrollXOffset.get()),
+                  y: useTransform(() => eyePosition.y + scrollYOffset.get())
                 }}
                 animate={{
-                  boxShadow: ['0 0 5px 2px rgba(96, 165, 250, 0.5)', '0 0 10px 2px rgba(96, 165, 250, 0.7)', '0 0 5px 2px rgba(96, 165, 250, 0.5)']
+                  scale: [1, 1.05, 1],
                 }}
-                transition={{ duration: 3, repeat: Infinity }}
+                transition={{ duration: 2, repeat: Infinity }}
               >
-                <div className="w-3 h-3 bg-blue-800 rounded-full"></div>
+                <motion.div 
+                  className="w-4 h-4 bg-gradient-to-br from-blue-800 to-black rounded-full"
+                  animate={{
+                    scale: [1, 1.2, 1],
+                  }}
+                  transition={{ duration: 3, repeat: Infinity, repeatType: "reverse" }}
+                />
               </motion.div>
-              
-              {/* Eye highlight */}
-              <div className="absolute top-1 right-2 w-2 h-2 bg-white/70 rounded-full"></div>
             </div>
           </div>
           
-          {/* Mouth - slimmer and more modern */}
+          {/* Mouth */}
           <motion.div 
-            className="w-16 h-1 bg-gradient-to-r from-slate-600 via-slate-800 to-slate-600 rounded-full mb-3"
-            initial={{ width: 40 }}
-            animate={{ width: [40, 60, 40] }}
+            className="w-24 h-3 bg-gradient-to-r from-slate-700 via-slate-600 to-slate-700 rounded-full mb-3"
+            initial={{ width: 60 }}
+            animate={{ width: [60, 90, 60] }}
             transition={{ duration: 5, repeat: Infinity, repeatType: "reverse" }}
           />
-          
-          {/* Speech Bubble */}
-          <motion.div 
-            className="relative mt-4 px-6 py-4 bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl border border-purple-200 shadow-lg"
-            initial={{ scale: 0.95, opacity: 0.8 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 2, repeat: Infinity, repeatType: "reverse" }}
-          >
-            <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 w-4 h-4 bg-purple-50 border-l border-t border-purple-200 rotate-45"></div>
-            <p className="text-center text-purple-800 font-medium">
-              What would you like to build today?
-            </p>
-          </motion.div>
         </div>
         
-        {/* Robot Details - Glowing indicators */}
-        <motion.div 
-          className="absolute bottom-3 right-3 w-5 h-5 rounded-full bg-gradient-to-r from-slate-400 to-slate-500 flex items-center justify-center"
-          animate={{ boxShadow: ['0 0 2px 1px rgba(74, 222, 128, 0.2)', '0 0 6px 3px rgba(74, 222, 128, 0.4)', '0 0 2px 1px rgba(74, 222, 128, 0.2)'] }}
-          transition={{ duration: 2, repeat: Infinity }}
+        {/* Robot Details */}
+        <div className="absolute bottom-4 right-4 w-7 h-7 rounded-full bg-gradient-to-br from-slate-400 to-slate-600 flex items-center justify-center">
+          <div className="w-5 h-5 rounded-full bg-green-400 animate-pulse shadow-lg shadow-green-400/40"></div>
+        </div>
+        <div className="absolute bottom-4 left-4 w-7 h-7 rounded-full bg-gradient-to-br from-slate-400 to-slate-600 flex items-center justify-center">
+          <div className="w-5 h-5 rounded-full bg-green-400 animate-pulse shadow-lg shadow-green-400/40"></div>
+        </div>
+      </motion.div>
+    </div>
+  );
+};
+
+const ChatInput = () => {
+  const [inputText, setInputText] = useState('');
+  
+  return (
+    <div className="flex items-center gap-4">
+      <div className="flex-grow">
+        <HoverEffect scale={1.01}>
+          <textarea 
+            className="block w-full px-5 py-4 text-base border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 rounded-xl shadow-sm transition-all duration-300 hover:border-indigo-300 resize-none"
+            rows="3"
+            placeholder="What would you like to build today? Describe your AI project or challenge..."
+            value={inputText}
+            onChange={(e) => setInputText(e.target.value)}
+          ></textarea>
+        </HoverEffect>
+      </div>
+      
+      <motion.div
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+        transition={{ type: "spring", stiffness: 400, damping: 17 }}
+      >
+        <button 
+          className="h-full px-6 py-4 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 min-h-[80px] flex items-center justify-center"
+          onClick={() => window.location.href = '/my-game-plan.html'}
         >
-          <div className="w-3 h-3 rounded-full bg-green-400"></div>
-        </motion.div>
-        <motion.div 
-          className="absolute bottom-3 left-3 w-5 h-5 rounded-full bg-gradient-to-r from-slate-400 to-slate-500 flex items-center justify-center"
-          animate={{ boxShadow: ['0 0 2px 1px rgba(74, 222, 128, 0.2)', '0 0 6px 3px rgba(74, 222, 128, 0.4)', '0 0 2px 1px rgba(74, 222, 128, 0.2)'] }}
-          transition={{ duration: 2, repeat: Infinity, delay: 0.5 }}
-        >
-          <div className="w-3 h-3 rounded-full bg-green-400"></div>
-        </motion.div>
+          <span className="mr-2">Generate</span>
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+          </svg>
+        </button>
       </motion.div>
     </div>
   );
@@ -219,7 +251,7 @@ const GamePlanCreator = () => {
         </motion.div>
 
         <motion.div 
-          className="max-w-3xl mx-auto bg-white/80 backdrop-blur-md rounded-2xl shadow-2xl overflow-hidden border border-indigo-100 relative"
+          className="max-w-4xl mx-auto bg-white/80 backdrop-blur-md rounded-2xl shadow-2xl overflow-hidden border border-indigo-100 relative"
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.2 }}
@@ -235,91 +267,10 @@ const GamePlanCreator = () => {
               <RobotCharacter />
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Topic</label>
-                <HoverEffect scale={1.02}>
-                  <div className="relative">
-                    <select className="block w-full pl-4 pr-10 py-3.5 text-base border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 rounded-xl shadow-sm transition-all duration-300 hover:border-indigo-300">
-                      <option>Select a topic</option>
-                      <option>Machine Learning</option>
-                      <option>Natural Language Processing</option>
-                      <option>Computer Vision</option>
-                      <option>Generative AI</option>
-                    </select>
-                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-purple-600">
-                      <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-                      </svg>
-                    </div>
-                  </div>
-                </HoverEffect>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Challenge</label>
-                <HoverEffect scale={1.02}>
-                  <div className="relative">
-                    <select className="block w-full pl-4 pr-10 py-3.5 text-base border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 rounded-xl shadow-sm transition-all duration-300 hover:border-indigo-300">
-                      <option>Select a challenge</option>
-                      <option>Data Analysis</option>
-                      <option>Automation</option>
-                      <option>Prediction</option>
-                      <option>Content Generation</option>
-                    </select>
-                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-purple-600">
-                      <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-                      </svg>
-                    </div>
-                  </div>
-                </HoverEffect>
-              </div>
+            {/* Chat input and button only */}
+            <div className="mb-6">
+              <ChatInput />
             </div>
-            
-            <div className="mb-8">
-              <label className="block text-sm font-medium text-gray-700 mb-2">Project Type</label>
-              <HoverEffect scale={1.02}>
-                <div className="relative">
-                  <select className="block w-full pl-4 pr-10 py-3.5 text-base border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 rounded-xl shadow-sm transition-all duration-300 hover:border-indigo-300">
-                    <option>Select a project type</option>
-                    <option>Proof of Concept</option>
-                    <option>Prototype</option>
-                    <option>Production System</option>
-                    <option>Research Project</option>
-                  </select>
-                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-purple-600">
-                    <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-                    </svg>
-                  </div>
-                </div>
-              </HoverEffect>
-            </div>
-            
-            <div className="mb-10">
-              <label className="block text-sm font-medium text-gray-700 mb-2">Additional Details (Optional)</label>
-              <HoverEffect scale={1.02}>
-                <textarea 
-                  className="block w-full px-4 py-3.5 text-base border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 rounded-xl shadow-sm transition-all duration-300 hover:border-indigo-300"
-                  rows="4"
-                  placeholder="Provide any context, goals, or constraints for your project..."
-                ></textarea>
-              </HoverEffect>
-            </div>
-            
-            <motion.div
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.98 }}
-              transition={{ type: "spring", stiffness: 400, damping: 17 }}
-            >
-              <button 
-                className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-semibold py-4 px-8 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
-                onClick={() => window.location.href = '/my-game-plan.html'}
-              >
-                Generate Your AI Game Plan
-              </button>
-            </motion.div>
             
             <div className="mt-6 flex items-center justify-center space-x-2 text-sm text-gray-500">
               <svg className="h-5 w-5 text-green-500" viewBox="0 0 20 20" fill="currentColor">
