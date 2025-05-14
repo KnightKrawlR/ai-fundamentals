@@ -29,10 +29,8 @@ const Navbar = () => {
   
   return (
     <motion.header 
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        scrolled 
-          ? 'bg-white/90 backdrop-blur-md shadow-lg text-gray-800' 
-          : 'bg-purple-900 text-white'
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 bg-purple-900 text-white ${
+        scrolled ? 'shadow-lg' : ''
       }`}
       initial={{ y: -100 }}
       animate={{ y: 0 }}
@@ -40,7 +38,7 @@ const Navbar = () => {
     >
       <nav className="container mx-auto px-4 py-4 flex items-center justify-between">
         {/* Logo */}
-        <Logo color={scrolled ? 'dark' : 'light'} />
+        <Logo color="light" />
         
         {/* Desktop Navigation */}
         <div className="hidden md:flex items-center space-x-8">
@@ -50,9 +48,7 @@ const Navbar = () => {
               <li key={index}>
                 <a 
                   href={link.href}
-                  className={`font-medium text-base hover:text-purple-500 transition-colors ${
-                    !scrolled && 'hover:text-purple-200'
-                  }`}
+                  className="font-medium text-base hover:text-purple-200 transition-colors"
                 >
                   {link.label}
                 </a>
@@ -63,7 +59,7 @@ const Navbar = () => {
           {/* Action Buttons */}
           <div className="flex items-center space-x-3">
             <Button 
-              variant={scrolled ? "secondary" : "tertiary"} 
+              variant="tertiary" 
               size="small"
             >
               Sign In
@@ -84,7 +80,7 @@ const Navbar = () => {
           aria-label="Toggle menu"
         >
           <svg 
-            className={`w-6 h-6 ${scrolled ? 'text-gray-800' : 'text-white'}`} 
+            className="w-6 h-6 text-white" 
             fill="none" 
             stroke="currentColor" 
             viewBox="0 0 24 24"
@@ -101,9 +97,7 @@ const Navbar = () => {
       {/* Mobile Menu */}
       {mobileMenuOpen && (
         <motion.div 
-          className={`md:hidden container mx-auto px-4 py-4 pb-6 ${
-            scrolled ? 'bg-white text-gray-800' : 'bg-purple-900 text-white'
-          }`}
+          className="md:hidden container mx-auto px-4 py-4 pb-6 bg-purple-900 text-white"
           initial={{ opacity: 0, height: 0 }}
           animate={{ opacity: 1, height: 'auto' }}
           transition={{ duration: 0.3 }}
@@ -123,7 +117,7 @@ const Navbar = () => {
           </ul>
           <div className="flex flex-col space-y-3 mt-6">
             <Button 
-              variant={scrolled ? "secondary" : "tertiary"} 
+              variant="tertiary" 
               size="medium"
               className="w-full"
             >
