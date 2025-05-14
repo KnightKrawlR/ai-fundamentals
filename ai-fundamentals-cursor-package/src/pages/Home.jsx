@@ -19,7 +19,7 @@ const Home = () => {
           <HeroSection />
         </TransitionEffect>
         
-        <div className="absolute inset-0 flex items-center justify-center pt-20 md:pt-32 lg:pt-20">
+        <div className="absolute inset-0 flex items-center justify-center pt-64 sm:pt-72 md:pt-80 lg:pt-72 xl:pt-80">
           <GamePlanCreator />
         </div>
       </main>
