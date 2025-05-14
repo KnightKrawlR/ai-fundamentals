@@ -303,9 +303,9 @@ const GamePlanCreator = () => {
         {/* Glowing effect when focused */}
         {isFocused && (
           <motion.div 
-            className="absolute -inset-1 rounded-[17px] bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 opacity-100 blur-lg z-0"
+            className="absolute -inset-1 rounded-[17px] bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 opacity-50 blur-md z-0"
             initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
+            animate={{ opacity: 0.5 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.4 }}
           />

@@ -26,7 +26,7 @@ const HeroSection = () => {
               Develop An AI
             </span>
             <br />
-            <span className="bg-clip-text text-transparent bg-gradient-to-r from-purple-300 via-pink-300 to-purple-200">
+            <span className="text-white">
               GamePlan Instantly
             </span>
           </motion.h1>
