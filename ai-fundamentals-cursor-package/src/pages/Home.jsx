@@ -11,15 +11,17 @@ const Home = () => {
   const { isMobile, isTablet, isDesktop } = useResponsive();
   
   return (
-    <div className="min-h-screen flex flex-col bg-black">
+    <div className="min-h-screen w-full flex flex-col bg-black">
       <Navbar />
       
-      <main className="flex-grow relative">
+      <main className="flex-grow relative w-full">
         <TransitionEffect>
           <HeroSection />
         </TransitionEffect>
         
-        <div className="absolute inset-0 flex items-center justify-center pt-64 sm:pt-72 md:pt-80 lg:pt-72 xl:pt-80">
+        <div className="absolute inset-0 flex items-center justify-center 
+                      pt-[40vh] sm:pt-[45vh] md:pt-[50vh] lg:pt-[50vh] xl:pt-[55vh] 
+                      px-4">
           <GamePlanCreator />
         </div>
       </main>
