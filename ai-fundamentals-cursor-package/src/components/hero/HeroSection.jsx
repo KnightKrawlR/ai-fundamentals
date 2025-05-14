@@ -1,31 +1,48 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import ParticleBackground from '../animations/ParticleBackground';
-import FloatingCard from '../ui/FloatingCard';
 import Button from '../ui/Button';
 
 const HeroSection = () => {
   return (
-    <section className="relative min-h-screen bg-gradient-to-b from-purple-900 to-purple-800 text-white overflow-hidden">
-      {/* Animated background */}
-      <ParticleBackground color="#8A7CB4" count={60} />
+    <section className="relative min-h-screen bg-gradient-to-br from-purple-900 via-purple-800 to-indigo-900 text-white overflow-hidden">
+      {/* Enhanced animated background with more particles */}
+      <ParticleBackground color="#a78bfa" count={80} />
+      
+      {/* Decorative blur elements */}
+      <div className="absolute top-1/4 -left-20 w-72 h-72 bg-pink-500 opacity-20 rounded-full filter blur-[80px]"></div>
+      <div className="absolute bottom-1/3 -right-20 w-80 h-80 bg-blue-500 opacity-20 rounded-full filter blur-[100px]"></div>
       
       {/* Content container */}
       <div className="container mx-auto px-4 py-20 md:py-32 relative z-10">
         <div className="flex flex-col items-center justify-center text-center max-w-4xl mx-auto">
-          {/* Main heading with animation */}
-          <motion.h1 
-            className="text-5xl md:text-6xl lg:text-7xl font-bold mb-6"
+          {/* Main heading with enhanced animation */}
+          <motion.div
+            className="mb-6 relative"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
           >
-            Master AI Fundamentals
-          </motion.h1>
+            <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-purple-200">
+              Master AI Fundamentals
+            </h1>
+            <motion.div 
+              className="absolute -z-10 w-full h-1/2 bg-gradient-to-r from-purple-500 to-pink-500 opacity-30 blur-xl"
+              animate={{ 
+                width: ["80%", "100%", "90%"],
+                x: ["-10%", "0%", "-5%"] 
+              }}
+              transition={{ 
+                duration: 8, 
+                repeat: Infinity, 
+                repeatType: "reverse" 
+              }}
+            />
+          </motion.div>
           
           {/* Subheading with animation */}
           <motion.p 
-            className="text-xl md:text-2xl mb-10 text-purple-100"
+            className="text-xl md:text-2xl mb-12 text-purple-100 leading-relaxed max-w-3xl mx-auto"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
@@ -33,9 +50,9 @@ const HeroSection = () => {
             Create your personalized AI implementation game plan and transform how you apply artificial intelligence concepts
           </motion.p>
           
-          {/* CTA buttons */}
+          {/* CTA buttons with enhanced styling */}
           <motion.div 
-            className="flex flex-col sm:flex-row gap-4 mb-16"
+            className="flex flex-col sm:flex-row gap-5 mb-16"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.4 }}
@@ -43,6 +60,7 @@ const HeroSection = () => {
             <Button 
               variant="primary" 
               size="large"
+              className="px-8 py-4 rounded-full shadow-lg shadow-purple-900/30 hover:shadow-purple-600/40 transition-all duration-300"
               onClick={() => window.location.href = '/my-game-plan.html'}
             >
               Create Your Game Plan
@@ -50,85 +68,95 @@ const HeroSection = () => {
             <Button 
               variant="tertiary" 
               size="large"
+              className="px-8 py-4 rounded-full border-2 hover:bg-white/10 transition-colors duration-300"
             >
               Learn More
             </Button>
           </motion.div>
         </div>
         
-        {/* Floating cards */}
-        <div className="relative mt-10 h-80 md:h-96">
+        {/* Feature cards grid - replacing floating cards with a modern grid */}
+        <motion.div 
+          className="mt-10 grid md:grid-cols-3 gap-6 relative" 
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.6 }}
+        >
           {/* Game Plan Card */}
-          <FloatingCard 
-            className="absolute left-0 md:left-10 top-0 max-w-xs"
-            delay={0.2}
-            y={20}
+          <motion.div 
+            className="bg-white/10 backdrop-blur-lg p-6 rounded-2xl border border-white/20 shadow-xl hover:shadow-purple-500/20 transition-all duration-300 hover:-translate-y-1"
+            whileHover={{ scale: 1.02 }}
+            transition={{ type: "spring", stiffness: 300 }}
           >
-            <div className="flex flex-col">
-              <h3 className="text-purple-800 font-bold text-lg mb-2">AI Game Plan</h3>
-              <p className="text-gray-600 text-sm mb-4">Personalized implementation strategy based on your specific needs</p>
-              <div className="bg-purple-100 p-3 rounded-lg">
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="w-4 h-4 rounded-full bg-purple-600"></div>
-                  <span className="text-sm text-gray-700">Define your AI challenge</span>
+            <div className="flex flex-col h-full">
+              <h3 className="text-white font-bold text-xl mb-3">AI Game Plan</h3>
+              <p className="text-purple-100 text-sm mb-4 opacity-90">Personalized implementation strategy based on your specific needs</p>
+              <div className="bg-purple-900/30 p-4 rounded-xl mt-auto">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-3 h-3 rounded-full bg-purple-300"></div>
+                  <span className="text-sm text-purple-100">Define your AI challenge</span>
                 </div>
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="w-4 h-4 rounded-full bg-purple-600"></div>
-                  <span className="text-sm text-gray-700">Select project type</span>
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-3 h-3 rounded-full bg-purple-300"></div>
+                  <span className="text-sm text-purple-100">Select project type</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 rounded-full bg-purple-600"></div>
-                  <span className="text-sm text-gray-700">Get implementation steps</span>
+                  <div className="w-3 h-3 rounded-full bg-purple-300"></div>
+                  <span className="text-sm text-purple-100">Get implementation steps</span>
                 </div>
               </div>
             </div>
-          </FloatingCard>
+          </motion.div>
           
           {/* Topic Card */}
-          <FloatingCard 
-            className="absolute right-0 md:right-10 top-10 max-w-xs"
-            delay={0.5}
-            y={15}
+          <motion.div 
+            className="bg-white/10 backdrop-blur-lg p-6 rounded-2xl border border-white/20 shadow-xl hover:shadow-purple-500/20 transition-all duration-300 hover:-translate-y-1"
+            whileHover={{ scale: 1.02 }}
+            transition={{ type: "spring", stiffness: 300 }}
           >
-            <div className="flex flex-col">
-              <h3 className="text-purple-800 font-bold text-lg mb-2">AI Topics</h3>
-              <div className="flex flex-wrap gap-2">
-                <span className="bg-purple-100 text-purple-800 px-2 py-1 rounded-full text-xs">Machine Learning</span>
-                <span className="bg-purple-100 text-purple-800 px-2 py-1 rounded-full text-xs">NLP</span>
-                <span className="bg-purple-100 text-purple-800 px-2 py-1 rounded-full text-xs">Computer Vision</span>
-                <span className="bg-purple-100 text-purple-800 px-2 py-1 rounded-full text-xs">Generative AI</span>
-                <span className="bg-purple-100 text-purple-800 px-2 py-1 rounded-full text-xs">Prompt Engineering</span>
+            <div className="flex flex-col h-full">
+              <h3 className="text-white font-bold text-xl mb-3">AI Topics</h3>
+              <p className="text-purple-100 text-sm mb-4 opacity-90">Explore various AI domains and technologies</p>
+              <div className="flex flex-wrap gap-2 mt-auto">
+                <span className="bg-purple-900/50 text-purple-100 px-3 py-1.5 rounded-full text-xs border border-purple-400/20">Machine Learning</span>
+                <span className="bg-purple-900/50 text-purple-100 px-3 py-1.5 rounded-full text-xs border border-purple-400/20">NLP</span>
+                <span className="bg-purple-900/50 text-purple-100 px-3 py-1.5 rounded-full text-xs border border-purple-400/20">Computer Vision</span>
+                <span className="bg-purple-900/50 text-purple-100 px-3 py-1.5 rounded-full text-xs border border-purple-400/20">Generative AI</span>
+                <span className="bg-purple-900/50 text-purple-100 px-3 py-1.5 rounded-full text-xs border border-purple-400/20">Prompt Engineering</span>
               </div>
             </div>
-          </FloatingCard>
+          </motion.div>
           
           {/* Results Card */}
-          <FloatingCard 
-            className="absolute left-1/4 bottom-0 max-w-xs"
-            delay={0.8}
-            y={25}
+          <motion.div 
+            className="bg-white/10 backdrop-blur-lg p-6 rounded-2xl border border-white/20 shadow-xl hover:shadow-purple-500/20 transition-all duration-300 hover:-translate-y-1"
+            whileHover={{ scale: 1.02 }}
+            transition={{ type: "spring", stiffness: 300 }}
           >
-            <div className="flex flex-col">
-              <h3 className="text-purple-800 font-bold text-lg mb-2">Implementation Results</h3>
-              <p className="text-gray-600 text-sm">Step-by-step guidance tailored to your specific AI implementation needs</p>
-              <div className="mt-3 bg-green-100 text-green-800 px-3 py-2 rounded-lg text-sm font-medium">
+            <div className="flex flex-col h-full">
+              <h3 className="text-white font-bold text-xl mb-3">Implementation Results</h3>
+              <p className="text-purple-100 text-sm mb-4 opacity-90">Step-by-step guidance tailored to your specific AI implementation needs</p>
+              <div className="mt-auto bg-emerald-900/30 text-emerald-300 px-4 py-3 rounded-xl text-sm font-medium border border-emerald-400/20">
                 Ready to implement in minutes
               </div>
             </div>
-          </FloatingCard>
-        </div>
+          </motion.div>
+        </motion.div>
       </div>
       
-      {/* Scroll indicator */}
+      {/* Enhanced scroll indicator */}
       <motion.div 
         className="absolute bottom-8 left-1/2 transform -translate-x-1/2"
-        animate={{ y: [0, 10, 0] }}
-        transition={{ duration: 1.5, repeat: Infinity }}
+        animate={{ 
+          y: [0, 10, 0],
+          opacity: [0.8, 1, 0.8] 
+        }}
+        transition={{ duration: 2, repeat: Infinity }}
       >
         <div className="flex flex-col items-center">
-          <span className="text-purple-200 text-sm mb-2">Scroll to explore</span>
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M12 5V19M12 19L5 12M12 19L19 12" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          <span className="text-purple-200 text-sm mb-2 font-light">Scroll to explore</span>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-white/70">
+            <path d="M12 5V19M12 19L5 12M12 19L19 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
         </div>
       </motion.div>
