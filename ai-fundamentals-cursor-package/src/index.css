@@ -20,12 +20,27 @@
 }
 
 /* Base styles */
+html, body {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+  margin: 0;
+  padding: 0;
+  background-color: #4B2E83;
+}
+
 body {
   font-family: "Inter", sans-serif;
   color: var(--color-text-dark);
-  background-color: var(--color-background);
+  background-color: #4B2E83;
   margin: 0;
   padding: 0;
+  overflow-x: hidden;
+}
+
+#root {
+  width: 100%;
+  background-color: #4B2E83;
   overflow-x: hidden;
 }
 

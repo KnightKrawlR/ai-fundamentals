@@ -11,10 +11,10 @@ const Home = () => {
   const { isMobile, isTablet, isDesktop } = useResponsive();
   
   return (
-    <div className="min-h-screen flex flex-col bg-purple-900 w-full overflow-hidden">
+    <div className="min-h-screen flex flex-col bg-purple-900 w-screen overflow-hidden max-w-[100vw]">
       <Navbar />
       
-      <main className="flex-grow relative w-full">
+      <main className="flex-grow relative w-screen overflow-hidden">
         <TransitionEffect>
           <HeroSection />
         </TransitionEffect>
