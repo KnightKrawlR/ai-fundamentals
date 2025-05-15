@@ -77,7 +77,7 @@ const RobotCharacter = () => {
   return (
     <div className="mx-auto w-full max-w-md relative">
       {/* Robot Head - with chrome styling */}
-      <motion.div 
+        <motion.div 
         className="relative rounded-3xl p-8 shadow-xl overflow-hidden"
         style={{
           background: 'linear-gradient(135deg, #e2e8f0 0%, #a0aec0 100%)'
@@ -108,7 +108,7 @@ const RobotCharacter = () => {
         <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-16 flex flex-col items-center z-10">
           <div className="w-2 h-10 bg-gradient-to-b from-slate-300 to-slate-500 rounded-full"></div>
           <div className="w-5 h-5 rounded-full bg-red-500 animate-pulse shadow-lg shadow-red-500/50"></div>
-        </div>
+                  </div>
         
         {/* Face Elements - above the chrome effect */}
         <div className="flex flex-col items-center relative z-10">
@@ -226,7 +226,7 @@ const ChatInput = () => {
   
   return (
     <div className="w-full bg-gray-50 border border-gray-200 rounded-2xl overflow-hidden shadow-sm">
-      <motion.div 
+            <motion.div
         className="flex flex-col"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -242,17 +242,17 @@ const ChatInput = () => {
         
         <div className="flex justify-between items-center p-3 bg-gray-100 border-t border-gray-200">
           <div className="text-xs text-gray-400">Tell us about your AI project needs</div>
-          <button 
+              <button 
             className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 px-4 py-2 rounded-xl text-white font-medium text-sm transition-all duration-200 flex items-center gap-2"
-          >
+              >
             <span>Generate</span>
             <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
               <path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd" />
             </svg>
-          </button>
+              </button>
         </div>
-      </motion.div>
-    </div>
+            </motion.div>
+          </div>
   );
 };
 
@@ -272,6 +272,40 @@ const GamePlanCreator = () => {
       console.log("Generated plan for: ", inputValue);
       // setInputValue(''); // Optionally clear input after generation
     }, 3000);
+  };
+
+  // Info boxes data with real user journey information
+  const infoBoxes = [
+    { 
+      id: 1, 
+      title: "Design Your AI Strategy",
+      text: "Describe your business challenge and get a personalized AI implementation blueprint.", 
+      color: "from-purple-500/40 to-blue-500/40"
+    },
+    { 
+      id: 2, 
+      title: "Learn AI Fundamentals",
+      text: "Access comprehensive learning materials and interactive courses to master AI concepts.", 
+      color: "from-pink-500/40 to-purple-500/40"
+    },
+    { 
+      id: 3, 
+      title: "Build & Implement",
+      text: "Follow step-by-step guides to implement your custom AI solution with expert resources.", 
+      color: "from-blue-500/40 to-teal-500/40" 
+    },
+    { 
+      id: 4, 
+      title: "Track & Optimize",
+      text: "Monitor performance metrics and optimize your AI deployment for maximum impact.", 
+      color: "from-amber-500/40 to-pink-500/40" 
+    }
+  ];
+
+  // Handle click on info box
+  const handleInfoBoxClick = (id) => {
+    console.log(`Clicked on info box ${id}`);
+    // Would implement navigation or modal opening here in a real application
   };
 
   return (
@@ -300,31 +334,35 @@ const GamePlanCreator = () => {
         }}
         className={`relative bg-black/40 backdrop-blur-xl border ${isFocused ? 'border-purple-400 shadow-purple-500/40' : 'border-purple-700/60 shadow-indigo-500/30'} rounded-2xl shadow-2xl transition-all duration-400`}
       >
-        {/* Glowing effect when focused */}
+        {/* Glowing effect when focused - updated to match title glow */}
         {isFocused && (
           <motion.div 
-            className="absolute -inset-1 rounded-[17px] bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 opacity-50 blur-md z-0"
+            className="absolute -inset-1 rounded-[17px] bg-purple-500/30 z-0"
             initial={{ opacity: 0 }}
-            animate={{ opacity: 0.5 }}
+            animate={{ opacity: [0.3, 0.5, 0.3] }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.4 }}
+            transition={{ 
+              opacity: { duration: 2, repeat: Infinity, repeatType: "mirror" },
+              duration: 0.4 
+            }}
+            style={{
+              boxShadow: '0 0 15px rgba(196, 138, 247, 0.5), 0 0 30px rgba(196, 138, 247, 0.3)',
+              filter: 'blur(8px)'
+            }}
           />
         )}
-         {/* Additional subtle shine/glint animation */}
+         {/* Dramatic pulsating effect replacing the glint */}
         <motion.div
-          className="absolute top-0 left-0 h-full w-1/2 z-10 opacity-30"
-          style={{
-            background: 'linear-gradient(to right, rgba(255,255,255,0.15), transparent)',
-          }}
+          className="absolute inset-0 rounded-2xl bg-purple-500/10 z-1"
           animate={{
-            x: ["-100%", "150%"],
-            opacity: [0, 0.3, 0]
+            scale: [1, 1.02, 1],
+            opacity: [0.1, 0.2, 0.1]
           }}
           transition={{
-            duration: 3.5,
+            duration: 3,
             repeat: Infinity,
-            delay: 2, // Stagger the glint
-            ease: "linear"
+            repeatType: "mirror",
+            ease: "easeInOut"
           }}
         />
 
@@ -372,6 +410,90 @@ const GamePlanCreator = () => {
           </div>
         </div>
       </motion.div>
+
+      {/* Windows 95 screensaver-style floating info boxes */}
+      <div className="absolute inset-0 overflow-hidden" style={{ height: "100vh", width: "100vw", top: "-40px", left: "-50%", pointerEvents: "none" }}>
+        {infoBoxes.map((box) => {
+          // Random positions and velocities for each box
+          const randomX = Math.random() * 80 - 40; // % from center
+          const randomY = Math.random() * 60 - 30; // % from center
+          const randomDuration = 15 + Math.random() * 15; // between 15-30s
+          const randomDelay = Math.random() * 5;
+          
+          return (
+            <motion.div
+              key={box.id}
+              className={`absolute bg-gradient-to-br ${box.color} backdrop-blur-sm p-4 rounded-lg border border-white/20 shadow-lg w-[260px] aspect-square cursor-pointer`}
+              style={{ 
+                boxShadow: '0 0 15px rgba(196, 138, 247, 0.2)',
+                pointerEvents: "auto",
+                zIndex: 50
+              }}
+              initial={{ 
+                x: `${randomX}%`, 
+                y: `${randomY}%`, 
+                opacity: 0,
+                rotate: Math.random() * 10 - 5
+              }}
+              animate={{ 
+                x: [`${randomX}%`, `${-randomX}%`, `${randomX * 0.5}%`, `${randomX * -1.5}%`],
+                y: [`${randomY}%`, `${-randomY * 1.2}%`, `${randomY * -0.8}%`, `${randomY * 1.5}%`],
+                opacity: 0.9,
+                rotate: [Math.random() * 10 - 5, Math.random() * -10 + 5, Math.random() * 5 - 2.5]
+              }}
+              transition={{
+                x: { 
+                  duration: randomDuration,
+                  repeat: Infinity,
+                  repeatType: "reverse",
+                  ease: "linear", 
+                  delay: randomDelay
+                },
+                y: { 
+                  duration: randomDuration * 0.7,
+                  repeat: Infinity,
+                  repeatType: "reverse",
+                  ease: "linear", 
+                  delay: randomDelay * 1.3
+                },
+                opacity: { 
+                  duration: 1,
+                  ease: "easeIn",
+                  delay: randomDelay
+                },
+                rotate: {
+                  duration: randomDuration * 1.5,
+                  repeat: Infinity,
+                  repeatType: "reverse",
+                  ease: "easeInOut"
+                }
+              }}
+              whileHover={{ 
+                scale: 1.05, 
+                boxShadow: '0 0 25px rgba(196, 138, 247, 0.4)',
+                borderColor: 'rgba(255, 255, 255, 0.5)'
+              }}
+              onClick={() => handleInfoBoxClick(box.id)}
+            >
+              {/* Numbered circle in corner */}
+              <div className="absolute -top-3 -left-3 w-10 h-10 rounded-full bg-white flex items-center justify-center text-purple-800 font-bold text-xl shadow-lg">
+                {box.id}
+              </div>
+              
+              <h3 className="text-white font-bold text-lg mb-2 mt-2">{box.title}</h3>
+              <p className="text-white/90 text-sm">{box.text}</p>
+              
+              <div className="absolute bottom-3 right-3 text-white/80 text-xs flex items-center">
+                <span>Learn more</span>
+                <svg className="w-3 h-3 ml-1" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                  <path fillRule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd"></path>
+                </svg>
+              </div>
+            </motion.div>
+          );
+        })}
+      </div>
+
       {isGenerating && (
         <motion.div 
             className="mt-6 text-center"
