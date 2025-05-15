@@ -261,40 +261,6 @@ const GamePlanCreator = () => {
   const [inputValue, setInputValue] = useState('');
   const [isFocused, setIsFocused] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [currentInfoIndex, setCurrentInfoIndex] = useState(0);
-  const [isHovered, setIsHovered] = useState(false);
-
-  // Space box ref to get dimensions for accurate bouncing
-  const spaceBoxRef = React.useRef(null);
-
-  // Info slide content
-  const infoContent = [
-    {
-      title: "Create AI GamePlan",
-      description: "Define your AI challenge and get a strategic implementation blueprint tailored to your needs.",
-      icon: "🚀"
-    },
-    {
-      title: "Access Learning Resources",
-      description: "Explore our comprehensive library of AI courses, tutorials, and study materials.",
-      icon: "📚"
-    },
-    {
-      title: "Track Implementation",
-      description: "Monitor your progress and track key metrics as you implement your AI strategy.",
-      icon: "📊"
-    },
-    {
-      title: "Continuous Improvement",
-      description: "Receive recommendations to refine and enhance your AI implementation over time.",
-      icon: "🔄"
-    }
-  ];
-
-  // Function to change the info content
-  const changeInfoContent = () => {
-    setCurrentInfoIndex((prevIndex) => (prevIndex + 1) % infoContent.length);
-  };
 
   // Simulate AI response and reset
   const handleGenerate = () => {
@@ -306,12 +272,6 @@ const GamePlanCreator = () => {
       console.log("Generated plan for: ", inputValue);
       // setInputValue(''); // Optionally clear input after generation
     }, 3000);
-  };
-
-  // Learn more handler
-  const handleLearnMore = () => {
-    console.log("Learn more about:", infoContent[currentInfoIndex].title);
-    // Would typically navigate to a details page
   };
 
   return (
@@ -427,110 +387,6 @@ const GamePlanCreator = () => {
             <p className="text-purple-200 text-sm animate-pulse-fast">Our AI is crafting your strategic document...</p>
         </motion.div>
       )}
-
-      {/* Space container - placed far below the chat box with generous spacing */}
-      <div 
-        ref={spaceBoxRef}
-        className="relative mt-48 h-[400px] w-full rounded-3xl overflow-hidden border border-purple-500/20"
-        style={{
-          background: 'radial-gradient(ellipse at center, rgba(40, 10, 80, 0.7) 0%, rgba(20, 5, 40, 0.9) 100%)',
-          boxShadow: 'inset 0 0 50px rgba(196, 138, 247, 0.2), 0 0 20px rgba(0, 0, 0, 0.5)'
-        }}
-      >
-        {/* Stars background */}
-        <div className="absolute inset-0 z-0">
-          {[...Array(100)].map((_, i) => (
-            <div 
-              key={i}
-              className="absolute rounded-full bg-white"
-              style={{
-                width: `${Math.random() * 2 + 1}px`,
-                height: `${Math.random() * 2 + 1}px`,
-                top: `${Math.random() * 100}%`,
-                left: `${Math.random() * 100}%`,
-                opacity: Math.random() * 0.8 + 0.2,
-                animation: `twinkle ${Math.random() * 5 + 3}s infinite alternate`
-              }}
-            />
-          ))}
-        </div>
-
-        {/* Single floating info box with Windows 95 screensaver behavior */}
-        <motion.div
-          className={`absolute w-64 h-64 bg-gradient-to-br from-purple-800/80 to-purple-900/80 backdrop-blur-md rounded-xl overflow-hidden 
-            border border-purple-500/30 shadow-xl z-10 cursor-pointer transition-all duration-300
-            ${isHovered ? 'border-purple-400/70 shadow-purple-500/30' : ''}`}
-          initial={{ 
-            x: Math.random() * 300,
-            y: Math.random() * 300,
-            rotate: Math.random() * 10 - 5
-          }}
-          animate={isHovered ? { scale: 1.05 } : {}}
-          drag={isHovered}
-          dragConstraints={spaceBoxRef}
-          onHoverStart={() => setIsHovered(true)}
-          onHoverEnd={() => setIsHovered(false)}
-          onClick={handleLearnMore}
-          style={{
-            boxShadow: '0 0 20px rgba(196, 138, 247, 0.3)',
-          }}
-          whileInView={{ 
-            x: [null, 'calc(100% - 256px)', null, 0], 
-            y: [null, 0, 'calc(100% - 256px)', 'calc(100% - 256px)'],
-            transition: { 
-              duration: 15, 
-              repeat: Infinity, 
-              ease: "linear",
-              x: {
-                duration: 15,
-                repeat: Infinity,
-                ease: "linear",
-                repeatType: "reverse"
-              },
-              y: {
-                duration: 15,
-                repeat: Infinity,
-                ease: "linear", 
-                repeatType: "reverse",
-                delay: 7.5
-              }
-            }
-          }}
-          onAnimationComplete={(definition) => {
-            if (definition === 'x' || definition === 'y') {
-              changeInfoContent();
-            }
-          }}
-        >
-          {/* Content of the box */}
-          <div className="flex flex-col items-center justify-center p-6 h-full">
-            <div className="text-4xl mb-4">{infoContent[currentInfoIndex].icon}</div>
-            <h3 className="text-xl font-bold text-white mb-3">{infoContent[currentInfoIndex].title}</h3>
-            <p className="text-purple-200 text-center text-sm">{infoContent[currentInfoIndex].description}</p>
-            
-            <motion.button
-              className="mt-4 bg-purple-600/70 hover:bg-purple-500 text-white px-4 py-2 rounded-lg text-sm"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.98 }}
-            >
-              Learn More
-            </motion.button>
-          </div>
-
-          {/* Shine effect */}
-          <motion.div 
-            className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent"
-            animate={{
-              opacity: [0.1, 0.2, 0.1]
-            }}
-            transition={{
-              duration: 3,
-              repeat: Infinity,
-              repeatType: "mirror"
-            }}
-          />
-        </motion.div>
-      </div>
     </motion.div>
   );
 };
