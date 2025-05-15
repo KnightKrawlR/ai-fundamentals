@@ -261,6 +261,40 @@ const GamePlanCreator = () => {
   const [inputValue, setInputValue] = useState('');
   const [isFocused, setIsFocused] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [currentInfoIndex, setCurrentInfoIndex] = useState(0);
+  const [isHovered, setIsHovered] = useState(false);
+
+  // Space box ref to get dimensions for accurate bouncing
+  const spaceBoxRef = React.useRef(null);
+
+  // Info slide content
+  const infoContent = [
+    {
+      title: "Create AI GamePlan",
+      description: "Define your AI challenge and get a strategic implementation blueprint tailored to your needs.",
+      icon: "🚀"
+    },
+    {
+      title: "Access Learning Resources",
+      description: "Explore our comprehensive library of AI courses, tutorials, and study materials.",
+      icon: "📚"
+    },
+    {
+      title: "Track Implementation",
+      description: "Monitor your progress and track key metrics as you implement your AI strategy.",
+      icon: "📊"
+    },
+    {
+      title: "Continuous Improvement",
+      description: "Receive recommendations to refine and enhance your AI implementation over time.",
+      icon: "🔄"
+    }
+  ];
+
+  // Function to change the info content
+  const changeInfoContent = () => {
+    setCurrentInfoIndex((prevIndex) => (prevIndex + 1) % infoContent.length);
+  };
 
   // Simulate AI response and reset
   const handleGenerate = () => {
@@ -274,38 +308,10 @@ const GamePlanCreator = () => {
     }, 3000);
   };
 
-  // Info boxes data with real user journey information
-  const infoBoxes = [
-    { 
-      id: 1, 
-      title: "Design Your AI Strategy",
-      text: "Describe your business challenge and get a personalized AI implementation blueprint.", 
-      color: "from-purple-500/40 to-blue-500/40"
-    },
-    { 
-      id: 2, 
-      title: "Learn AI Fundamentals",
-      text: "Access comprehensive learning materials and interactive courses to master AI concepts.", 
-      color: "from-pink-500/40 to-purple-500/40"
-    },
-    { 
-      id: 3, 
-      title: "Build & Implement",
-      text: "Follow step-by-step guides to implement your custom AI solution with expert resources.", 
-      color: "from-blue-500/40 to-teal-500/40" 
-    },
-    { 
-      id: 4, 
-      title: "Track & Optimize",
-      text: "Monitor performance metrics and optimize your AI deployment for maximum impact.", 
-      color: "from-amber-500/40 to-pink-500/40" 
-    }
-  ];
-
-  // Handle click on info box
-  const handleInfoBoxClick = (id) => {
-    console.log(`Clicked on info box ${id}`);
-    // Would implement navigation or modal opening here in a real application
+  // Learn more handler
+  const handleLearnMore = () => {
+    console.log("Learn more about:", infoContent[currentInfoIndex].title);
+    // Would typically navigate to a details page
   };
 
   return (
@@ -411,89 +417,6 @@ const GamePlanCreator = () => {
         </div>
       </motion.div>
 
-      {/* Windows 95 screensaver-style floating info boxes */}
-      <div className="absolute inset-0 overflow-hidden" style={{ height: "100vh", width: "100vw", top: "-40px", left: "-50%", pointerEvents: "none" }}>
-        {infoBoxes.map((box) => {
-          // Random positions and velocities for each box
-          const randomX = Math.random() * 80 - 40; // % from center
-          const randomY = Math.random() * 60 - 30; // % from center
-          const randomDuration = 15 + Math.random() * 15; // between 15-30s
-          const randomDelay = Math.random() * 5;
-          
-          return (
-            <motion.div
-              key={box.id}
-              className={`absolute bg-gradient-to-br ${box.color} backdrop-blur-sm p-4 rounded-lg border border-white/20 shadow-lg w-[260px] aspect-square cursor-pointer`}
-              style={{ 
-                boxShadow: '0 0 15px rgba(196, 138, 247, 0.2)',
-                pointerEvents: "auto",
-                zIndex: 50
-              }}
-              initial={{ 
-                x: `${randomX}%`, 
-                y: `${randomY}%`, 
-                opacity: 0,
-                rotate: Math.random() * 10 - 5
-              }}
-              animate={{ 
-                x: [`${randomX}%`, `${-randomX}%`, `${randomX * 0.5}%`, `${randomX * -1.5}%`],
-                y: [`${randomY}%`, `${-randomY * 1.2}%`, `${randomY * -0.8}%`, `${randomY * 1.5}%`],
-                opacity: 0.9,
-                rotate: [Math.random() * 10 - 5, Math.random() * -10 + 5, Math.random() * 5 - 2.5]
-              }}
-              transition={{
-                x: { 
-                  duration: randomDuration,
-                  repeat: Infinity,
-                  repeatType: "reverse",
-                  ease: "linear", 
-                  delay: randomDelay
-                },
-                y: { 
-                  duration: randomDuration * 0.7,
-                  repeat: Infinity,
-                  repeatType: "reverse",
-                  ease: "linear", 
-                  delay: randomDelay * 1.3
-                },
-                opacity: { 
-                  duration: 1,
-                  ease: "easeIn",
-                  delay: randomDelay
-                },
-                rotate: {
-                  duration: randomDuration * 1.5,
-                  repeat: Infinity,
-                  repeatType: "reverse",
-                  ease: "easeInOut"
-                }
-              }}
-              whileHover={{ 
-                scale: 1.05, 
-                boxShadow: '0 0 25px rgba(196, 138, 247, 0.4)',
-                borderColor: 'rgba(255, 255, 255, 0.5)'
-              }}
-              onClick={() => handleInfoBoxClick(box.id)}
-            >
-              {/* Numbered circle in corner */}
-              <div className="absolute -top-3 -left-3 w-10 h-10 rounded-full bg-white flex items-center justify-center text-purple-800 font-bold text-xl shadow-lg">
-                {box.id}
-              </div>
-              
-              <h3 className="text-white font-bold text-lg mb-2 mt-2">{box.title}</h3>
-              <p className="text-white/90 text-sm">{box.text}</p>
-              
-              <div className="absolute bottom-3 right-3 text-white/80 text-xs flex items-center">
-                <span>Learn more</span>
-                <svg className="w-3 h-3 ml-1" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                  <path fillRule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd"></path>
-                </svg>
-              </div>
-            </motion.div>
-          );
-        })}
-      </div>
-
       {isGenerating && (
         <motion.div 
             className="mt-6 text-center"
@@ -504,6 +427,110 @@ const GamePlanCreator = () => {
             <p className="text-purple-200 text-sm animate-pulse-fast">Our AI is crafting your strategic document...</p>
         </motion.div>
       )}
+
+      {/* Space container - placed far below the chat box with generous spacing */}
+      <div 
+        ref={spaceBoxRef}
+        className="relative mt-48 h-[400px] w-full rounded-3xl overflow-hidden border border-purple-500/20"
+        style={{
+          background: 'radial-gradient(ellipse at center, rgba(40, 10, 80, 0.7) 0%, rgba(20, 5, 40, 0.9) 100%)',
+          boxShadow: 'inset 0 0 50px rgba(196, 138, 247, 0.2), 0 0 20px rgba(0, 0, 0, 0.5)'
+        }}
+      >
+        {/* Stars background */}
+        <div className="absolute inset-0 z-0">
+          {[...Array(100)].map((_, i) => (
+            <div 
+              key={i}
+              className="absolute rounded-full bg-white"
+              style={{
+                width: `${Math.random() * 2 + 1}px`,
+                height: `${Math.random() * 2 + 1}px`,
+                top: `${Math.random() * 100}%`,
+                left: `${Math.random() * 100}%`,
+                opacity: Math.random() * 0.8 + 0.2,
+                animation: `twinkle ${Math.random() * 5 + 3}s infinite alternate`
+              }}
+            />
+          ))}
+        </div>
+
+        {/* Single floating info box with Windows 95 screensaver behavior */}
+        <motion.div
+          className={`absolute w-64 h-64 bg-gradient-to-br from-purple-800/80 to-purple-900/80 backdrop-blur-md rounded-xl overflow-hidden 
+            border border-purple-500/30 shadow-xl z-10 cursor-pointer transition-all duration-300
+            ${isHovered ? 'border-purple-400/70 shadow-purple-500/30' : ''}`}
+          initial={{ 
+            x: Math.random() * 300,
+            y: Math.random() * 300,
+            rotate: Math.random() * 10 - 5
+          }}
+          animate={isHovered ? { scale: 1.05 } : {}}
+          drag={isHovered}
+          dragConstraints={spaceBoxRef}
+          onHoverStart={() => setIsHovered(true)}
+          onHoverEnd={() => setIsHovered(false)}
+          onClick={handleLearnMore}
+          style={{
+            boxShadow: '0 0 20px rgba(196, 138, 247, 0.3)',
+          }}
+          whileInView={{ 
+            x: [null, 'calc(100% - 256px)', null, 0], 
+            y: [null, 0, 'calc(100% - 256px)', 'calc(100% - 256px)'],
+            transition: { 
+              duration: 15, 
+              repeat: Infinity, 
+              ease: "linear",
+              x: {
+                duration: 15,
+                repeat: Infinity,
+                ease: "linear",
+                repeatType: "reverse"
+              },
+              y: {
+                duration: 15,
+                repeat: Infinity,
+                ease: "linear", 
+                repeatType: "reverse",
+                delay: 7.5
+              }
+            }
+          }}
+          onAnimationComplete={(definition) => {
+            if (definition === 'x' || definition === 'y') {
+              changeInfoContent();
+            }
+          }}
+        >
+          {/* Content of the box */}
+          <div className="flex flex-col items-center justify-center p-6 h-full">
+            <div className="text-4xl mb-4">{infoContent[currentInfoIndex].icon}</div>
+            <h3 className="text-xl font-bold text-white mb-3">{infoContent[currentInfoIndex].title}</h3>
+            <p className="text-purple-200 text-center text-sm">{infoContent[currentInfoIndex].description}</p>
+            
+            <motion.button
+              className="mt-4 bg-purple-600/70 hover:bg-purple-500 text-white px-4 py-2 rounded-lg text-sm"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              Learn More
+            </motion.button>
+          </div>
+
+          {/* Shine effect */}
+          <motion.div 
+            className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent"
+            animate={{
+              opacity: [0.1, 0.2, 0.1]
+            }}
+            transition={{
+              duration: 3,
+              repeat: Infinity,
+              repeatType: "mirror"
+            }}
+          />
+        </motion.div>
+      </div>
     </motion.div>
   );
 };
