@@ -12,7 +12,7 @@ const Home = () => {
   const { isMobile, isTablet, isDesktop } = useResponsive();
   
   return (
-    <div className="min-h-screen flex flex-col bg-[#2D1B54] w-screen overflow-hidden max-w-[100vw]">
+    <div className="min-h-screen flex flex-col w-screen overflow-hidden max-w-[100vw]">
       {/* Galaxy background overlay positioned behind all content */}
       <GalaxyOverlay />
       

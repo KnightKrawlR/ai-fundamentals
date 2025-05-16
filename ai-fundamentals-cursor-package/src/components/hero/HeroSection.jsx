@@ -1,13 +1,9 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import ParticleBackground from '../animations/ParticleBackground';
 
 const HeroSection = () => {
   return (
-    <section className="relative min-h-screen bg-gradient-to-b from-[#2D1B54] to-[#3D2866] text-white overflow-hidden w-screen flex items-start justify-center pt-24">
-      {/* Animated background */}
-      <ParticleBackground color="#8A7CB4" count={60} />
-      
+    <section className="relative min-h-screen text-white overflow-hidden w-screen flex items-start justify-center pt-24">
       {/* Content container */}
       <div className="w-full flex justify-center items-center py-0 md:py-0 relative z-10">
         <motion.div 
@@ -30,8 +26,6 @@ const HeroSection = () => {
               GamePlan Instantly
             </span>
           </motion.h1>
-          
-          {/* Removed subtitle paragraph */}
         </motion.div>
       </div>
     </section>

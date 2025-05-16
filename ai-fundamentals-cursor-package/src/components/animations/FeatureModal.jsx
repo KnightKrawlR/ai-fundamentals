@@ -57,7 +57,7 @@ const FeatureModal = ({ setIsOpen }) => {
   
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/50 backdrop-blur-sm p-4">
+      <div className="fixed inset-0 flex items-center justify-center z-[9999] bg-black/50 backdrop-blur-sm p-4">
         <motion.div
           ref={modalRef}
           initial={{ opacity: 0, scale: 0.9 }}

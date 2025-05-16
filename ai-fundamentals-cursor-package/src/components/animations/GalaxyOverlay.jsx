@@ -119,8 +119,8 @@ const GalaxyOverlay = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   
   return (
-    <div className="fixed inset-0 z-0 pointer-events-none">
-      <div className="w-full h-full pointer-events-auto">
+    <div className="fixed inset-0 z-[-1] pointer-events-auto">
+      <div className="w-full h-full">
         <Canvas camera={{ position: [0, 0, 30], fov: 60 }}>
           <ambientLight intensity={0.3} />
           <pointLight position={[0, 0, 0]} intensity={2} color="#c48af7" />
