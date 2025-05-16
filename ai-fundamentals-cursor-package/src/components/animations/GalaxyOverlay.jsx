@@ -50,10 +50,10 @@ const Satellite = ({ setModalOpen }) => {
   
   // Screen bounds adjusted for object size
   const bounds = {
-    xMin: -viewport.width / 2 + 1,
-    xMax: viewport.width / 2 - 1,
-    yMin: -viewport.height / 2 + 1, 
-    yMax: viewport.height / 2 - 1
+    xMin: -viewport.width / 2 + 1.5,
+    xMax: viewport.width / 2 - 1.5,
+    yMin: -viewport.height / 2 + 1.5, 
+    yMax: viewport.height / 2 - 1.5
   };
   
   useFrame(() => {
@@ -87,29 +87,45 @@ const Satellite = ({ setModalOpen }) => {
         onPointerOut={() => setIsHovered(false)}
         onClick={() => setModalOpen(true)}
         renderOrder={100}
+        scale={1.5}
       >
         {/* Satellite body */}
         <mesh>
           <boxGeometry args={[0.7, 0.2, 1.5]} />
-          <meshStandardMaterial color="#888" metalness={0.8} roughness={0.2} />
+          <meshStandardMaterial color="#888" metalness={0.8} roughness={0.2} emissive={isHovered ? "#fff" : "#555"} />
         </mesh>
         
         {/* Solar panels */}
         <mesh position={[-1.5, 0, 0]} rotation={[0, 0, Math.PI / 2]}>
           <boxGeometry args={[0.1, 2, 1.2]} />
-          <meshStandardMaterial color="#4a6fa5" metalness={0.5} roughness={0.3} />
+          <meshStandardMaterial color="#4a6fa5" metalness={0.5} roughness={0.3} emissive={isHovered ? "#6a8fc5" : "#4a6fa5"} />
         </mesh>
         <mesh position={[1.5, 0, 0]} rotation={[0, 0, Math.PI / 2]}>
           <boxGeometry args={[0.1, 2, 1.2]} />
-          <meshStandardMaterial color="#4a6fa5" metalness={0.5} roughness={0.3} />
+          <meshStandardMaterial color="#4a6fa5" metalness={0.5} roughness={0.3} emissive={isHovered ? "#6a8fc5" : "#4a6fa5"} />
         </mesh>
         
-        {/* Question mark */}
-        <Html position={[0, 0.6, 0]} center transform occlude zIndexRange={[100, 101]}>
-          <div className="flex items-center justify-center w-10 h-10 bg-white rounded-full shadow-lg cursor-pointer hover:scale-110 transition-transform">
-            <span className="text-purple-600 font-bold text-2xl">?</span>
+        {/* Question mark with glow effect */}
+        <pointLight position={[0, 0.6, 0]} intensity={isHovered ? 2 : 0.5} color="#ffffff" distance={3} />
+        <Html position={[0, 0.6, 0]} center transform occlude={false} zIndexRange={[100, 101]} distanceFactor={10}>
+          <div 
+            className={`flex items-center justify-center w-14 h-14 rounded-full shadow-lg cursor-pointer transition-all duration-300 ${isHovered ? 'bg-white scale-110 shadow-purple-500/70 shadow-lg' : 'bg-white'}`}
+            style={{
+              boxShadow: isHovered ? '0 0 15px 5px rgba(196, 138, 247, 0.7)' : '0 0 10px rgba(0, 0, 0, 0.1)'
+            }}
+          >
+            <span className={`font-bold text-3xl transition-all duration-300 ${isHovered ? 'text-purple-600' : 'text-purple-500'}`}>?</span>
           </div>
         </Html>
+        
+        {/* Text label that appears when hovered */}
+        {isHovered && (
+          <Html position={[0, -1, 0]} center>
+            <div className="bg-white/90 px-2 py-1 rounded text-purple-700 font-medium text-sm whitespace-nowrap">
+              Click to learn more
+            </div>
+          </Html>
+        )}
       </group>
     </Float>
   );
