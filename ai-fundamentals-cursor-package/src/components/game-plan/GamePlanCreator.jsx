@@ -298,31 +298,24 @@ const GamePlanCreator = () => {
           repeatType: "mirror",
           ease: "easeInOut",
         }}
-        className={`relative bg-black/40 backdrop-blur-xl border ${isFocused ? 'border-purple-400 shadow-purple-500/40' : 'border-purple-700/60 shadow-indigo-500/30'} rounded-2xl shadow-2xl transition-all duration-400`}
+        className={`relative bg-black/40 backdrop-blur-xl border ${isFocused ? 'border-purple-400 shadow-purple-500/20' : 'border-purple-700/60 shadow-indigo-500/30'} rounded-2xl shadow-2xl transition-all duration-400`}
       >
-        {/* Glowing effect when focused - updated to match title glow */}
+        {/* Glowing effect when focused */}
         {isFocused && (
           <motion.div 
-            className="absolute -inset-1 rounded-[17px] bg-purple-500/30 z-0"
+            className="absolute -inset-1 rounded-[17px] bg-[#c48af7]/30 opacity-40 blur-md z-0"
             initial={{ opacity: 0 }}
-            animate={{ opacity: [0.3, 0.5, 0.3] }}
+            animate={{ opacity: 0.4 }}
             exit={{ opacity: 0 }}
-            transition={{ 
-              opacity: { duration: 2, repeat: Infinity, repeatType: "mirror" },
-              duration: 0.4 
-            }}
-            style={{
-              boxShadow: '0 0 15px rgba(196, 138, 247, 0.5), 0 0 30px rgba(196, 138, 247, 0.3)',
-              filter: 'blur(8px)'
-            }}
+            transition={{ duration: 0.4 }}
           />
         )}
-         {/* Dramatic pulsating effect replacing the glint */}
+         {/* Pulsating effect */}
         <motion.div
-          className="absolute inset-0 rounded-2xl bg-purple-500/10 z-1"
+          className="absolute inset-0 rounded-2xl bg-[#c48af7]/5 z-5"
           animate={{
             scale: [1, 1.02, 1],
-            opacity: [0.1, 0.2, 0.1]
+            opacity: [0.1, 0.15, 0.1]
           }}
           transition={{
             duration: 3,
@@ -376,7 +369,6 @@ const GamePlanCreator = () => {
           </div>
         </div>
       </motion.div>
-
       {isGenerating && (
         <motion.div 
             className="mt-6 text-center"
