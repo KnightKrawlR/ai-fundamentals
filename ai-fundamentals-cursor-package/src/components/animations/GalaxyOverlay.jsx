@@ -86,6 +86,7 @@ const Satellite = ({ setModalOpen }) => {
         onPointerOver={() => setIsHovered(true)}
         onPointerOut={() => setIsHovered(false)}
         onClick={() => setModalOpen(true)}
+        renderOrder={100}
       >
         {/* Satellite body */}
         <mesh>
@@ -104,9 +105,9 @@ const Satellite = ({ setModalOpen }) => {
         </mesh>
         
         {/* Question mark */}
-        <Html position={[0, 0.6, 0]} center transform occlude>
-          <div className="flex items-center justify-center w-8 h-8 bg-white rounded-full shadow-lg cursor-pointer">
-            <span className="text-purple-600 font-bold text-xl">?</span>
+        <Html position={[0, 0.6, 0]} center transform occlude zIndexRange={[100, 101]}>
+          <div className="flex items-center justify-center w-10 h-10 bg-white rounded-full shadow-lg cursor-pointer hover:scale-110 transition-transform">
+            <span className="text-purple-600 font-bold text-2xl">?</span>
           </div>
         </Html>
       </group>
@@ -119,7 +120,7 @@ const GalaxyOverlay = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   
   return (
-    <div className="fixed inset-0 z-[-1] pointer-events-auto">
+    <div className="fixed inset-0 z-5 pointer-events-auto">
       <div className="w-full h-full">
         <Canvas camera={{ position: [0, 0, 30], fov: 60 }}>
           <ambientLight intensity={0.3} />

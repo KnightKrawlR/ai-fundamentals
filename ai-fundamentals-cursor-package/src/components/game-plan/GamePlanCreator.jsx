@@ -298,7 +298,7 @@ const GamePlanCreator = () => {
           repeatType: "mirror",
           ease: "easeInOut",
         }}
-        className={`relative bg-black/40 backdrop-blur-xl border ${isFocused ? 'border-purple-400 shadow-purple-500/20' : 'border-purple-700/60 shadow-indigo-500/30'} rounded-2xl shadow-2xl transition-all duration-400`}
+        className={`relative bg-black/30 backdrop-blur-sm border ${isFocused ? 'border-purple-400 shadow-purple-500/20' : 'border-purple-700/60 shadow-indigo-500/30'} rounded-2xl shadow-2xl transition-all duration-400`}
       >
         {/* Glowing effect when focused */}
         {isFocused && (

@@ -3,11 +3,11 @@ import { motion } from 'framer-motion';
 
 const HeroSection = () => {
   return (
-    <section className="relative min-h-screen text-white overflow-hidden w-screen flex items-start justify-center pt-24">
+    <section className="relative min-h-screen text-white overflow-visible w-screen flex items-start justify-center pt-24">
       {/* Content container */}
-      <div className="w-full flex justify-center items-center py-0 md:py-0 relative z-10">
+      <div className="w-full flex justify-center items-center py-0 md:py-0 relative z-10 bg-transparent">
         <motion.div 
-          className="relative z-20 flex flex-col items-center justify-center text-center max-w-4xl"
+          className="relative z-20 flex flex-col items-center justify-center text-center max-w-4xl bg-transparent"
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 1, delay: 0.5, ease: "circOut" }}

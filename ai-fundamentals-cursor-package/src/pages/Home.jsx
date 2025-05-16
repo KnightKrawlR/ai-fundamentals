@@ -12,23 +12,23 @@ const Home = () => {
   const { isMobile, isTablet, isDesktop } = useResponsive();
   
   return (
-    <div className="min-h-screen flex flex-col w-screen overflow-hidden max-w-[100vw]">
+    <div className="min-h-screen flex flex-col w-screen overflow-visible max-w-[100vw] bg-transparent">
       {/* Galaxy background overlay positioned behind all content */}
       <GalaxyOverlay />
       
-      <Navbar />
+      <Navbar className="z-30" />
       
-      <main className="flex-grow relative w-screen overflow-hidden flex flex-col items-center">
+      <main className="flex-grow relative w-screen overflow-visible flex flex-col items-center">
         <TransitionEffect>
           <HeroSection />
         </TransitionEffect>
         
-        <div className="absolute inset-0 flex items-center justify-center pt-52 sm:pt-64 md:pt-72 lg:pt-72 xl:pt-72">
+        <div className="absolute inset-0 flex items-center justify-center pt-52 sm:pt-64 md:pt-72 lg:pt-72 xl:pt-72 z-20">
           <GamePlanCreator />
         </div>
       </main>
       
-      <Footer />
+      <Footer className="z-30" />
     </div>
   );
 };
