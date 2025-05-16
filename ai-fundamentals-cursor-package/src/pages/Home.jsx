@@ -15,16 +15,20 @@ const Home = () => {
     <div className="min-h-screen flex flex-col bg-[#2D1B54] w-screen overflow-hidden max-w-[100vw]">
       <Navbar />
       
-      <main className="flex-grow relative w-screen overflow-hidden flex flex-col items-center">
-        <TransitionEffect>
-          <HeroSection />
-        </TransitionEffect>
-        
-        <div className="absolute inset-0 flex items-center justify-center pt-52 sm:pt-64 md:pt-72 lg:pt-72 xl:pt-72">
-          <GamePlanCreator />
+      <main className="flex-grow relative w-screen overflow-visible flex flex-col items-center">
+        <div className="w-full">
+          <TransitionEffect>
+            <HeroSection />
+          </TransitionEffect>
+          
+          <div className="absolute inset-0 flex items-center justify-center pt-52 sm:pt-64 md:pt-72 lg:pt-72 xl:pt-72">
+            <GamePlanCreator />
+          </div>
         </div>
 
-        <CubeFeatureDisplay />
+        <div className="mt-[600px] w-full">
+          <CubeFeatureDisplay />
+        </div>
       </main>
       
       <Footer />

@@ -31,17 +31,17 @@ const CubeFeatureDisplay = () => {
     
     if (!isHovered && !isExpanded) {
       interval = setInterval(() => {
-        setCurrentFace((prev) => (prev + 1) % 3);
+        setCurrentFace((prev) => (prev + 1) % cubeFeatures.length);
       }, 5000);
     }
     
     return () => clearInterval(interval);
-  }, [isHovered, isExpanded]);
+  }, [isHovered, isExpanded, cubeFeatures.length]);
 
   // Update animation when face changes
   useEffect(() => {
     controls.start({
-      rotateY: currentFace * -120,
+      rotateY: currentFace * 120,
       transition: { duration: 1.5, ease: "easeInOut" }
     });
   }, [currentFace, controls]);
@@ -57,7 +57,7 @@ const CubeFeatureDisplay = () => {
   };
 
   return (
-    <section className="w-full min-h-screen bg-gradient-to-b from-[#1A0F35] to-[#0A0A0F] flex flex-col items-center justify-center py-32">
+    <section className="w-full py-20 bg-gradient-to-b from-[#1A0F35] to-[#0A0A0F] flex flex-col items-center justify-center">
       <div className="max-w-6xl mx-auto text-center mb-16">
         <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
           <span className="bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-pink-400 to-purple-300">
@@ -69,97 +69,62 @@ const CubeFeatureDisplay = () => {
         </p>
       </div>
       
-      <div className="w-full flex justify-center items-center perspective-1000">
-        {/* 3D cube container */}
+      {/* Simplified Cube Implementation */}
+      <div className="w-full flex justify-center items-center">
         <div 
-          className="relative w-64 h-64 sm:w-80 sm:h-80 flex items-center justify-center"
+          className="relative w-72 h-72 perspective-[1000px]"
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
-          onClick={handleCubeClick}
         >
-          {/* Reflection/shadow beneath cube */}
+          {/* Reflection effect */}
           <div 
-            className="absolute bottom-0 w-48 h-12 bg-purple-500/20 rounded-full blur-xl z-0"
+            className="absolute -bottom-6 w-48 h-8 mx-auto left-0 right-0 bg-purple-500/20 rounded-full blur-lg"
             style={{ 
-              transform: 'translateY(20px) rotateX(70deg) scale(1.2, 0.3)',
-              opacity: 0.4,
-              filter: 'blur(8px)',
+              transform: 'rotateX(70deg) scale(1.2, 0.3)',
               background: 'radial-gradient(circle, rgba(196, 138, 247, 0.4) 0%, rgba(196, 138, 247, 0.1) 70%, rgba(196, 138, 247, 0) 100%)'
             }}
           />
           
-          {/* 3D cube with framer motion */}
+          {/* Cube */}
           <motion.div 
-            className="cube w-full h-full relative preserve-3d cursor-pointer"
+            className="w-full h-full"
             animate={controls}
-            initial={{ rotateY: 0 }}
             style={{ 
               transformStyle: 'preserve-3d',
-              transformOrigin: 'center center',
-              willChange: 'transform'
+              transform: 'rotateX(10deg)',
+              transformOrigin: 'center center'
             }}
           >
-            {/* Cube faces */}
-            {[0, 1, 2].map((faceIndex) => (
+            {cubeFeatures.map((feature, index) => (
               <motion.div
-                key={faceIndex}
-                className="absolute inset-0 w-full h-full flex items-center justify-center"
+                key={index}
+                className="absolute inset-0 flex items-center justify-center rounded-xl p-6 cursor-pointer"
                 style={{
-                  transformStyle: 'preserve-3d',
                   backfaceVisibility: 'hidden',
-                  transform: `rotateY(${faceIndex * 120}deg) translateZ(9rem)`,
-                  background: 'rgba(30, 20, 60, 0.3)',
+                  transform: `rotateY(${index * 120}deg) translateZ(130px)`,
+                  background: 'rgba(30, 20, 60, 0.6)',
                   backdropFilter: 'blur(8px)',
-                  boxShadow: '0 0 20px rgba(196, 138, 247, 0.3), inset 0 0 20px rgba(196, 138, 247, 0.1)',
-                  border: '1px solid rgba(196, 138, 247, 0.3)',
-                  borderRadius: '16px',
-                  overflow: 'hidden'
+                  boxShadow: '0 0 20px rgba(196, 138, 247, 0.3)',
+                  border: '1px solid rgba(196, 138, 247, 0.5)'
                 }}
                 whileHover={{ scale: 1.05 }}
+                onClick={handleCubeClick}
               >
-                {/* Face content */}
-                <div className="p-6 text-center">
-                  <div className="text-4xl mb-3">{cubeFeatures[faceIndex].icon}</div>
-                  <h3 className="text-xl font-bold text-white mb-3">{cubeFeatures[faceIndex].title}</h3>
-                  {/* Hologram projection effect */}
+                <div className="text-center">
+                  <div className="text-5xl mb-4">{feature.icon}</div>
+                  <h3 className="text-xl font-bold text-white mb-2">{feature.title}</h3>
+                  
+                  {/* Glowing effect */}
                   <motion.div 
-                    className="absolute inset-0 z-[-1]"
+                    className="absolute inset-0 rounded-xl -z-10"
                     animate={{ 
-                      opacity: [0.2, 0.4, 0.2],
-                      scale: [0.95, 1, 0.95]
+                      boxShadow: ['0 0 10px rgba(196, 138, 247, 0.3)', '0 0 20px rgba(196, 138, 247, 0.5)', '0 0 10px rgba(196, 138, 247, 0.3)']
                     }}
-                    transition={{ 
-                      duration: 3,
-                      repeat: Infinity,
-                      repeatType: "mirror"
-                    }}
-                    style={{
-                      background: `radial-gradient(circle, rgba(196, 138, 247, 0.2) 0%, rgba(196, 138, 247, 0.05) 70%)`,
-                      filter: 'blur(3px)'
-                    }}
+                    transition={{ duration: 3, repeat: Infinity, repeatType: "mirror" }}
                   />
                 </div>
               </motion.div>
             ))}
-            
-            {/* Cube edges - glowing outlines */}
-            <div className="cube-edges absolute inset-0 w-full h-full" style={{ transformStyle: 'preserve-3d' }}>
-              {[...Array(12)].map((_, i) => (
-                <div 
-                  key={i} 
-                  className="absolute bg-purple-400/30" 
-                  style={{
-                    boxShadow: '0 0 10px rgba(196, 138, 247, 0.8), 0 0 20px rgba(196, 138, 247, 0.3), inset 0 0 5px rgba(255, 255, 255, 0.5)',
-                    ...(i < 4 
-                      ? { height: '2px', width: 'calc(100% - 2rem)', top: i < 2 ? '0' : 'calc(100% - 2px)', left: '1rem' } 
-                      : i < 8 
-                        ? { width: '2px', height: 'calc(100% - 2rem)', left: i < 6 ? '0' : 'calc(100% - 2px)', top: '1rem' }
-                        : { height: '2px', width: 'calc(100% - 2rem)', top: i < 10 ? '0' : 'calc(100% - 2px)', left: '1rem', transform: `rotateY(120deg) translateZ(9rem)` }
-                    )
-                  }}
-                />
-              ))}
-            </div>
           </motion.div>
         </div>
       </div>

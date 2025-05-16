@@ -54,6 +54,12 @@ h1, h2, h3, h4, h5, h6 {
   perspective: 1000px;
 }
 
+@layer utilities {
+  .perspective-1000px {
+    perspective: 1000px;
+  }
+}
+
 .preserve-3d {
   transform-style: preserve-3d;
 }
